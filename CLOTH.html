@@ -108,7 +108,6 @@
             transform: translateY(-50%);
             color: #667eea;
             font-size: 1.1rem;
-            z-index: 1;
         }
 
         .input-with-icon input {
@@ -138,8 +137,8 @@
             color: #667eea;
             cursor: pointer;
             font-size: 1.1rem;
-            padding: 5px;
-            z-index: 2;
+            padding: 8px;
+            z-index: 10;
         }
 
         .password-toggle:hover {
@@ -161,11 +160,17 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            position: relative;
+            z-index: 10;
         }
 
         .login-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
         }
 
         .login-btn:disabled {
@@ -250,15 +255,15 @@
             font-size: 0.8rem;
         }
 
-        .debug-info {
-            background: #fff3cd;
-            color: #856404;
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             font-size: 0.8rem;
             text-align: center;
-            border: 1px solid #ffeaa7;
+            border: 1px solid #bee5eb;
         }
 
         @media (max-width: 480px) {
@@ -294,9 +299,8 @@
         <div class="login-form">
             <div id="messageArea"></div>
             
-            <!-- Debug Info -->
-            <div class="debug-info" id="debugInfo">
-                <strong>Setup Required:</strong> Update APP_SCRIPT_URL with your deployment URL
+            <div class="status-info" id="statusInfo">
+                <i class="fas fa-check-circle"></i> Connected to Apps Script
             </div>
             
             <div class="form-group">
@@ -312,13 +316,13 @@
                 <div class="input-with-icon">
                     <i class="fas fa-lock input-icon"></i>
                     <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
-                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                    <button type="button" class="password-toggle" id="passwordToggle">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
             </div>
 
-            <button class="login-btn" onclick="login()" id="loginBtn">
+            <button class="login-btn" id="loginBtn">
                 <div class="btn-content">
                     <i class="fas fa-sign-in-alt"></i>
                     <span id="loginText">Sign In</span>
@@ -327,13 +331,6 @@
                     </div>
                 </div>
             </button>
-
-            <!-- Test Credentials -->
-            <div class="debug-info">
-                <strong>Test Login:</strong><br>
-                Username: <code>testuser</code><br>
-                Password: <code>testpass</code>
-            </div>
         </div>
 
         <div class="features">
@@ -356,29 +353,9 @@
     </div>
 
     <script>
-        // =============================================
-        // 🔧 CONFIGURATION - UPDATE THIS URL 🔧
-        // =============================================
-        // Get this from: Deploy > Manage deployments > Copy Web app URL
-        const APP_SCRIPT_URL = 'PASTE_YOUR_DEPLOYMENT_URL_HERE';
-        // Example: 'https://script.google.com/macros/s/ABC123xyz/exec'
-        // =============================================
-
+        // YOUR APP SCRIPT CONFIGURATION
+        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec';
         const DATA_MANAGER_PAGE = 'data-manager.html';
-
-        // Update debug info
-        document.addEventListener('DOMContentLoaded', function() {
-            const debugInfo = document.getElementById('debugInfo');
-            if (APP_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec') {
-                debugInfo.innerHTML = '<strong>⚠️ Setup Required:</strong> Please update APP_SCRIPT_URL in the script with your deployment URL';
-                debugInfo.style.background = '#f8d7da';
-                debugInfo.style.color = '#721c24';
-            } else {
-                debugInfo.innerHTML = `<strong>✅ Connected to:</strong> ${APP_SCRIPT_URL}`;
-                debugInfo.style.background = '#d1ecf1';
-                debugInfo.style.color = '#0c5460';
-            }
-        });
 
         function showMessage(message, type) {
             const messageArea = document.getElementById('messageArea');
@@ -405,8 +382,9 @@
         }
 
         function togglePassword() {
+            console.log('Toggle password clicked');
             const passwordInput = document.getElementById('password');
-            const toggleIcon = document.querySelector('.password-toggle i');
+            const toggleIcon = document.querySelector('#passwordToggle i');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -418,12 +396,7 @@
         }
 
         async function callGoogleScript(functionName, username, password) {
-            // Check if URL is configured
-            if (APP_SCRIPT_URL === 'PASTE_YOUR_DEPLOYMENT_URL_HERE') {
-                throw new Error('Apps Script URL not configured. Please update the APP_SCRIPT_URL variable.');
-            }
-
-            const url = `${https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec}?function=${functionName}`;
+            const url = 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec';
             
             const payload = {
                 username: username,
@@ -460,6 +433,7 @@
         }
 
         async function login() {
+            console.log('Login function called');
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
@@ -502,33 +476,50 @@
             }
         }
 
-        // Event listeners
+        // Proper event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - setting up event listeners');
+            
+            // Password toggle
+            document.getElementById('passwordToggle').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Password toggle clicked via listener');
+                togglePassword();
+            });
+            
+            // Login button
+            document.getElementById('loginBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Login button clicked via listener');
+                login();
+            });
+            
             // Enter key support
             document.getElementById('password').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
+                    e.preventDefault();
                     login();
                 }
             });
 
             document.getElementById('username').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
+                    e.preventDefault();
                     document.getElementById('password').focus();
                 }
             });
 
-            // Clear message when user starts typing
-            document.getElementById('username').addEventListener('input', clearMessage);
-            document.getElementById('password').addEventListener('input', clearMessage);
-
-            // Focus on username field
+            // Focus on username
             document.getElementById('username').focus();
+            
+            console.log('Event listeners setup complete');
         });
 
-        function clearMessage() {
-            const messageArea = document.getElementById('messageArea');
-            messageArea.innerHTML = '';
-        }
+        // Update status info
+        document.getElementById('statusInfo').innerHTML = 
+            `<i class="fas fa-check-circle"></i> Connected to: ${APP_SCRIPT_URL}`;
     </script>
 </body>
 </html>
