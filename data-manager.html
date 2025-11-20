@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Manager - Customer Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f8fafc;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: #334155;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .brand-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .brand-text p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .welcome-text {
+            text-align: right;
+        }
+
+        .welcome-text h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .welcome-text p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--accent);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.success .stat-icon {
+            background: linear-gradient(135deg, var(--accent), #059669);
+        }
+
+        .stat-card.warning .stat-icon {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+
+        .stat-card.danger .stat-icon {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent), #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .input {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .table-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            min-width: 150px;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .data-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Header Editing */
+        .header-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-sm);
+            background: white;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .cell-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .cell-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .action-cell {
+            white-space: nowrap;
+        }
+
+        /* Messages */
+        .message {
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            color: var(--primary);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+            }
+
+            .welcome-text {
+                text-align: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="logo">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Business Manager</h1>
+                        <p>Data Management Portal</p>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <div class="welcome-text">
+                        <h2 id="customerName">Welcome back!</h2>
+                        <p>Manage your business data efficiently</p>
+                    </div>
+                    <button class="btn btn-danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-value" id="totalItems">0</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-value" id="activeItems">0</div>
+                    <div class="stat-label">Active Items</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="stat-value" id="totalColumns">0</div>
+                    <div class="stat-label">Data Fields</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-icon">
+                        <i class="fas fa-sync"></i>
+                    </div>
+                    <div class="stat-value" id="lastUpdated">Now</div>
+                    <div class="stat-label">Last Updated</div>
+                </div>
+            </div>
+
+            <!-- Message Area -->
+            <div id="messageArea"></div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="control-group">
+                    <input type="text" id="newColumnName" class="input" placeholder="Enter new field name" style="min-width: 200px;">
+                    <button class="btn btn-success" onclick="addColumn()">
+                        <i class="fas fa-plus"></i>
+                        Add Field
+                    </button>
+                </div>
+                <div class="control-group">
+                    <button class="btn btn-outline" onclick="toggleHeaderEdit()" id="editHeadersBtn">
+                        <i class="fas fa-edit"></i>
+                        Edit Headers
+                    </button>
+                    <button class="btn btn-primary" onclick="addRow()">
+                        <i class="fas fa-plus-circle"></i>
+                        Add Row
+                    </button>
+                    <button class="btn btn-success" onclick="saveAll()">
+                        <i class="fas fa-save"></i>
+                        Save All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Loading your data...</p>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-table"></i> Your Business Data</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="dataTable">
+                        <thead id="tableHead">
+                            <!-- Headers will be populated dynamically -->
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // YOUR APP SCRIPT CONFIGURATION
+        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcDZ28NW4XvPMGqIdeB1ZwzdK_HPD_G1vXpdlalRjXi4GXn9Hcq8D2Job5sySb9_PTIQ/exec';
+        const LOGIN_PAGE = 'login.html';
+
+        let currentHeaders = [];
+        let currentData = [];
+        let isEditingHeaders = false;
+        let currentUsername = '';
+        let currentPassword = '';
+
+        // Check authentication
+        function checkAuth() {
+            currentUsername = localStorage.getItem('customerUsername');
+            currentPassword = localStorage.getItem('customerPassword');
+            const customerName = localStorage.getItem('customerName');
+
+            if (!currentUsername || !currentPassword) {
+                window.location.href = LOGIN_PAGE;
+                return false;
+            }
+
+            document.getElementById('customerName').textContent = customerName || 'Valued Customer';
+            return true;
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('customerUsername');
+                localStorage.removeItem('customerPassword');
+                localStorage.removeItem('customerName');
+                window.location.href = LOGIN_PAGE;
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageArea = document.getElementById('messageArea');
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+            messageArea.innerHTML = `
+                <div class="message ${type}">
+                    <i class="fas ${icon}"></i>
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+
+        // Show loading state
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Call Google Apps Script
+        async function callGoogleScript(functionName, ...args) {
+            const url = `${APP_SCRIPT_URL}?function=${functionName}`;
+            
+            const payload = {
+                username: currentUsername,
+                password: currentPassword,
+                data: args
+            };
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            return await response.json();
+        }
+
+        // Load customer data
+        async function loadData() {
+            if (!checkAuth()) return;
+
+            showLoading(true);
+            
+            try {
+                const result = await callGoogleScript('getCustomerData', currentUsername, currentPassword);
+                
+                if (result.success) {
+                    currentHeaders = result.headers || ['Item', 'Cost', 'Price', 'Quantity'];
+                    currentData = result.data || [];
+                    
+                    renderTable();
+                    updateStats();
+                    showMessage('Data loaded successfully', 'success');
+                } else {
+                    showMessage(result.error || 'Failed to load data', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please check your connection.', 'error');
+                console.error('Load data error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalItems').textContent = currentData.filter(row => row[0]).length;
+            document.getElementById('activeItems').textContent = currentData.filter(row => row[0] && row[3] > 0).length;
+            document.getElementById('totalColumns').textContent = currentHeaders.length;
+            document.getElementById('lastUpdated').textContent = 'Just now';
+        }
+
+        // Render table
+        function renderTable() {
+            const tableHead = document.getElementById('tableHead');
+            const tableBody = document.getElementById('tableBody');
+            
+            // Render headers
+            let headerHTML = '<tr>';
+            currentHeaders.forEach((header, index) => {
+                if (isEditingHeaders) {
+                    headerHTML += `
+                        <th>
+                            <input type="text" class="header-input" value="${header}" 
+                                   onchange="updateHeader(${index}, this.value)"
+                                   placeholder="Field name...">
+                            <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; margin-top: 0.5rem; font-size: 0.8rem;" 
+                                    onclick="removeColumn(${index})">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                        </th>
+                    `;
+                } else {
+                    headerHTML += `<th>${header}</th>`;
+                }
+            });
+            headerHTML += '<th>Actions</th></tr>';
+            tableHead.innerHTML = headerHTML;
+            
+            // Render data rows
+            tableBody.innerHTML = '';
+            
+            if (currentData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="${currentHeaders.length + 1}" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No data yet</h3>
+                            <p>Add your first item to get started</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            currentData.forEach((row, rowIndex) => {
+                if (row.some(cell => cell !== '' && cell !== null)) {
+                    let rowHTML = '<tr>';
+                    currentHeaders.forEach((header, colIndex) => {
+                        rowHTML += `
+                            <td>
+                                <input type="text" class="cell-input" value="${row[colIndex] || ''}" 
+                                       onchange="updateCell(${rowIndex}, ${colIndex}, this.value)"
+                                       placeholder="Enter ${header.toLowerCase()}...">
+                            </td>
+                        `;
+                    });
+                    rowHTML += `
+                        <td class="action-cell">
+                            <button class="btn btn-danger" onclick="deleteRow(${rowIndex})" style="padding: 0.5rem 1rem;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                    tableBody.innerHTML += rowHTML;
+                }
+            });
+        }
+
+        // Toggle header editing
+        function toggleHeaderEdit() {
+            isEditingHeaders = !isEditingHeaders;
+            const btn = document.getElementById('editHeadersBtn');
+            btn.innerHTML = isEditingHeaders ? 
+                '<i class="fas fa-save"></i> Save Headers' : 
+                '<i class="fas fa-edit"></i> Edit Headers';
+            renderTable();
+        }
+
+        // Update header
+        function updateHeader(index, newValue) {
+            currentHeaders[index] = newValue;
+        }
+
+        // Add new column
+        async function addColumn() {
+            const newColumnName = document.getElementById('newColumnName').value.trim();
+            
+            if (!newColumnName) {
+                showMessage('Please enter a field name', 'error');
+                return;
+            }
+            
+            try {
+                const result = await callGoogleScript('addNewColumn', newColumnName);
+                if (result.success) {
+                    currentHeaders.push(newColumnName);
+                    currentData.forEach(row => row.push(''));
+                    renderTable();
+                    updateStats();
+                    document.getElementById('newColumnName').value = '';
+                    showMessage(`Field "${newColumnName}" added successfully`, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding field', 'error');
+            }
+        }
+
+        // Remove column
+        async function removeColumn(index) {
+            if (!confirm('Are you sure you want to remove this field? All data in this field will be lost.')) {
+                return;
+            }
+            
+            try {
+                const result = await callGoogleScript('removeColumn', index);
+                if (result.success) {
+                    currentHeaders.splice(index, 1);
+                    currentData.forEach(row => row.splice(index, 1));
+                    renderTable();
+                    updateStats();
+                    showMessage('Field removed successfully', 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error removing field', 'error');
+            }
+        }
+
+        // Update cell
+        function updateCell(rowIndex, colIndex, newValue) {
+            if (!currentData[rowIndex]) {
+                currentData[rowIndex] = Array(currentHeaders.length).fill('');
+            }
+            currentData[rowIndex][colIndex] = newValue;
+        }
+
+        // Add new row
+        async function addRow() {
+            try {
+                const result = await callGoogleScript('addNewRow');
+                if (result.success) {
+                    await loadData(); // Reload to get updated data
+                    showMessage('New item added successfully', 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding item', 'error');
+            }
+        }
+
+        // Delete row
+        async function deleteRow(rowIndex) {
+            if (!confirm('Are you sure you want to delete this item?')) {
+                return;
+            }
+            
+            try {
+                const result = await callGoogleScript('deleteRow', rowIndex);
+                if (result.success) {
+                    currentData.splice(rowIndex, 1);
+                    renderTable();
+                    updateStats();
+                    showMessage('Item deleted successfully', 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting item', 'error');
+            }
+        }
+
+        // Save all data
+        async function saveAll() {
+            try {
+                const result = await callGoogleScript('saveAllData', currentHeaders, currentData);
+                if (result.success) {
+                    showMessage('All changes saved successfully', 'success');
+                    updateStats();
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error saving data', 'error');
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                loadData();
+            }
+            
+            // Enter key for adding columns
+            document.getElementById('newColumnName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addColumn();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
