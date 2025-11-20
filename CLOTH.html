@@ -29,7 +29,6 @@
             overflow: hidden;
             width: 100%;
             max-width: 400px;
-            position: relative;
         }
 
         .login-header {
@@ -102,7 +101,7 @@
             position: relative;
         }
 
-        .input-with-icon i:first-child {
+        .input-icon {
             position: absolute;
             left: 15px;
             top: 50%;
@@ -128,8 +127,8 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .input-with-icon input::placeholder {
-            color: #aaa;
+        .password-wrapper {
+            position: relative;
         }
 
         .password-toggle {
@@ -160,7 +159,6 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            position: relative;
         }
 
         .login-btn:hover {
@@ -168,18 +166,10 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
         .login-btn:disabled {
             opacity: 0.7;
             cursor: not-allowed;
             transform: none;
-        }
-
-        .login-btn i {
-            font-size: 1.2rem;
         }
 
         .btn-content {
@@ -193,7 +183,7 @@
         }
 
         .loading.show {
-            display: inline;
+            display: inline-block;
         }
 
         .loading i {
@@ -294,7 +284,7 @@
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-with-icon">
-                    <i class="fas fa-user"></i>
+                    <i class="fas fa-user input-icon"></i>
                     <input type="text" id="username" placeholder="Enter your username" autocomplete="username">
                 </div>
             </div>
@@ -302,11 +292,13 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="input-with-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
-                    <button type="button" class="password-toggle" onclick="togglePassword()">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <i class="fas fa-lock input-icon"></i>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -392,6 +384,7 @@
             };
             
             try {
+                console.log('Calling API:', functionName, payload.username);
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
@@ -404,7 +397,9 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                return await response.json();
+                const result = await response.json();
+                console.log('API Response:', result);
+                return result;
             } catch (error) {
                 console.error('API call failed:', error);
                 throw error;
@@ -415,8 +410,13 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            if (!username || !password) {
-                showMessage('Please enter both username and password', 'error');
+            if (!username) {
+                showMessage('Please enter your username', 'error');
+                return;
+            }
+            
+            if (!password) {
+                showMessage('Please enter your password', 'error');
                 return;
             }
             
@@ -442,7 +442,7 @@
                     showMessage(result.error || 'Login failed. Please check your credentials.', 'error');
                 }
             } catch (error) {
-                showMessage('Connection error. Please check your internet and try again.', 'error');
+                showMessage('Connection error. Please check your internet connection and try again.', 'error');
                 console.error('Login error:', error);
             } finally {
                 showLoading(false);
@@ -478,5 +478,3 @@
     </script>
 </body>
 </html>
-
-
