@@ -250,6 +250,17 @@
             font-size: 0.8rem;
         }
 
+        .debug-info {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px solid #ffeaa7;
+        }
+
         @media (max-width: 480px) {
             .login-container {
                 border-radius: 15px;
@@ -283,6 +294,11 @@
         <div class="login-form">
             <div id="messageArea"></div>
             
+            <!-- Debug Info -->
+            <div class="debug-info" id="debugInfo">
+                <strong>Setup Required:</strong> Update APP_SCRIPT_URL with your deployment URL
+            </div>
+            
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-with-icon">
@@ -311,6 +327,13 @@
                     </div>
                 </div>
             </button>
+
+            <!-- Test Credentials -->
+            <div class="debug-info">
+                <strong>Test Login:</strong><br>
+                Username: <code>testuser</code><br>
+                Password: <code>testpass</code>
+            </div>
         </div>
 
         <div class="features">
@@ -333,9 +356,29 @@
     </div>
 
     <script>
-        // YOUR APP SCRIPT CONFIGURATION
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec';
+        // =============================================
+        // 🔧 CONFIGURATION - UPDATE THIS URL 🔧
+        // =============================================
+        // Get this from: Deploy > Manage deployments > Copy Web app URL
+        const APP_SCRIPT_URL = 'PASTE_YOUR_DEPLOYMENT_URL_HERE';
+        // Example: 'https://script.google.com/macros/s/ABC123xyz/exec'
+        // =============================================
+
         const DATA_MANAGER_PAGE = 'data-manager.html';
+
+        // Update debug info
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugInfo = document.getElementById('debugInfo');
+            if (APP_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec') {
+                debugInfo.innerHTML = '<strong>⚠️ Setup Required:</strong> Please update APP_SCRIPT_URL in the script with your deployment URL';
+                debugInfo.style.background = '#f8d7da';
+                debugInfo.style.color = '#721c24';
+            } else {
+                debugInfo.innerHTML = `<strong>✅ Connected to:</strong> ${APP_SCRIPT_URL}`;
+                debugInfo.style.background = '#d1ecf1';
+                debugInfo.style.color = '#0c5460';
+            }
+        });
 
         function showMessage(message, type) {
             const messageArea = document.getElementById('messageArea');
@@ -374,8 +417,12 @@
             }
         }
 
-        // Fixed API call function
         async function callGoogleScript(functionName, username, password) {
+            // Check if URL is configured
+            if (APP_SCRIPT_URL === 'PASTE_YOUR_DEPLOYMENT_URL_HERE') {
+                throw new Error('Apps Script URL not configured. Please update the APP_SCRIPT_URL variable.');
+            }
+
             const url = `${https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec}?function=${functionName}`;
             
             const payload = {
@@ -385,8 +432,8 @@
             };
             
             try {
-                console.log('Sending request to:', url);
-                console.log('Payload:', payload);
+                console.log('🔗 Connecting to:', url);
+                console.log('📤 Sending payload:', payload);
                 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -396,19 +443,19 @@
                     body: JSON.stringify(payload)
                 });
                 
-                console.log('Response status:', response.status);
+                console.log('📥 Response status:', response.status);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const result = await response.json();
-                console.log('API Response:', result);
+                console.log('✅ API Response:', result);
                 return result;
                 
             } catch (error) {
-                console.error('API call failed:', error);
-                throw new Error('Cannot connect to server. Please check your internet connection.');
+                console.error('❌ API call failed:', error);
+                throw new Error('Cannot connect to server: ' + error.message);
             }
         }
 
@@ -448,7 +495,7 @@
                     showMessage(result.error || 'Login failed. Please check your credentials.', 'error');
                 }
             } catch (error) {
-                showMessage(error.message || 'Connection error. Please try again.', 'error');
+                showMessage(error.message, 'error');
                 console.error('Login error:', error);
             } finally {
                 showLoading(false);
