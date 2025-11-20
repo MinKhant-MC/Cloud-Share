@@ -311,6 +311,12 @@
             border: 1px solid #fecaca;
         }
 
+        .message.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -328,6 +334,11 @@
             text-align: center;
             padding: 3rem;
             color: var(--text-light);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
@@ -462,41 +473,65 @@
         let currentUsername = '';
         let currentPassword = '';
 
-        // SIMPLE API CALL THAT BYPASSES CORS
+        // FIXED API CALL FUNCTION - Uses JSONP to bypass CORS
         async function callGoogleScript(functionName, ...args) {
-            // Create URL parameters instead of POST to avoid CORS
-            const params = new URLSearchParams();
-            params.append('function', functionName);
-            params.append('username', currentUsername);
-            params.append('password', currentPassword);
-            params.append('data', JSON.stringify(args));
-            
-            const url = `${APP_SCRIPT_URL}?${params.toString()}`;
-            
-            try {
-                console.log('🔄 Calling:', functionName);
+            return new Promise((resolve, reject) => {
+                const params = new URLSearchParams();
+                params.append('function', functionName);
+                params.append('username', currentUsername);
+                params.append('password', currentPassword);
                 
-                // Use GET instead of POST to avoid CORS preflight
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors' // This bypasses CORS but we can't read response
-                });
+                if (args.length > 0) {
+                    params.append('data', JSON.stringify(args));
+                }
                 
-                // Since we can't read response in no-cors mode, assume success
-                // In a real app, you'd need a proxy server
-                console.log('✅ Request sent (CORS bypassed)');
-                return { success: true, message: 'Changes saved to your Google Sheet' };
+                // Add timestamp to avoid caching
+                params.append('t', new Date().getTime());
                 
-            } catch (error) {
-                console.log('⚠️ Using local mode (CORS blocked)');
-                // Return success anyway so the UI works
-                return { success: true, message: 'Changes saved locally' };
-            }
+                // Create unique callback name
+                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                
+                // Define the callback function
+                window[callbackName] = function(response) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    
+                    console.log('API Response:', response);
+                    
+                    if (response && response.success !== undefined) {
+                        resolve(response);
+                    } else {
+                        reject(new Error('Invalid response from server'));
+                    }
+                };
+                
+                // Create script element
+                const script = document.createElement('script');
+                script.src = `${APP_SCRIPT_URL}?${params.toString()}&callback=${callbackName}`;
+                
+                // Handle script loading errors
+                script.onerror = function() {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('Failed to load script'));
+                };
+                
+                // Add to document to execute
+                document.body.appendChild(script);
+                
+                // Set timeout for the request
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('Request timeout'));
+                    }
+                }, 15000);
+            });
         }
 
         function updateConnectionStatus(message, isError = false) {
             const status = document.getElementById('connectionStatus');
-            status.textContent = message;
             status.className = `connection-status ${isError ? 'error' : ''}`;
             
             if (isError) {
@@ -529,11 +564,14 @@
             }
         }
 
-        function showMessage(message, type) {
+        function showMessage(message, type = 'success') {
             const messageArea = document.getElementById('messageArea');
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+            const icon = type === 'success' ? 'fa-check-circle' : 
+                        type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+            const messageClass = type === 'warning' ? 'warning' : type;
+            
             messageArea.innerHTML = `
-                <div class="message ${type}">
+                <div class="message ${messageClass}">
                     <i class="fas ${icon}"></i>
                     ${message}
                 </div>
@@ -554,37 +592,41 @@
             updateConnectionStatus('Loading your data...');
             
             try {
-                // Try to load from Google Sheets
                 const result = await callGoogleScript('getCustomerData');
                 
                 if (result.success) {
-                    // If we had real data, it would be in result.data
-                    // For now, use demo data but show success message
-                    currentHeaders = ['Product', 'Cost', 'Price', 'Quantity', 'Profit'];
-                    currentData = [
-                        ['Laptop', '800', '1200', '5', '400'],
-                        ['Mouse', '15', '25', '50', '10'],
-                        ['Keyboard', '45', '75', '30', '30'],
-                        ['Monitor', '200', '350', '8', '150']
-                    ];
+                    // Use real data from API response
+                    currentHeaders = result.headers || [];
+                    currentData = result.data || [];
                     
                     renderTable();
                     updateStats();
                     updateConnectionStatus('Connected to your Google Sheet');
                     showMessage('Data loaded successfully', 'success');
+                    
+                    console.log('Loaded data:', {
+                        headers: currentHeaders,
+                        data: currentData
+                    });
+                } else {
+                    // API call succeeded but returned error
+                    throw new Error(result.error || 'Failed to load data');
                 }
             } catch (error) {
-                // Use demo data but inform user
+                console.error('Load data error:', error);
+                
+                // Fallback to demo data
                 currentHeaders = ['Product', 'Cost', 'Price', 'Quantity', 'Profit'];
                 currentData = [
                     ['Laptop', '800', '1200', '5', '400'],
-                    ['Mouse', '15', '25', '50', '10']
+                    ['Mouse', '15', '25', '50', '10'],
+                    ['Keyboard', '45', '75', '30', '30']
                 ];
                 
                 renderTable();
                 updateStats();
-                updateConnectionStatus('Using demo data (connection issues)', true);
-                showMessage('Using demo data. Real connection failed.', 'warning');
+                updateConnectionStatus('Using demo data - ' + error.message, true);
+                showMessage('Using demo data. Connection issue: ' + error.message, 'warning');
             } finally {
                 showLoading(false);
             }
@@ -592,7 +634,9 @@
 
         function updateStats() {
             document.getElementById('totalItems').textContent = currentData.length;
-            document.getElementById('activeItems').textContent = currentData.filter(row => row[3] > 0).length;
+            document.getElementById('activeItems').textContent = currentData.filter(row => 
+                row[3] && !isNaN(row[3]) && parseInt(row[3]) > 0
+            ).length;
             document.getElementById('totalColumns').textContent = currentHeaders.length;
             document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
         }
@@ -609,7 +653,7 @@
                             <input type="text" class="header-input" value="${header}" 
                                    onchange="updateHeader(${index}, this.value)">
                             <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; margin-top: 0.5rem; font-size: 0.8rem;" 
-                                    onclick="removeColumn(${index})">
+                                    onclick="removeColumn(${index})" title="Remove field">
                                 <i class="fas fa-times"></i>
                             </button>
                         </th>
@@ -623,19 +667,32 @@
             
             tableBody.innerHTML = '';
             
+            if (currentData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="${currentHeaders.length + 1}" style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <br>No data available. Click "Add Row" to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
             currentData.forEach((row, rowIndex) => {
                 let rowHTML = '<tr>';
                 currentHeaders.forEach((header, colIndex) => {
+                    const value = row[colIndex] || '';
                     rowHTML += `
                         <td>
-                            <input type="text" class="cell-input" value="${row[colIndex] || ''}" 
+                            <input type="text" class="cell-input" value="${value}" 
                                    onchange="updateCell(${rowIndex}, ${colIndex}, this.value)">
                         </td>
                     `;
                 });
                 rowHTML += `
                     <td class="action-cell">
-                        <button class="btn btn-danger" onclick="deleteRow(${rowIndex})">
+                        <button class="btn btn-danger" onclick="deleteRow(${rowIndex})" title="Delete row">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -654,6 +711,10 @@
         }
 
         function updateHeader(index, newValue) {
+            if (newValue.trim() === '') {
+                showMessage('Field name cannot be empty', 'error');
+                return;
+            }
             currentHeaders[index] = newValue;
         }
 
@@ -665,7 +726,12 @@
                 return;
             }
             
-            // Update locally
+            if (currentHeaders.includes(newColumnName)) {
+                showMessage('A field with this name already exists', 'error');
+                return;
+            }
+            
+            // Update locally first
             currentHeaders.push(newColumnName);
             currentData.forEach(row => row.push(''));
             
@@ -675,16 +741,26 @@
             
             // Try to save to Google Sheets
             try {
-                await callGoogleScript('addNewColumn', newColumnName);
-                showMessage(`Field "${newColumnName}" added`, 'success');
+                const result = await callGoogleScript('addNewColumn', newColumnName);
+                if (result.success) {
+                    showMessage(`Field "${newColumnName}" added successfully`, 'success');
+                } else {
+                    throw new Error(result.error);
+                }
             } catch (error) {
-                showMessage(`Field "${newColumnName}" added locally`, 'success');
+                showMessage(`Field "${newColumnName}" added locally only: ${error.message}`, 'warning');
             }
         }
 
         async function removeColumn(index) {
-            if (!confirm('Remove this field?')) return;
+            if (currentHeaders.length <= 1) {
+                showMessage('Cannot remove the last field', 'error');
+                return;
+            }
             
+            if (!confirm('Remove this field and all its data?')) return;
+            
+            const columnName = currentHeaders[index];
             currentHeaders.splice(index, 1);
             currentData.forEach(row => row.splice(index, 1));
             
@@ -692,15 +768,21 @@
             updateStats();
             
             try {
-                await callGoogleScript('removeColumn', index);
-                showMessage('Field removed', 'success');
+                const result = await callGoogleScript('removeColumn', index);
+                if (result.success) {
+                    showMessage(`Field "${columnName}" removed`, 'success');
+                } else {
+                    throw new Error(result.error);
+                }
             } catch (error) {
-                showMessage('Field removed locally', 'success');
+                showMessage(`Field removed locally only: ${error.message}`, 'warning');
             }
         }
 
         function updateCell(rowIndex, colIndex, newValue) {
-            currentData[rowIndex][colIndex] = newValue;
+            if (currentData[rowIndex]) {
+                currentData[rowIndex][colIndex] = newValue;
+            }
         }
 
         async function addRow() {
@@ -711,44 +793,72 @@
             updateStats();
             
             try {
-                await callGoogleScript('addNewRow');
-                showMessage('New row added', 'success');
+                const result = await callGoogleScript('addNewRow');
+                if (result.success) {
+                    showMessage('New row added successfully', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
             } catch (error) {
-                showMessage('New row added locally', 'success');
+                showMessage('New row added locally only: ' + error.message, 'warning');
             }
         }
 
         async function deleteRow(rowIndex) {
-            if (!confirm('Delete this item?')) return;
+            if (!confirm('Delete this row?')) return;
             
             currentData.splice(rowIndex, 1);
             renderTable();
             updateStats();
             
             try {
-                await callGoogleScript('deleteRow', rowIndex);
-                showMessage('Row deleted', 'success');
+                const result = await callGoogleScript('deleteRow', rowIndex);
+                if (result.success) {
+                    showMessage('Row deleted successfully', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
             } catch (error) {
-                showMessage('Row deleted locally', 'success');
+                showMessage('Row deleted locally only: ' + error.message, 'warning');
             }
         }
 
         async function saveAll() {
+            showLoading(true);
+            
             try {
-                await callGoogleScript('saveAllData', currentHeaders, currentData);
-                showMessage('All changes saved', 'success');
+                const result = await callGoogleScript('saveAllData', currentHeaders, currentData);
+                if (result.success) {
+                    showMessage('All changes saved successfully', 'success');
+                    updateStats();
+                } else {
+                    throw new Error(result.error);
+                }
             } catch (error) {
-                showMessage('Changes saved locally', 'success');
+                showMessage('Failed to save changes: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             if (checkAuth()) {
                 loadData();
             }
             
+            // Enter key support for adding columns
             document.getElementById('newColumnName').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') addColumn();
+            });
+            
+            // Prevent empty field names
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('header-input') && e.target.value.trim() === '') {
+                    e.target.style.borderColor = 'var(--danger)';
+                } else if (e.target.classList.contains('header-input')) {
+                    e.target.style.borderColor = 'var(--primary)';
+                }
             });
         });
     </script>
