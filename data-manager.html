@@ -557,7 +557,7 @@
 
     <script>
         // YOUR APP SCRIPT CONFIGURATION
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjyVAL0iEKf_BW18D7SfyoHzU-6-akJ9onzilqJdulRhop2rEaFQITGYGaMLI6loOJOQ/exec';
+        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxa2f0TbWYXn7LeZJYjfg5sGgK7yPmDIAxJjExBSCMVpvk-fnMiuYQxBkr15zMQ4q30vg/exec';
         const LOGIN_PAGE = 'login.html';
 
         let currentHeaders = [];
@@ -611,70 +611,42 @@
             document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
 
-        // Call Google Apps Script - SIMPLIFIED VERSION
+        // Call Google Apps Script - REAL CONNECTION
         async function callGoogleScript(functionName, ...args) {
-            console.log('Calling function:', functionName, 'with args:', args);
+            const url = `${APP_SCRIPT_URL}?function=${functionName}`;
             
-            // For now, use demo mode to avoid CORS issues
-            // In production, you'd make actual API calls here
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const result = getDemoData(functionName, ...args);
-                    console.log('Demo result:', result);
-                    resolve(result);
-                }, 500);
-            });
-        }
-
-        // Demo data fallback - ENHANCED
-        function getDemoData(functionName, ...args) {
-            switch(functionName) {
-                case 'getCustomerData':
-                    return {
-                        success: true,
-                        customerName: currentUsername + " (Demo)",
-                        headers: ["Product", "Cost", "Price", "Quantity", "Profit"],
-                        data: [
-                            ["Laptop", "800", "1200", "5", "400"],
-                            ["Mouse", "15", "25", "50", "10"],
-                            ["Keyboard", "45", "75", "30", "30"],
-                            ["Monitor", "200", "350", "8", "150"]
-                        ]
-                    };
-                case 'addNewColumn':
-                    return { 
-                        success: true, 
-                        message: "New column added: " + args[0] 
-                    };
-                case 'removeColumn':
-                    return { 
-                        success: true, 
-                        message: "Column removed successfully" 
-                    };
-                case 'addNewRow':
-                    return { 
-                        success: true, 
-                        message: "New row added successfully" 
-                    };
-                case 'deleteRow':
-                    return { 
-                        success: true, 
-                        message: "Row deleted successfully" 
-                    };
-                case 'saveAllData':
-                    return { 
-                        success: true, 
-                        message: "All data saved successfully" 
-                    };
-                default:
-                    return { 
-                        success: false, 
-                        error: "Function not available in demo mode" 
-                    };
+            const payload = {
+                username: currentUsername,
+                password: currentPassword,
+                data: args
+            };
+            
+            try {
+                console.log('🔗 Calling Apps Script:', functionName, args);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Apps Script response:', result);
+                return result;
+                
+            } catch (error) {
+                console.error('❌ Apps Script call failed:', error);
+                throw new Error('Cannot connect to Google Sheets. Please check your internet connection.');
             }
         }
 
-        // Load customer data
+        // Load customer data from THEIR Google Sheet
         async function loadData() {
             if (!checkAuth()) return;
 
@@ -684,25 +656,18 @@
                 const result = await callGoogleScript('getCustomerData', currentUsername, currentPassword);
                 
                 if (result.success) {
-                    currentHeaders = result.headers || ['Product', 'Cost', 'Price', 'Quantity'];
+                    currentHeaders = result.headers || [];
                     currentData = result.data || [];
                     
                     renderTable();
                     updateStats();
-                    showMessage('Data loaded successfully', 'success');
+                    showMessage('Data loaded from your Google Sheet', 'success');
                 } else {
-                    showMessage(result.error || 'Failed to load data', 'error');
+                    showMessage(result.error || 'Failed to load data from your sheet', 'error');
                 }
             } catch (error) {
-                showMessage('Using demo data', 'success');
+                showMessage(error.message, 'error');
                 console.error('Load data error:', error);
-                
-                // Load demo data
-                const demoResult = getDemoData('getCustomerData');
-                currentHeaders = demoResult.headers;
-                currentData = demoResult.data;
-                renderTable();
-                updateStats();
             } finally {
                 showLoading(false);
             }
@@ -801,7 +766,7 @@
             currentHeaders[index] = newValue;
         }
 
-        // Add new column - FIXED
+        // Add new column - SAVES TO GOOGLE SHEET
         async function addColumn() {
             const newColumnName = document.getElementById('newColumnName').value.trim();
             
@@ -810,52 +775,50 @@
                 return;
             }
             
+            showLoading(true);
+            
             try {
-                // Update locally first for immediate feedback
-                currentHeaders.push(newColumnName);
-                currentData.forEach(row => row.push(''));
-                
-                renderTable();
-                updateStats();
-                document.getElementById('newColumnName').value = '';
-                
-                // Then try to save to server
                 const result = await callGoogleScript('addNewColumn', newColumnName);
+                
                 if (result.success) {
-                    showMessage(`Field "${newColumnName}" added successfully`, 'success');
+                    // Reload data from Google Sheet to get the updated state
+                    await loadData();
+                    document.getElementById('newColumnName').value = '';
+                    showMessage(`Field "${newColumnName}" added to your Google Sheet`, 'success');
                 } else {
-                    showMessage('Added locally (server save failed)', 'warning');
+                    showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Field added locally', 'success');
+                showMessage(error.message, 'error');
                 console.error('Add column error:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Remove column - FIXED
+        // Remove column - SAVES TO GOOGLE SHEET
         async function removeColumn(index) {
-            if (!confirm('Are you sure you want to remove this field? All data in this field will be lost.')) {
+            if (!confirm('Are you sure you want to remove this field? All data in this field will be lost from your Google Sheet.')) {
                 return;
             }
             
+            showLoading(true);
+            
             try {
-                // Update locally first
-                currentHeaders.splice(index, 1);
-                currentData.forEach(row => row.splice(index, 1));
-                
-                renderTable();
-                updateStats();
-                
-                // Then try to save to server
                 const result = await callGoogleScript('removeColumn', index);
+                
                 if (result.success) {
-                    showMessage('Field removed successfully', 'success');
+                    // Reload data from Google Sheet to get the updated state
+                    await loadData();
+                    showMessage('Field removed from your Google Sheet', 'success');
                 } else {
-                    showMessage('Removed locally (server save failed)', 'warning');
+                    showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Field removed locally', 'success');
+                showMessage(error.message, 'error');
                 console.error('Remove column error:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
@@ -867,67 +830,72 @@
             currentData[rowIndex][colIndex] = newValue;
         }
 
-        // Add new row - FIXED
+        // Add new row - SAVES TO GOOGLE SHEET
         async function addRow() {
+            showLoading(true);
+            
             try {
-                // Add empty row locally first
-                const newRow = Array(currentHeaders.length).fill('');
-                currentData.push(newRow);
-                
-                renderTable();
-                updateStats();
-                
-                // Then try to save to server
                 const result = await callGoogleScript('addNewRow');
+                
                 if (result.success) {
-                    showMessage('New item added successfully', 'success');
+                    // Reload data from Google Sheet to get the updated state
+                    await loadData();
+                    showMessage('New row added to your Google Sheet', 'success');
                 } else {
-                    showMessage('Added locally (server save failed)', 'warning');
+                    showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('New item added locally', 'success');
+                showMessage(error.message, 'error');
                 console.error('Add row error:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Delete row - FIXED
+        // Delete row - SAVES TO GOOGLE SHEET
         async function deleteRow(rowIndex) {
-            if (!confirm('Are you sure you want to delete this item?')) {
+            if (!confirm('Are you sure you want to delete this item from your Google Sheet?')) {
                 return;
             }
             
+            showLoading(true);
+            
             try {
-                // Remove locally first
-                currentData.splice(rowIndex, 1);
-                
-                renderTable();
-                updateStats();
-                
-                // Then try to save to server
                 const result = await callGoogleScript('deleteRow', rowIndex);
+                
                 if (result.success) {
-                    showMessage('Item deleted successfully', 'success');
+                    // Reload data from Google Sheet to get the updated state
+                    await loadData();
+                    showMessage('Row deleted from your Google Sheet', 'success');
                 } else {
-                    showMessage('Deleted locally (server save failed)', 'warning');
+                    showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Item deleted locally', 'success');
+                showMessage(error.message, 'error');
                 console.error('Delete row error:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Save all data - FIXED
+        // Save all data - SAVES TO GOOGLE SHEET
         async function saveAll() {
+            showLoading(true);
+            
             try {
                 const result = await callGoogleScript('saveAllData', currentHeaders, currentData);
+                
                 if (result.success) {
-                    showMessage('All changes saved successfully', 'success');
+                    showMessage('All changes saved to your Google Sheet', 'success');
                     updateStats();
                 } else {
-                    showMessage('Save failed: ' + result.error, 'error');
+                    showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Save failed: ' + error.message, 'error');
+                showMessage(error.message, 'error');
+                console.error('Save all error:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
