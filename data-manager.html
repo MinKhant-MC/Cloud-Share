@@ -125,6 +125,12 @@
             border: 1px solid #f5c6cb;
         }
 
+        .connection-status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
         .main-content {
             flex: 1;
             padding: 2rem;
@@ -464,7 +470,7 @@
     </div>
 
     <script>
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjyVAL0iEKf_BW18D7SfyoHzU-6-akJ9onzilqJdulRhop2rEaFQITGYGaMLI6loOJOQ/exec';
+        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJ7QGs7Pc9v4CWY9LkKq6yoOgnrdA2HQC6WgHGaWcRfoYAL-FKhia_w3mgxOKM1LFc4w/exec';
         const LOGIN_PAGE = 'login.html';
 
         let currentHeaders = [];
@@ -473,16 +479,28 @@
         let currentUsername = '';
         let currentPassword = '';
 
-        // FIXED API CALL FUNCTION - Uses JSONP to bypass CORS
+        // IMPROVED API CALL FUNCTION - JSONP ONLY
         async function callGoogleScript(functionName, ...args) {
             return new Promise((resolve, reject) => {
+                // Check if we have credentials
+                if (!currentUsername || !currentPassword) {
+                    reject(new Error('Not authenticated'));
+                    return;
+                }
+
                 const params = new URLSearchParams();
                 params.append('function', functionName);
                 params.append('username', currentUsername);
                 params.append('password', currentPassword);
                 
                 if (args.length > 0) {
-                    params.append('data', JSON.stringify(args));
+                    try {
+                        params.append('data', JSON.stringify(args));
+                    } catch (error) {
+                        console.error('Error serializing data:', error);
+                        reject(new Error('Invalid data parameters'));
+                        return;
+                    }
                 }
                 
                 // Add timestamp to avoid caching
@@ -493,51 +511,67 @@
                 
                 // Define the callback function
                 window[callbackName] = function(response) {
+                    console.log('📡 API Response received:', response);
+                    
+                    // Clean up
                     delete window[callbackName];
-                    document.body.removeChild(script);
+                    if (script.parentNode) {
+                        document.body.removeChild(script);
+                    }
                     
-                    console.log('API Response:', response);
-                    
-                    if (response && response.success !== undefined) {
+                    if (response && typeof response === 'object') {
                         resolve(response);
                     } else {
-                        reject(new Error('Invalid response from server'));
+                        reject(new Error('Invalid response format from server'));
                     }
                 };
                 
                 // Create script element
                 const script = document.createElement('script');
-                script.src = `${APP_SCRIPT_URL}?${params.toString()}&callback=${callbackName}`;
+                const url = `${APP_SCRIPT_URL}?${params.toString()}&callback=${callbackName}`;
+                script.src = url;
+                
+                console.log('🔄 Making API call to:', functionName);
                 
                 // Handle script loading errors
                 script.onerror = function() {
+                    console.error('❌ Script loading failed for URL:', url);
                     delete window[callbackName];
-                    document.body.removeChild(script);
-                    reject(new Error('Failed to load script'));
+                    if (script.parentNode) {
+                        document.body.removeChild(script);
+                    }
+                    reject(new Error('Network error: Cannot connect to Google Apps Script'));
                 };
-                
-                // Add to document to execute
-                document.body.appendChild(script);
                 
                 // Set timeout for the request
                 setTimeout(() => {
                     if (window[callbackName]) {
+                        console.error('⏰ Request timeout for:', functionName);
                         delete window[callbackName];
-                        document.body.removeChild(script);
-                        reject(new Error('Request timeout'));
+                        if (script.parentNode) {
+                            document.body.removeChild(script);
+                        }
+                        reject(new Error('Request timeout (15 seconds)'));
                     }
                 }, 15000);
+                
+                // Add to document to execute
+                document.body.appendChild(script);
             });
         }
 
-        function updateConnectionStatus(message, isError = false) {
+        function updateConnectionStatus(message, isError = false, isSuccess = false) {
             const status = document.getElementById('connectionStatus');
-            status.className = `connection-status ${isError ? 'error' : ''}`;
             
             if (isError) {
+                status.className = 'connection-status error';
                 status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
-            } else {
+            } else if (isSuccess) {
+                status.className = 'connection-status success';
                 status.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            } else {
+                status.className = 'connection-status';
+                status.innerHTML = `<i class="fas fa-sync fa-spin"></i> ${message}`;
             }
         }
 
@@ -585,48 +619,89 @@
             document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
 
+        // TEST CONNECTION FUNCTION
+        async function testConnection() {
+            try {
+                console.log('🧪 Testing connection to Google Apps Script...');
+                
+                // Simple test call
+                const result = await callGoogleScript('getCustomerData');
+                
+                if (result.success) {
+                    console.log('✅ Connection test successful!');
+                    return true;
+                } else {
+                    console.log('❌ Connection test failed:', result.error);
+                    return false;
+                }
+            } catch (error) {
+                console.log('❌ Connection test error:', error.message);
+                return false;
+            }
+        }
+
+        // DEMO DATA FALLBACK
+        function loadDemoData() {
+            currentHeaders = ['Product', 'Cost', 'Price', 'Quantity', 'Profit'];
+            currentData = [
+                ['Laptop', '800', '1200', '5', '400'],
+                ['Mouse', '15', '25', '50', '10'],
+                ['Keyboard', '45', '75', '30', '30'],
+                ['Monitor', '200', '350', '8', '150']
+            ];
+            
+            renderTable();
+            updateStats();
+            showMessage('Loaded demo data - real connection failed', 'warning');
+        }
+
         async function loadData() {
             if (!checkAuth()) return;
 
             showLoading(true);
-            updateConnectionStatus('Loading your data...');
+            updateConnectionStatus('Testing connection...');
             
             try {
+                // Test connection first
+                const connectionOk = await testConnection();
+                
+                if (!connectionOk) {
+                    updateConnectionStatus('Connection failed - Using demo data', true);
+                    loadDemoData();
+                    showLoading(false);
+                    return;
+                }
+                
+                updateConnectionStatus('Loading your data...');
+                
                 const result = await callGoogleScript('getCustomerData');
                 
                 if (result.success) {
-                    // Use real data from API response
                     currentHeaders = result.headers || [];
                     currentData = result.data || [];
                     
-                    renderTable();
-                    updateStats();
-                    updateConnectionStatus('Connected to your Google Sheet');
-                    showMessage('Data loaded successfully', 'success');
+                    // If no data from server, use demo data
+                    if (currentHeaders.length === 0 && currentData.length === 0) {
+                        loadDemoData();
+                        updateConnectionStatus('No data found - Using demo data', true);
+                    } else {
+                        renderTable();
+                        updateStats();
+                        updateConnectionStatus('Connected to your Google Sheet', false, true);
+                        showMessage('Data loaded successfully', 'success');
+                    }
                     
                     console.log('Loaded data:', {
                         headers: currentHeaders,
                         data: currentData
                     });
                 } else {
-                    // API call succeeded but returned error
                     throw new Error(result.error || 'Failed to load data');
                 }
             } catch (error) {
                 console.error('Load data error:', error);
-                
-                // Fallback to demo data
-                currentHeaders = ['Product', 'Cost', 'Price', 'Quantity', 'Profit'];
-                currentData = [
-                    ['Laptop', '800', '1200', '5', '400'],
-                    ['Mouse', '15', '25', '50', '10'],
-                    ['Keyboard', '45', '75', '30', '30']
-                ];
-                
-                renderTable();
-                updateStats();
+                loadDemoData();
                 updateConnectionStatus('Using demo data - ' + error.message, true);
-                showMessage('Using demo data. Connection issue: ' + error.message, 'warning');
             } finally {
                 showLoading(false);
             }
