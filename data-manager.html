@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Manager - Customer Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Data Manager</title>
     <style>
         * {
             margin: 0;
@@ -13,885 +12,489 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #f8f9fa;
-            --accent: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --text: #2c3e50;
-            --text-light: #7f8c8d;
-            --border: #bdc3c7;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius: 8px;
-        }
-
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: var(--text);
-        }
-
-        .app-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background: #f5f5f5;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
-            box-shadow: var(--shadow);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .user-info h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
         }
 
-        .logo {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .user-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: #dc3545;
             color: white;
-            font-size: 1.2rem;
-        }
-
-        .brand-text h1 {
-            font-size: 1.4rem;
-            color: var(--primary);
-            margin-bottom: 0.2rem;
-        }
-
-        .brand-text p {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .welcome-text h2 {
-            font-size: 1.1rem;
-            color: var(--text);
-        }
-
-        .welcome-text p {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        .connection-status {
-            background: #d1ecf1;
-            color: #0c5460;
-            padding: 12px;
-            margin: 15px 20px;
-            border-radius: var(--radius);
-            text-align: center;
-            border: 1px solid #bee5eb;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
             font-weight: 500;
         }
 
-        .connection-status.error {
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .controls {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        input {
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .data-container {
+            background: white;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: auto;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        td input {
+            width: 100%;
+            border: 1px solid #e1e1e1;
+            padding: 8px;
+            border-radius: 3px;
+            background: transparent;
+        }
+
+        td input:focus {
+            border-color: #667eea;
+            background: white;
+        }
+
+        .save-section {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .save-btn:hover {
+            background: #218838;
+        }
+
+        .save-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
 
-        .connection-status.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            text-align: center;
-            border-left: 4px solid var(--primary);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.3rem;
-            margin: 0 auto 1rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--text);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .controls {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .control-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 0.7rem 1.2rem;
-            border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-success {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #27ae60;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--border);
-            color: var(--text);
-        }
-
-        .btn-outline:hover {
-            background: var(--secondary);
-        }
-
-        .input {
-            padding: 0.7rem 1rem;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            background: white;
-            min-width: 200px;
-        }
-
-        .input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .table-container {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .table-header {
-            background: var(--primary);
-            color: white;
-            padding: 1.2rem;
-        }
-
-        .table-header h3 {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table th {
-            background: #f8f9fa;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text);
-            border-bottom: 2px solid var(--border);
-        }
-
-        .data-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .header-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 2px solid var(--primary);
-            border-radius: 4px;
-            background: white;
-            font-weight: 600;
-        }
-
-        .cell-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            background: transparent;
-        }
-
-        .cell-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .action-cell {
-            white-space: nowrap;
-            width: 100px;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin-bottom: 1rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .message.success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        .message.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .message.warning {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fcd34d;
-        }
-
         .loading {
             text-align: center;
-            padding: 3rem;
-            color: var(--primary);
+            padding: 20px;
+            display: none;
         }
 
-        .loading i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-light);
+            margin: 0 auto 10px;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-            
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .control-group {
-                justify-content: center;
-            }
-            
-            .input {
-                min-width: auto;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="header-content">
-                <div class="brand">
-                    <div class="logo">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <div class="brand-text">
-                        <h1>Data Manager Pro</h1>
-                        <p>Customer Data Portal</p>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <div class="welcome-text">
-                        <h2 id="customerName">Welcome!</h2>
-                        <p>Manage your data efficiently</p>
-                    </div>
-                    <button class="btn btn-danger" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <div class="connection-status" id="connectionStatus">
-            <i class="fas fa-sync fa-spin"></i> Connecting to your data source...
+    <div class="header">
+        <div class="user-info">
+            <h1 id="customerName">Customer Data</h1>
+            <p id="userInfo">Loading...</p>
         </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
 
-        <main class="main-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-table"></i>
-                    </div>
-                    <div class="stat-value" id="totalItems">0</div>
-                    <div class="stat-label">Total Records</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-value" id="activeItems">0</div>
-                    <div class="stat-label">Active Items</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-columns"></i>
-                    </div>
-                    <div class="stat-value" id="totalColumns">0</div>
-                    <div class="stat-label">Data Fields</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value" id="lastUpdated">Now</div>
-                    <div class="stat-label">Last Updated</div>
-                </div>
-            </div>
+    <div class="controls">
+        <div class="control-group">
+            <input type="text" id="newColumnName" placeholder="New column name">
+            <button class="control-btn btn-primary" onclick="addNewColumn()">Add Column</button>
+            
+            <input type="number" id="removeColumnIndex" placeholder="Column index to remove" min="0">
+            <button class="control-btn btn-danger" onclick="removeColumn()">Remove Column</button>
+        </div>
+        
+        <div class="control-group">
+            <button class="control-btn btn-success" onclick="addNewRow()">Add New Row</button>
+            
+            <input type="number" id="removeRowIndex" placeholder="Row index to remove" min="0">
+            <button class="control-btn btn-danger" onclick="removeRow()">Remove Row</button>
+        </div>
+    </div>
 
-            <div id="messageArea"></div>
+    <div class="data-container">
+        <div class="loading" id="tableLoading">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
+        </div>
+        <table id="dataTable">
+            <thead id="tableHeader"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
-            <div class="controls">
-                <div class="control-group">
-                    <input type="text" id="newColumnName" class="input" placeholder="New field name">
-                    <button class="btn btn-success" onclick="addColumn()">
-                        <i class="fas fa-plus"></i>
-                        Add Field
-                    </button>
-                </div>
-                <div class="control-group">
-                    <button class="btn btn-outline" onclick="toggleHeaderEdit()" id="editHeadersBtn">
-                        <i class="fas fa-edit"></i>
-                        Edit Headers
-                    </button>
-                    <button class="btn btn-primary" onclick="addRow()">
-                        <i class="fas fa-plus-circle"></i>
-                        Add Row
-                    </button>
-                    <button class="btn btn-success" onclick="saveAll()">
-                        <i class="fas fa-save"></i>
-                        Save All
-                    </button>
-                </div>
-            </div>
-
-            <div class="loading" id="loading">
-                <i class="fas fa-spinner"></i>
-                <p>Loading your data...</p>
-            </div>
-
-            <div class="table-container">
-                <div class="table-header">
-                    <h3><i class="fas fa-table"></i> Your Data Table</h3>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table class="data-table" id="dataTable">
-                        <thead id="tableHead"></thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
+    <div class="save-section">
+        <div class="message" id="message"></div>
+        <button class="save-btn" id="saveBtn" onclick="saveAllData()" disabled>Save All Changes</button>
     </div>
 
     <script>
-        // Configuration
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwY-tF8K-3OMGy_nMjv8iLHgWY1gFeOPm7KBi5znVykFy9v_ks5cfQRZ4Qx7RM9vds-ew/exec';
-        const LOGIN_PAGE = 'login.html';
+        let currentData = {
+            headers: [],
+            data: []
+        };
 
-        // Application state
-        let currentHeaders = [];
-        let currentData = [];
-        let isEditingHeaders = false;
-        let currentUsername = '';
-        let currentPassword = '';
-
-        // Simple fetch-based API call (works better than JSONP)
-        async function callGoogleScript(functionName, ...args) {
-            const credentials = getCredentials();
-            if (!credentials) {
-                throw new Error('Not authenticated');
+        // Check authentication and load data
+        window.addEventListener('load', function() {
+            const userData = sessionStorage.getItem('userData');
+            if (!userData) {
+                window.location.href = 'login.html';
+                return;
             }
 
-            const params = new URLSearchParams();
-            params.append('function', functionName);
-            params.append('username', credentials.username);
-            params.append('password', credentials.password);
+            const user = JSON.parse(userData);
+            document.getElementById('customerName').textContent = user.customerName + ' - Data Management';
+            document.getElementById('userInfo').textContent = `User: ${user.username} | Sheet: ${user.customerSheet}`;
             
-            if (args.length > 0) {
-                params.append('data', JSON.stringify(args));
-            }
-            
-            // Add timestamp to avoid caching
-            params.append('t', Date.now().toString());
-            
-            const url = `${APP_SCRIPT_URL}?${params.toString()}`;
-            
-            console.log(`🔄 Calling ${functionName}...`);
-            
-            try {
-                // Try direct fetch first
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors' // This allows the request but we can't read response
-                });
-                
-                // Since we can't read response with no-cors, we'll assume success for UI purposes
-                // In a real app, you'd need a proxy server or use Google Apps Script HTML Service
-                console.log('✅ Request sent to Google Apps Script');
-                
-                // Return a mock success response to keep the UI working
-                return {
-                    success: true,
-                    message: 'Changes queued for sync',
-                    headers: currentHeaders,
-                    data: currentData
-                };
-                
-            } catch (error) {
-                console.log('⚠️ Using offline mode - changes saved locally');
-                // Return success for UI to continue working
-                return {
-                    success: true,
-                    message: 'Changes saved locally (offline mode)',
-                    headers: currentHeaders,
-                    data: currentData
-                };
-            }
-        }
+            loadCustomerData(user.username, userData.password);
+        });
 
-        function getCredentials() {
-            const username = localStorage.getItem('customerUsername');
-            const password = localStorage.getItem('customerPassword');
-            
-            if (!username || !password) {
-                return null;
-            }
-            
-            return { username, password };
-        }
+        function loadCustomerData(username, password) {
+            const tableLoading = document.getElementById('tableLoading');
+            tableLoading.style.display = 'block';
 
-        function updateConnectionStatus(message, isError = false, isSuccess = false) {
-            const status = document.getElementById('connectionStatus');
-            
-            if (isError) {
-                status.className = 'connection-status error';
-                status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
-            } else if (isSuccess) {
-                status.className = 'connection-status success';
-                status.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            } else {
-                status.className = 'connection-status';
-                status.innerHTML = `<i class="fas fa-sync fa-spin"></i> ${message}`;
-            }
-        }
-
-        function checkAuth() {
-            const credentials = getCredentials();
-            const customerName = localStorage.getItem('customerName');
-
-            if (!credentials) {
-                window.location.href = LOGIN_PAGE;
-                return false;
-            }
-
-            currentUsername = credentials.username;
-            currentPassword = credentials.password;
-            
-            document.getElementById('customerName').textContent = customerName || 'Valued Customer';
-            return true;
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('customerUsername');
-                localStorage.removeItem('customerPassword');
-                localStorage.removeItem('customerName');
-                window.location.href = LOGIN_PAGE;
-            }
-        }
-
-        function showMessage(message, type = 'success') {
-            const messageArea = document.getElementById('messageArea');
-            const icon = type === 'success' ? 'fa-check-circle' : 
-                        type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle';
-            const messageClass = type === 'warning' ? 'warning' : type;
-            
-            messageArea.innerHTML = `
-                <div class="message ${messageClass}">
-                    <i class="fas ${icon}"></i>
-                    ${message}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                messageArea.innerHTML = '';
-            }, 5000);
-        }
-
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
-
-        // Load demo data (fallback when connection fails)
-        function loadDemoData() {
-            currentHeaders = ['Product', 'Category', 'Price', 'Stock', 'Status'];
-            currentData = [
-                ['Laptop', 'Electronics', '$999', '15', 'Active'],
-                ['Mouse', 'Electronics', '$25', '50', 'Active'],
-                ['Notebook', 'Office', '$5', '100', 'Active'],
-                ['Desk', 'Furniture', '$299', '8', 'Low Stock']
-            ];
-            
-            renderTable();
-            updateStats();
-            updateConnectionStatus('Using demo data - real connection unavailable', true);
-            showMessage('Loaded demo data. Real connection failed.', 'warning');
-        }
-
-        async function loadData() {
-            if (!checkAuth()) return;
-
-            showLoading(true);
-            updateConnectionStatus('Attempting to connect...');
-            
-            try {
-                // Try to load from Google Sheets
-                const result = await callGoogleScript('getCustomerData');
-                
-                if (result.success && result.headers && result.data) {
-                    // Use real data from API
-                    currentHeaders = result.headers;
-                    currentData = result.data;
-                    renderTable();
-                    updateStats();
-                    updateConnectionStatus('Connected to Google Sheets', false, true);
-                    showMessage('Data loaded successfully from Google Sheets', 'success');
-                } else {
-                    // No real data, use demo data
-                    loadDemoData();
-                }
-            } catch (error) {
-                console.error('Failed to load data:', error);
-                loadDemoData();
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function updateStats() {
-            document.getElementById('totalItems').textContent = currentData.length;
-            document.getElementById('activeItems').textContent = currentData.filter(row => 
-                row[4] === 'Active' || !row[4] || row[4] === ''
-            ).length;
-            document.getElementById('totalColumns').textContent = currentHeaders.length;
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    tableLoading.style.display = 'none';
+                    
+                    if (result.success) {
+                        currentData.headers = result.headers || [];
+                        currentData.data = result.data || [];
+                        renderTable();
+                    } else {
+                        showMessage(result.error || 'Failed to load data', 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    tableLoading.style.display = 'none';
+                    showMessage('Error loading data: ' + error.message, 'error');
+                })
+                .getCustomerData(username, password);
         }
 
         function renderTable() {
-            const tableHead = document.getElementById('tableHead');
+            const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
             
-            // Build header row
-            let headerHTML = '<tr>';
-            currentHeaders.forEach((header, index) => {
-                if (isEditingHeaders) {
-                    headerHTML += `
-                        <th>
-                            <input type="text" class="header-input" value="${header}" 
-                                   onchange="updateHeader(${index}, this.value)">
-                            <button class="btn btn-danger" onclick="removeColumn(${index})" 
-                                    style="padding: 0.2rem 0.5rem; margin-top: 0.3rem; font-size: 0.7rem;">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </th>
-                    `;
-                } else {
-                    headerHTML += `<th>${header}</th>`;
-                }
+            // Render headers
+            tableHeader.innerHTML = '';
+            let headerRow = document.createElement('tr');
+            currentData.headers.forEach((header, index) => {
+                let th = document.createElement('th');
+                th.textContent = header || `Column ${index + 1}`;
+                headerRow.appendChild(th);
             });
-            headerHTML += '<th class="action-cell">Actions</th></tr>';
-            tableHead.innerHTML = headerHTML;
-            
-            // Build data rows
+            tableHeader.appendChild(headerRow);
+
+            // Render data rows
             tableBody.innerHTML = '';
-            
-            if (currentData.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="${currentHeaders.length + 1}" class="empty-state">
-                            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <br>No data available. Click "Add Row" to get started.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            currentData.forEach((row, rowIndex) => {
-                let rowHTML = '<tr>';
-                currentHeaders.forEach((header, colIndex) => {
-                    const value = row[colIndex] || '';
-                    rowHTML += `
-                        <td>
-                            <input type="text" class="cell-input" value="${value}" 
-                                   onchange="updateCell(${rowIndex}, ${colIndex}, this.value)">
-                        </td>
-                    `;
+            currentData.data.forEach((row, rowIndex) => {
+                let tr = document.createElement('tr');
+                row.forEach((cell, colIndex) => {
+                    let td = document.createElement('td');
+                    let input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = cell || '';
+                    input.addEventListener('input', function() {
+                        currentData.data[rowIndex][colIndex] = this.value;
+                        enableSaveButton();
+                    });
+                    td.appendChild(input);
+                    tr.appendChild(td);
                 });
-                rowHTML += `
-                    <td class="action-cell">
-                        <button class="btn btn-danger" onclick="deleteRow(${rowIndex})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>`;
-                tableBody.innerHTML += rowHTML;
+                tableBody.appendChild(tr);
             });
+
+            enableSaveButton(false);
         }
 
-        function toggleHeaderEdit() {
-            isEditingHeaders = !isEditingHeaders;
-            const btn = document.getElementById('editHeadersBtn');
-            btn.innerHTML = isEditingHeaders ? 
-                '<i class="fas fa-save"></i> Save Headers' : 
-                '<i class="fas fa-edit"></i> Edit Headers';
-            renderTable();
-        }
-
-        function updateHeader(index, newValue) {
-            if (newValue.trim() === '') {
-                showMessage('Field name cannot be empty', 'error');
+        function addNewColumn() {
+            const columnName = document.getElementById('newColumnName').value.trim();
+            if (!columnName) {
+                showMessage('Please enter a column name', 'error');
                 return;
             }
-            currentHeaders[index] = newValue;
+
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        currentData.headers.push(columnName);
+                        currentData.data.forEach(row => row.push(''));
+                        renderTable();
+                        document.getElementById('newColumnName').value = '';
+                        showMessage(result.message, 'success');
+                    } else {
+                        showMessage(result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('Error: ' + error.message, 'error');
+                })
+                .addNewColumn(userData.username, userData.password, columnName);
         }
 
-        async function addColumn() {
-            const newColumnName = document.getElementById('newColumnName').value.trim();
-            
-            if (!newColumnName) {
-                showMessage('Please enter a field name', 'error');
+        function removeColumn() {
+            const columnIndex = parseInt(document.getElementById('removeColumnIndex').value);
+            if (isNaN(columnIndex) || columnIndex < 0 || columnIndex >= currentData.headers.length) {
+                showMessage('Please enter a valid column index', 'error');
                 return;
             }
+
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
             
-            if (currentHeaders.includes(newColumnName)) {
-                showMessage('A field with this name already exists', 'error');
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        currentData.headers.splice(columnIndex, 1);
+                        currentData.data.forEach(row => row.splice(columnIndex, 1));
+                        renderTable();
+                        document.getElementById('removeColumnIndex').value = '';
+                        showMessage(result.message, 'success');
+                    } else {
+                        showMessage(result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('Error: ' + error.message, 'error');
+                })
+                .removeColumn(userData.username, userData.password, columnIndex);
+        }
+
+        function addNewRow() {
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        currentData.data.push(Array(currentData.headers.length).fill(''));
+                        renderTable();
+                        showMessage(result.message, 'success');
+                    } else {
+                        showMessage(result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('Error: ' + error.message, 'error');
+                })
+                .addNewRow(userData.username, userData.password);
+        }
+
+        function removeRow() {
+            const rowIndex = parseInt(document.getElementById('removeRowIndex').value);
+            if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= currentData.data.length) {
+                showMessage('Please enter a valid row index', 'error');
                 return;
             }
+
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
             
-            // Update locally
-            currentHeaders.push(newColumnName);
-            currentData.forEach(row => row.push(''));
-            
-            renderTable();
-            updateStats();
-            document.getElementById('newColumnName').value = '';
-            
-            // Try to save to Google Sheets
-            try {
-                await callGoogleScript('addNewColumn', newColumnName);
-                showMessage(`Field "${newColumnName}" added`, 'success');
-            } catch (error) {
-                showMessage(`Field "${newColumnName}" added locally`, 'success');
-            }
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        currentData.data.splice(rowIndex, 1);
+                        renderTable();
+                        document.getElementById('removeRowIndex').value = '';
+                        showMessage(result.message, 'success');
+                    } else {
+                        showMessage(result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('Error: ' + error.message, 'error');
+                })
+                .deleteRow(userData.username, userData.password, rowIndex);
         }
 
-        async function removeColumn(index) {
-            if (currentHeaders.length <= 1) {
-                showMessage('Cannot remove the last field', 'error');
-                return;
-            }
+        function saveAllData() {
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
             
-            if (!confirm('Remove this field and all its data?')) return;
-            
-            const columnName = currentHeaders[index];
-            currentHeaders.splice(index, 1);
-            currentData.forEach(row => row.splice(index, 1));
-            
-            renderTable();
-            updateStats();
-            
-            try {
-                await callGoogleScript('removeColumn', index);
-                showMessage(`Field "${columnName}" removed`, 'success');
-            } catch (error) {
-                showMessage(`Field removed locally`, 'success');
-            }
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    saveBtn.textContent = 'Save All Changes';
+                    
+                    if (result.success) {
+                        showMessage(result.message, 'success');
+                        enableSaveButton(false);
+                    } else {
+                        showMessage(result.error, 'error');
+                        enableSaveButton(true);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    saveBtn.textContent = 'Save All Changes';
+                    showMessage('Error saving data: ' + error.message, 'error');
+                    enableSaveButton(true);
+                })
+                .saveAllData(userData.username, userData.password, currentData.headers, currentData.data);
         }
 
-        function updateCell(rowIndex, colIndex, newValue) {
-            if (currentData[rowIndex]) {
-                currentData[rowIndex][colIndex] = newValue;
-            }
+        function enableSaveButton(enable = true) {
+            document.getElementById('saveBtn').disabled = !enable;
         }
 
-        async function addRow() {
-            const newRow = Array(currentHeaders.length).fill('');
-            currentData.push(newRow);
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = message;
+            messageElement.className = 'message ' + type;
+            messageElement.style.display = 'block';
             
-            renderTable();
-            updateStats();
-            
-            try {
-                await callGoogleScript('addNewRow');
-                showMessage('New row added', 'success');
-            } catch (error) {
-                showMessage('New row added locally', 'success');
-            }
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 5000);
         }
 
-        async function deleteRow(rowIndex) {
-            if (!confirm('Delete this row?')) return;
-            
-            currentData.splice(rowIndex, 1);
-            renderTable();
-            updateStats();
-            
-            try {
-                await callGoogleScript('deleteRow', rowIndex);
-                showMessage('Row deleted', 'success');
-            } catch (error) {
-                showMessage('Row deleted locally', 'success');
-            }
+        function logout() {
+            sessionStorage.removeItem('userData');
+            window.location.href = 'login.html';
         }
-
-        async function saveAll() {
-            showLoading(true);
-            
-            try {
-                await callGoogleScript('saveAllData', currentHeaders, currentData);
-                showMessage('All changes saved successfully', 'success');
-                updateStats();
-            } catch (error) {
-                showMessage('Changes saved locally', 'success');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Initialize application
-        document.addEventListener('DOMContentLoaded', function() {
-            if (checkAuth()) {
-                loadData();
-            }
-            
-            // Enter key support for adding columns
-            document.getElementById('newColumnName').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') addColumn();
-            });
-        });
     </script>
 </body>
 </html>
-
