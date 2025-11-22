@@ -1,372 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Data Manager</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 30px 25px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            color: #333;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .logo p {
-            color: #666;
-            font-size: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e1e1e1;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .login-btn:active {
-            transform: scale(0.98);
-        }
-
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #dc3545;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: none;
-            font-size: 14px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: none;
-            font-size: 14px;
-            border: 1px solid #c3e6cb;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        .debug-info {
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 12px;
-            color: #666;
-            display: none;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud-Share Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial; }
+    body { background: #2563eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .login-box { background: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; }
+    h2 { text-align: center; margin-bottom: 20px; color: #2563eb; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+    button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .message { margin-top: 15px; padding: 10px; text-align: center; display: none; }
+    .error { background: #fee2e2; color: #dc2626; }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <h1>📊 Data Manager</h1>
-            <p>Sign in to your account</p>
-        </div>
+  <div class="login-box">
+    <h2>Cloud-Share Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div id="message" class="message"></div>
+  </div>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required placeholder="Enter username" value="admin">
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter password" value="admin123">
-            </div>
-
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Signing in...</p>
-            </div>
-
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
-
-            <button type="submit" class="login-btn" id="loginBtn">
-                <span id="loginText">Sign In</span>
-            </button>
-
-            <div class="debug-info" id="debugInfo"></div>
-        </form>
-    </div>
-
-    <script>
-        // REPLACE THIS WITH YOUR ACTUAL WEB APP URL
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
-        
-        // Debug function to show what's happening
-        function debugLog(message) {
-            console.log('DEBUG:', message);
-            const debugInfo = document.getElementById('debugInfo');
-            debugInfo.innerHTML += message + '<br>';
-            debugInfo.style.display = 'block';
-        }
-
-        // Show messages
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            document.getElementById('successMessage').style.display = 'none';
-            debugLog('ERROR: ' + message);
-        }
-
-        function showSuccess(message) {
-            const successElement = document.getElementById('successMessage');
-            successElement.textContent = message;
-            successElement.style.display = 'block';
-            document.getElementById('errorMessage').style.display = 'none';
-            debugLog('SUCCESS: ' + message);
-        }
-
-        // Test the connection first
-        async function testConnection() {
-            debugLog('Testing connection to: ' + WEB_APP_URL);
-            
-            try {
-                const testResponse = await fetch(WEB_APP_URL);
-                debugLog('Connection test - Status: ' + testResponse.status);
-                debugLog('Connection test - OK: ' + testResponse.ok);
-                
-                if (testResponse.ok) {
-                    showSuccess('✓ Connected to server successfully');
-                } else {
-                    showError('✗ Server returned error: ' + testResponse.status);
-                }
-            } catch (error) {
-                showError('✗ Cannot connect to server: ' + error.message);
-            }
-        }
-
-        // Main login function
-        async function handleLogin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const loginBtn = document.getElementById('loginBtn');
-            const loginText = document.getElementById('loginText');
-            const loading = document.getElementById('loading');
-
-            // Reset messages
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-
-            if (!username || !password) {
-                showError('Please enter both username and password');
-                return;
-            }
-
-            // Show loading state
-            loginBtn.disabled = true;
-            loginText.textContent = 'Signing in...';
-            loading.style.display = 'block';
-
-            debugLog('Starting login for user: ' + username);
-
-            try {
-                // Build the URL with parameters
-                const url = `${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?function=getCustomerData&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-                debugLog('Making request to: ' + url);
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    mode: 'no-cors' // Remove this line if you have CORS configured
-                });
-
-                debugLog('Response received - Status: ' + response.status);
-                debugLog('Response OK: ' + response.ok);
-
-                // For no-cors mode, we can't read the response, so we'll assume success
-                // If you configure CORS in Apps Script, remove mode: 'no-cors' and use this instead:
-                /*
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                debugLog('Response data: ' + JSON.stringify(result));
-
-                if (result.success) {
-                    showSuccess('Login successful! Redirecting...');
-                    sessionStorage.setItem('userData', JSON.stringify({
-                        username: username,
-                        password: password,
-                        customerName: result.customerName,
-                        customerSheet: result.sheetUrl
-                    }));
-                    
-                    // Wait a bit so user can see success message
-                    setTimeout(() => {
-                        window.location.href = 'data-manager.html';
-                    }, 1000);
-                } else {
-                    showError(result.error || 'Login failed');
-                }
-                */
-
-                // TEMPORARY: For testing without CORS - assume login is successful
-                showSuccess('Login successful! Redirecting...');
-                sessionStorage.setItem('userData', JSON.stringify({
-                    username: username,
-                    password: password,
-                    customerName: 'Test Customer',
-                    customerSheet: 'https://example.com'
-                }));
-                
-                setTimeout(() => {
-                    window.location.href = 'data-manager.html';
-                }, 1500);
-
-            } catch (error) {
-                debugLog('Login error: ' + error.message);
-                showError('Login failed: ' + error.message);
-            } finally {
-                // Reset button state
-                loading.style.display = 'none';
-                loginBtn.disabled = false;
-                loginText.textContent = 'Sign In';
-            }
-        }
-
-        // Event listeners
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            debugLog('Form submitted');
-            handleLogin();
-        });
-
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                debugLog('Enter key pressed');
-                handleLogin();
-            }
-        });
-
-        // On page load
-        window.addEventListener('load', function() {
-            debugLog('Page loaded');
-            
-            // Check if already logged in
-            const userData = sessionStorage.getItem('userData');
-            if (userData) {
-                debugLog('User already logged in, redirecting...');
-                window.location.href = 'data-manager.html';
-                return;
-            }
-
-            // Test connection when page loads
-            testConnection();
-
-            // Add click listener to debug info to copy URL
-            document.getElementById('debugInfo').addEventListener('click', function() {
-                navigator.clipboard.writeText(WEB_APP_URL);
-                showSuccess('URL copied to clipboard!');
-            });
-        });
-
-        // Add a manual test button for debugging
-        const testBtn = document.createElement('button');
-        testBtn.textContent = 'Test Connection';
-        testBtn.style.cssText = 'width: 100%; padding: 10px; margin-top: 10px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;';
-        testBtn.onclick = testConnection;
-        document.getElementById('loginForm').appendChild(testBtn);
-    </script>
+  <script>
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const message = document.getElementById('message');
+      
+      if (!username || !password) {
+        showMessage('Please enter username and password', 'error');
+        return;
+      }
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            sessionStorage.setItem('customerName', result.customerName);
+            sessionStorage.setItem('customerSheet', result.customerSheet);
+            window.location.href = 'https://script.google.com/macros/s/AKfycbyCZe1t82wUfE0s2-CBad5V_KYzSpNmK8AorCaDzDnlN6L299VHumNVTLJw2zrwSgAf5A/exec?page=data-manager';
+          } else {
+            showMessage(result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showMessage('Login error: ' + error.message, 'error');
+        })
+        .verifyLogin(username, password);
+    }
+    
+    function showMessage(text, type) {
+      const message = document.getElementById('message');
+      message.textContent = text;
+      message.className = 'message ' + type;
+      message.style.display = 'block';
+    }
+  </script>
 </body>
 </html>
