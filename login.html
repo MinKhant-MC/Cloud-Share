@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Customer Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Login - Customer Data Manager</title>
     <style>
         * {
             margin: 0;
@@ -17,538 +16,215 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
         .login-container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
             width: 100%;
             max-width: 400px;
         }
 
-        .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-20px, -20px) rotate(360deg); }
-        }
-
         .logo {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            backdrop-filter: blur(10px);
+            text-align: center;
+            margin-bottom: 30px;
         }
 
-        .login-header h1 {
-            font-size: 2rem;
-            font-weight: 300;
-            margin-bottom: 10px;
+        .logo h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
         }
 
-        .login-header p {
-            opacity: 0.9;
-            font-size: 1rem;
-        }
-
-        .login-form {
-            padding: 40px 30px;
+        .logo p {
+            color: #666;
+            margin-top: 5px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            text-align: left;
         }
 
-        .form-group label {
+        label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
+            color: #333;
             font-weight: 500;
-            font-size: 0.9rem;
         }
 
-        .input-with-icon {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #667eea;
-            font-size: 1.1rem;
-        }
-
-        .input-with-icon input {
+        input {
             width: 100%;
-            padding: 15px 50px 15px 45px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
+            padding: 12px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
 
-        .input-with-icon input:focus {
+        input:focus {
             outline: none;
             border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #667eea;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 8px;
-            z-index: 10;
-        }
-
-        .password-toggle:hover {
-            color: #764ba2;
         }
 
         .login-btn {
             width: 100%;
+            padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            position: relative;
-            z-index: 10;
+            transition: transform 0.2s;
         }
 
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
         }
 
         .login-btn:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .btn-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
         }
 
         .loading {
             display: none;
+            text-align: center;
+            margin: 10px 0;
         }
 
-        .loading.show {
-            display: inline-block;
-        }
-
-        .loading i {
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .message {
-            padding: 12px;
-            margin: 15px 0;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .features {
-            background: #f8f9fa;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e1e5e9;
-        }
-
-        .features h3 {
-            color: #555;
-            margin-bottom: 20px;
-            font-weight: 500;
-        }
-
-        .feature-list {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .feature-item i {
-            color: #667eea;
-            font-size: 0.8rem;
-        }
-
-        .click-test {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            z-index: 1000;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                border-radius: 15px;
-            }
-            
-            .login-header {
-                padding: 30px 20px;
-            }
-            
-            .login-form {
-                padding: 30px 20px;
-            }
-            
-            .feature-list {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Click Test -->
-    <div class="click-test" id="clickTest">Clicks: 0</div>
-
     <div class="login-container">
-        <div class="login-header">
-            <div class="logo">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <h1>Welcome Back</h1>
-            <p>Sign in to your customer portal</p>
+        <div class="logo">
+            <h1>Data Manager</h1>
+            <p>Sign in to your account</p>
         </div>
 
-        <div class="login-form">
-            <div id="messageArea"></div>
-            
+        <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-user input-icon"></i>
-                    <input type="text" id="username" placeholder="Enter your username" autocomplete="username">
-                </div>
+                <input type="text" id="username" name="username" required placeholder="Enter your username">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
-                    <button type="button" class="password-toggle" id="passwordToggle">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
             </div>
 
-            <button class="login-btn" id="loginBtn">
-                <div class="btn-content">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span id="loginText">Sign In</span>
-                    <div class="loading" id="loading">
-                        <i class="fas fa-spinner"></i>
-                    </div>
-                </div>
-            </button>
-        </div>
-
-        <div class="features">
-            <h3>Manage Your Business Data</h3>
-            <div class="feature-list">
-                <div class="feature-item">
-                    <i class="fas fa-check"></i>
-                    <span>Track Products & Sales</span>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-check"></i>
-                    <span>Calculate Profits</span>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-check"></i>
-                    <span>Customize Data Fields</span>
-                </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Signing in...</p>
             </div>
-        </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+        </form>
     </div>
 
     <script>
-        // Click counter for debugging
-        let clickCount = 0;
-        function updateClickCounter() {
-            clickCount++;
-            document.getElementById('clickTest').textContent = `Clicks: ${clickCount}`;
-        }
+        // REPLACE THIS WITH YOUR ACTUAL WEB APP URL
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await handleLogin();
+        });
 
-        // YOUR APP SCRIPT CONFIGURATION
-        const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwY-tF8K-3OMGy_nMjv8iLHgWY1gFeOPm7KBi5znVykFy9v_ks5cfQRZ4Qx7RM9vds-ew/exec';
-        const DATA_MANAGER_PAGE = 'data-manager.html';
-
-        function showMessage(message, type) {
-            const messageArea = document.getElementById('messageArea');
-            messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
-            setTimeout(() => {
-                messageArea.innerHTML = '';
-            }, 5000);
-        }
-
-        function showLoading(show) {
-            const loginText = document.getElementById('loginText');
-            const loading = document.getElementById('loading');
+        async function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
             const loginBtn = document.getElementById('loginBtn');
-            
-            if (show) {
-                loginText.style.display = 'none';
-                loading.classList.add('show');
-                loginBtn.disabled = true;
-            } else {
-                loginText.style.display = 'inline';
-                loading.classList.remove('show');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('errorMessage');
+
+            errorMessage.style.display = 'none';
+            loginBtn.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const params = new URLSearchParams({
+                    function: 'getCustomerData',
+                    username: username,
+                    password: password
+                });
+
+                const response = await fetch(`${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params}`);
+                
+                if (!response.ok) throw new Error('Network error');
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    sessionStorage.setItem('userData', JSON.stringify({
+                        username: username,
+                        password: password,
+                        customerName: result.customerName,
+                        customerSheet: result.sheetUrl
+                    }));
+                    window.location.href = 'data-manager.html';
+                } else {
+                    showError(result.error || 'Login failed');
+                }
+            } catch (error) {
+                showError('Connection error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
                 loginBtn.disabled = false;
             }
         }
 
-        function togglePassword() {
-            updateClickCounter();
-            console.log('Toggle password clicked');
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.querySelector('#passwordToggle i');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.className = 'fas fa-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.className = 'fas fa-eye';
-            }
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
         }
 
-        // SIMPLE API CALL THAT WON'T BLOCK CLICKS
-        async function callGoogleScript(functionName, username, password) {
-            updateClickCounter();
-            
-            // Use a simple approach that won't block due to CORS
-            try {
-                // Create form data to avoid CORS preflight
-                const formData = new FormData();
-                formData.append('function', functionName);
-                formData.append('username', username);
-                formData.append('password', password);
-                
-                const response = await fetch(APP_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors' // This prevents CORS errors
-                });
-                
-                // Since we can't read response in no-cors mode, return demo data
-                return {
-                    success: true,
-                    customerName: username,
-                    headers: ["Product", "Cost", "Price", "Quantity"],
-                    data: [
-                        ["Sample Product", "10", "25", "50"],
-                        ["Demo Item", "15", "30", "25"]
-                    ]
-                };
-                
-            } catch (error) {
-                console.log('Using demo mode');
-                // Return demo data on error
-                return {
-                    success: true,
-                    customerName: username + " (Demo)",
-                    headers: ["Item", "Cost", "Price", "Stock"],
-                    data: [
-                        ["Demo Product 1", "10", "25", "100"],
-                        ["Demo Product 2", "15", "35", "50"]
-                    ]
-                };
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin();
             }
-        }
-
-        function login() {
-            updateClickCounter();
-            console.log('Login function called');
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (!username) {
-                showMessage('Please enter your username', 'error');
-                return;
-            }
-            
-            if (!password) {
-                showMessage('Please enter your password', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            showMessage('Logging in...', 'success');
-            
-            // Use setTimeout to ensure UI updates
-            setTimeout(async () => {
-                try {
-                    const result = await callGoogleScript('getCustomerData', username, password);
-                    
-                    if (result.success) {
-                        showMessage('Login successful! Redirecting...', 'success');
-                        
-                        localStorage.setItem('customerUsername', username);
-                        localStorage.setItem('customerPassword', password);
-                        localStorage.setItem('customerName', result.customerName);
-                        
-                        setTimeout(() => {
-                            window.location.href = DATA_MANAGER_PAGE;
-                        }, 1500);
-                        
-                    } else {
-                        showMessage(result.error || 'Login failed.', 'error');
-                    }
-                } catch (error) {
-                    showMessage('Using demo mode. Login successful!', 'success');
-                    
-                    // Fallback - allow login with demo data
-                    localStorage.setItem('customerUsername', username);
-                    localStorage.setItem('customerPassword', password);
-                    localStorage.setItem('customerName', username + " (Demo)");
-                    
-                    setTimeout(() => {
-                        window.location.href = DATA_MANAGER_PAGE;
-                    }, 1500);
-                } finally {
-                    showLoading(false);
-                }
-            }, 100);
-        }
-
-        // SIMPLE EVENT LISTENERS - NO COMPLEX LOGIC
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded - buttons should work');
-            
-            // Password toggle - simple click
-            document.getElementById('passwordToggle').onclick = function(e) {
-                e.preventDefault();
-                togglePassword();
-            };
-            
-            // Login button - simple click
-            document.getElementById('loginBtn').onclick = function(e) {
-                e.preventDefault();
-                login();
-            };
-            
-            // Enter key support
-            document.getElementById('password').onkeypress = function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    login();
-                }
-            };
-
-            document.getElementById('username').onkeypress = function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('password').focus();
-                }
-            };
-
-            // Focus on username
-            document.getElementById('username').focus();
-            
-            // Test click on page load
-            setTimeout(() => {
-                console.log('Page ready - test clicking buttons');
-            }, 500);
         });
 
-        // Track all clicks for debugging
-        document.addEventListener('click', function(e) {
-            updateClickCounter();
+        window.addEventListener('load', function() {
+            const userData = sessionStorage.getItem('userData');
+            if (userData) {
+                window.location.href = 'data-manager.html';
+            }
         });
     </script>
 </body>
 </html>
-
-
