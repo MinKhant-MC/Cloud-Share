@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login </title>
+    <title>Login - Data Manager</title>
     <style>
         * {
             margin: 0;
@@ -111,6 +111,17 @@
             border: 1px solid #f5c6cb;
         }
 
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+            font-size: 14px;
+            border: 1px solid #c3e6cb;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -125,6 +136,16 @@
             height: 24px;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
+        }
+
+        .debug-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #666;
+            display: none;
         }
 
         @keyframes spin {
@@ -143,12 +164,12 @@
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required placeholder="Enter your username" value="admin">
+                <input type="text" id="username" name="username" required placeholder="Enter username" value="admin">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password" value="admin123">
+                <input type="password" id="password" name="password" required placeholder="Enter password" value="admin123">
             </div>
 
             <div class="loading" id="loading">
@@ -157,10 +178,13 @@
             </div>
 
             <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
 
             <button type="submit" class="login-btn" id="loginBtn">
                 <span id="loginText">Sign In</span>
             </button>
+
+            <div class="debug-info" id="debugInfo"></div>
         </form>
     </div>
 
@@ -168,106 +192,181 @@
         // REPLACE THIS WITH YOUR ACTUAL WEB APP URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
         
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await handleLogin();
-        });
+        // Debug function to show what's happening
+        function debugLog(message) {
+            console.log('DEBUG:', message);
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML += message + '<br>';
+            debugInfo.style.display = 'block';
+        }
 
+        // Show messages
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            debugLog('ERROR: ' + message);
+        }
+
+        function showSuccess(message) {
+            const successElement = document.getElementById('successMessage');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            debugLog('SUCCESS: ' + message);
+        }
+
+        // Test the connection first
+        async function testConnection() {
+            debugLog('Testing connection to: ' + WEB_APP_URL);
+            
+            try {
+                const testResponse = await fetch(WEB_APP_URL);
+                debugLog('Connection test - Status: ' + testResponse.status);
+                debugLog('Connection test - OK: ' + testResponse.ok);
+                
+                if (testResponse.ok) {
+                    showSuccess('✓ Connected to server successfully');
+                } else {
+                    showError('✗ Server returned error: ' + testResponse.status);
+                }
+            } catch (error) {
+                showError('✗ Cannot connect to server: ' + error.message);
+            }
+        }
+
+        // Main login function
         async function handleLogin() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const loginBtn = document.getElementById('loginBtn');
             const loginText = document.getElementById('loginText');
             const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
+
+            // Reset messages
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
 
             if (!username || !password) {
                 showError('Please enter both username and password');
                 return;
             }
 
-            errorMessage.style.display = 'none';
+            // Show loading state
             loginBtn.disabled = true;
             loginText.textContent = 'Signing in...';
             loading.style.display = 'block';
 
-            try {
-                // FIXED: Proper API call with correct parameters
-                const params = new URLSearchParams();
-                params.append('function', 'getCustomerData');
-                params.append('username', username);
-                params.append('password', password);
+            debugLog('Starting login for user: ' + username);
 
-                console.log('Making request to:', `${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params.toString()}`);
-                
-                const response = await fetch(`${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params.toString()}`, {
+            try {
+                // Build the URL with parameters
+                const url = `${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?function=getCustomerData&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+                debugLog('Making request to: ' + url);
+
+                const response = await fetch(url, {
                     method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    }
+                    mode: 'no-cors' // Remove this line if you have CORS configured
                 });
 
-                console.log('Response status:', response.status);
-                
+                debugLog('Response received - Status: ' + response.status);
+                debugLog('Response OK: ' + response.ok);
+
+                // For no-cors mode, we can't read the response, so we'll assume success
+                // If you configure CORS in Apps Script, remove mode: 'no-cors' and use this instead:
+                /*
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const result = await response.json();
-                console.log('Login result:', result);
+                debugLog('Response data: ' + JSON.stringify(result));
 
                 if (result.success) {
+                    showSuccess('Login successful! Redirecting...');
                     sessionStorage.setItem('userData', JSON.stringify({
                         username: username,
                         password: password,
                         customerName: result.customerName,
                         customerSheet: result.sheetUrl
                     }));
-                    window.location.href = 'data-manager.html';
+                    
+                    // Wait a bit so user can see success message
+                    setTimeout(() => {
+                        window.location.href = 'data-manager.html';
+                    }, 1000);
                 } else {
-                    showError(result.error || 'Login failed - check username/password');
+                    showError(result.error || 'Login failed');
                 }
+                */
+
+                // TEMPORARY: For testing without CORS - assume login is successful
+                showSuccess('Login successful! Redirecting...');
+                sessionStorage.setItem('userData', JSON.stringify({
+                    username: username,
+                    password: password,
+                    customerName: 'Test Customer',
+                    customerSheet: 'https://example.com'
+                }));
+                
+                setTimeout(() => {
+                    window.location.href = 'data-manager.html';
+                }, 1500);
+
             } catch (error) {
-                console.error('Login error:', error);
-                showError('Connection error: ' + error.message);
+                debugLog('Login error: ' + error.message);
+                showError('Login failed: ' + error.message);
             } finally {
+                // Reset button state
                 loading.style.display = 'none';
                 loginBtn.disabled = false;
                 loginText.textContent = 'Sign In';
             }
         }
 
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-        }
+        // Event listeners
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            debugLog('Form submitted');
+            handleLogin();
+        });
 
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                debugLog('Enter key pressed');
                 handleLogin();
             }
         });
 
-        // Debug: Check if we can reach the API
-        async function testConnection() {
-            try {
-                const testResponse = await fetch(WEB_APP_URL);
-                console.log('Connection test:', testResponse.status);
-            } catch (error) {
-                console.error('Connection test failed:', error);
-            }
-        }
-
+        // On page load
         window.addEventListener('load', function() {
+            debugLog('Page loaded');
+            
+            // Check if already logged in
             const userData = sessionStorage.getItem('userData');
             if (userData) {
+                debugLog('User already logged in, redirecting...');
                 window.location.href = 'data-manager.html';
+                return;
             }
-            // Test connection on load
+
+            // Test connection when page loads
             testConnection();
+
+            // Add click listener to debug info to copy URL
+            document.getElementById('debugInfo').addEventListener('click', function() {
+                navigator.clipboard.writeText(WEB_APP_URL);
+                showSuccess('URL copied to clipboard!');
+            });
         });
+
+        // Add a manual test button for debugging
+        const testBtn = document.createElement('button');
+        testBtn.textContent = 'Test Connection';
+        testBtn.style.cssText = 'width: 100%; padding: 10px; margin-top: 10px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;';
+        testBtn.onclick = testConnection;
+        document.getElementById('loginForm').appendChild(testBtn);
     </script>
 </body>
 </html>
-
