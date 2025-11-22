@@ -28,7 +28,6 @@
             padding: 30px 25px;
             width: 100%;
             max-width: 400px;
-            margin: 0 auto;
         }
 
         .logo {
@@ -132,32 +131,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* Mobile responsiveness */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 25px 20px;
-                border-radius: 16px;
-            }
-            
-            .logo h1 {
-                font-size: 24px;
-            }
-            
-            input, .login-btn {
-                padding: 14px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .login-container {
-                padding: 20px 15px;
-            }
-            
-            .logo h1 {
-                font-size: 22px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -170,12 +143,12 @@
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required placeholder="Enter your username">
+                <input type="text" id="username" name="username" required placeholder="Enter your username" value="admin">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <input type="password" id="password" name="password" required placeholder="Enter your password" value="admin123">
             </div>
 
             <div class="loading" id="loading">
@@ -219,17 +192,29 @@
             loading.style.display = 'block';
 
             try {
-                const params = new URLSearchParams({
-                    function: 'getCustomerData',
-                    username: username,
-                    password: password
+                // FIXED: Proper API call with correct parameters
+                const params = new URLSearchParams();
+                params.append('function', 'getCustomerData');
+                params.append('username', username);
+                params.append('password', password);
+
+                console.log('Making request to:', `${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params.toString()}`);
+                
+                const response = await fetch(`${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
                 });
 
-                const response = await fetch(`${https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec}?${params}`);
+                console.log('Response status:', response.status);
                 
-                if (!response.ok) throw new Error('Network error');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const result = await response.json();
+                console.log('Login result:', result);
 
                 if (result.success) {
                     sessionStorage.setItem('userData', JSON.stringify({
@@ -240,9 +225,10 @@
                     }));
                     window.location.href = 'data-manager.html';
                 } else {
-                    showError(result.error || 'Login failed');
+                    showError(result.error || 'Login failed - check username/password');
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 showError('Connection error: ' + error.message);
             } finally {
                 loading.style.display = 'none';
@@ -263,11 +249,23 @@
             }
         });
 
+        // Debug: Check if we can reach the API
+        async function testConnection() {
+            try {
+                const testResponse = await fetch(WEB_APP_URL);
+                console.log('Connection test:', testResponse.status);
+            } catch (error) {
+                console.error('Connection test failed:', error);
+            }
+        }
+
         window.addEventListener('load', function() {
             const userData = sessionStorage.getItem('userData');
             if (userData) {
                 window.location.href = 'data-manager.html';
             }
+            // Test connection on load
+            testConnection();
         });
     </script>
 </body>
