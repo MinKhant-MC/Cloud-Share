@@ -1,980 +1,194 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Manager</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        }
-
-        body {
-            background: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        .header {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .user-info h1 {
-            color: #333;
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .user-info p {
-            color: #666;
-            font-size: 12px;
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:active {
-            transform: scale(0.95);
-        }
-
-        .controls {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .financial-controls {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-left: 4px solid #28a745;
-        }
-
-        .section-title {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 18px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .input-row input {
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .control-btn {
-            padding: 12px 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 140px;
-        }
-
-        .control-btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-        }
-
-        input, select {
-            padding: 12px;
-            border: 2px solid #e1e1e1;
-            border-radius: 10px;
-            font-size: 14px;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .data-container {
-            background: white;
-            margin: 15px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            overflow: auto;
-            max-height: 50vh;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-            font-size: 14px;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-            position: sticky;
-            top: 0;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        td input {
-            width: 100%;
-            border: 1px solid #dee2e6;
-            padding: 8px;
-            border-radius: 6px;
-            background: transparent;
-            font-size: 14px;
-        }
-
-        td input:focus {
-            border-color: #667eea;
-            background: white;
-        }
-
-        .save-section {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .save-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .save-btn:active {
-            transform: scale(0.95);
-        }
-
-        .save-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 10px;
-            margin: 10px 0;
-            display: none;
-            font-size: 14px;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .financial-results {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 15px;
-            border: 1px solid #e9ecef;
-        }
-
-        .calculations-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .item-calculations, .total-calculations {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #dee2e6;
-        }
-
-        .calculation-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f8f9fa;
-            font-size: 14px;
-        }
-
-        .calculation-row.header {
-            font-weight: 700;
-            background: #f8f9fa;
-            margin: -15px -15px 10px -15px;
-            padding: 12px 15px;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .profit-positive {
-            color: #28a745;
-            font-weight: 600;
-        }
-
-        .profit-negative {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .total-row {
-            font-weight: 700;
-            background: #e9ecef;
-            margin: 10px -15px -15px -15px;
-            padding: 12px 15px;
-            border-top: 2px solid #dee2e6;
-        }
-
-        .summary-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .summary-card {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .summary-card h5 {
-            color: #666;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .summary-card .value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .summary-card.profit-positive {
-            border-left-color: #28a745;
-        }
-
-        .summary-card.profit-negative {
-            border-left-color: #dc3545;
-        }
-
-        .analysis-results {
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 15px;
-        }
-
-        .suggestions {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .suggestions h5 {
-            color: #856404;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .suggestions ul {
-            color: #856404;
-            padding-left: 20px;
-            font-size: 14px;
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .header {
-                padding: 12px 15px;
-            }
-            
-            .user-info h1 {
-                font-size: 18px;
-            }
-            
-            .controls, .financial-controls, .save-section {
-                margin: 10px;
-                padding: 15px;
-            }
-            
-            .control-btn {
-                min-width: 120px;
-                font-size: 13px;
-                padding: 10px 12px;
-            }
-            
-            .summary-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .data-container {
-                margin: 10px;
-                max-height: 40vh;
-            }
-            
-            th, td {
-                padding: 10px 8px;
-                font-size: 13px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .input-row {
-                flex-direction: column;
-            }
-            
-            .control-btn {
-                min-width: 100%;
-            }
-            
-            .section-title {
-                font-size: 16px;
-            }
-            
-            .save-btn {
-                padding: 14px 20px;
-                font-size: 15px;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            
-            .logout-btn {
-                width: 100%;
-            }
-        }
-    </style>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud-Share Data Manager</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial; }
+    body { background: #f3f4f6; padding: 15px; }
+    .header { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    .tabs { display: flex; background: white; border-radius: 10px; margin-bottom: 15px; }
+    .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; }
+    .tab.active { background: #2563eb; color: white; }
+    .content { display: none; }
+    .content.active { display: block; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    button { padding: 8px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-danger { background: #dc2626; color: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="user-info">
-            <h1 id="customerName">Customer Data</h1>
-            <p id="userInfo">Loading...</p>
-        </div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+  <div class="header">
+    <h2>Cloud-Share Inventory</h2>
+    <p id="welcome">Welcome</p>
+    <button onclick="logout()" style="background: #dc2626; color: white;">Logout</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('inventory')">Inventory</div>
+    <div class="tab" onclick="showTab('profits')">Profits</div>
+  </div>
+
+  <!-- Inventory Tab -->
+  <div id="inventory" class="content active">
+    <div class="card">
+      <h3>Manage Inventory</h3>
+      <button class="btn-primary" onclick="showAddItem()">Add Item</button>
+      <button class="btn-success" onclick="addColumn()">Add Column</button>
+      <button onclick="loadData()">Refresh</button>
+      
+      <div id="inventoryTable"></div>
     </div>
+  </div>
 
-    <div class="controls">
-        <h3 class="section-title">🛠️ Data Controls</h3>
-        
-        <div class="control-group">
-            <div class="input-row">
-                <input type="text" id="newColumnName" placeholder="New column name">
-                <button class="control-btn btn-primary" onclick="addNewColumn()">Add Column</button>
-            </div>
-            
-            <div class="input-row">
-                <input type="number" id="removeColumnIndex" placeholder="Column index to remove" min="0">
-                <button class="control-btn btn-danger" onclick="removeColumn()">Remove Column</button>
-            </div>
-        </div>
-        
-        <div class="control-group">
-            <div class="input-row">
-                <button class="control-btn btn-success" onclick="addNewRow()">Add New Row</button>
-                <input type="number" id="removeRowIndex" placeholder="Row index to remove" min="0">
-                <button class="control-btn btn-danger" onclick="removeRow()">Remove Row</button>
-            </div>
-        </div>
+  <!-- Profits Tab -->
+  <div id="profits" class="content">
+    <div class="card">
+      <h3>Profit Analysis</h3>
+      <button onclick="calculateProfits()">Calculate Profits</button>
+      <div id="profitResults"></div>
     </div>
+  </div>
 
-    <!-- Financial Controls Section -->
-    <div class="financial-controls">
-        <h3 class="section-title">💰 Profit Calculator</h3>
-        
-        <div class="control-group">
-            <div class="input-row">
-                <input type="text" id="costColumn" placeholder="Cost column" value="Cost">
-                <input type="text" id="priceColumn" placeholder="Price column" value="Price">
-                <input type="text" id="profitColumn" placeholder="Profit column" value="Profit">
-            </div>
-            <button class="control-btn btn-primary" onclick="calculateProfits()">Calculate Profits</button>
-        </div>
-        
-        <div class="control-group">
-            <div class="input-row">
-                <button class="control-btn btn-info" onclick="analyzeFinancials()">Analyze Data</button>
-                <button class="control-btn btn-success" onclick="addFinancialColumns()">Add Finance Columns</button>
-                <button class="control-btn btn-warning" onclick="clearFinancialResults()">Clear</button>
-            </div>
-        </div>
-        
-        <!-- Financial Results -->
-        <div id="financialResults" class="financial-results" style="display: none;">
-            <h4 class="section-title">📊 Financial Summary</h4>
-            <div id="financialSummary"></div>
-            <div class="calculations-grid">
-                <div class="item-calculations">
-                    <h5 class="section-title">📈 Item Profits</h5>
-                    <div id="profitCalculations"></div>
-                </div>
-                <div class="total-calculations">
-                    <h5 class="section-title">💰 Totals</h5>
-                    <div id="financialTotals"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Analysis Results -->
-        <div id="financialAnalysis" class="analysis-results" style="display: none;">
-            <div id="analysisResults"></div>
-        </div>
+  <!-- Add Item Modal -->
+  <div id="addItemModal" class="modal">
+    <div class="modal-content">
+      <h3>Add New Item</h3>
+      <div id="itemFields"></div>
+      <button class="btn-success" onclick="saveItem()">Save</button>
+      <button class="btn-danger" onclick="closeModal('addItemModal')">Cancel</button>
     </div>
+  </div>
 
-    <div class="data-container">
-        <div class="loading" id="tableLoading">
-            <div class="spinner"></div>
-            <p>Loading data...</p>
-        </div>
-        <table id="dataTable">
-            <thead id="tableHeader"></thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
+  <script>
+    let inventoryData = { headers: [], items: [] };
+    let customerSheet = '';
 
-    <div class="save-section">
-        <div class="message" id="message"></div>
-        <button class="save-btn" id="saveBtn" onclick="saveAllData()" disabled>💾 Save All Changes</button>
-    </div>
+    // Load data when page opens
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('welcome').textContent = 'Welcome, ' + result.customerName;
+        customerSheet = result.customerSheet;
+        loadData();
+      })
+      .getUserData();
 
-    <script>
-        // REPLACE WITH YOUR WEB APP URL
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
-        
-        let currentData = { headers: [], data: [] };
-        let userCredentials = {};
+    function loadData() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            inventoryData = result;
+            renderTable();
+          }
+        })
+        .getInventoryData(customerSheet);
+    }
 
-        // API Client Class
-        class AppsScriptAPI {
-            constructor(webAppUrl) {
-                this.webAppUrl = webAppUrl;
-            }
+    function renderTable() {
+      let html = '<table><tr>';
+      inventoryData.headers.forEach((header, index) => {
+        html += `<th>${header} <button onclick="editColumn(${index})">Edit</button></th>`;
+      });
+      html += '<th>Actions</th></tr>';
 
-            async callFunction(functionName, username, password, data = []) {
-                try {
-                    const params = new URLSearchParams({
-                        function: functionName,
-                        username: username,
-                        password: password,
-                        data: JSON.stringify(data)
-                    });
-
-                    const response = await fetch(`${this.webApp_URL}?${params}`);
-                    if (!response.ok) throw new Error('Network error');
-                    return await response.json();
-                } catch (error) {
-                    return { success: false, error: 'Network error: ' + error.message };
-                }
-            }
-        }
-
-        const api = new AppsScriptAPI(WEB_APP_URL);
-
-        // Initialize
-        window.addEventListener('load', function() {
-            const userData = sessionStorage.getItem('userData');
-            if (!userData) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const user = JSON.parse(userData);
-            userCredentials = { username: user.username, password: user.password };
-            
-            document.getElementById('customerName').textContent = user.customerName;
-            document.getElementById('userInfo').textContent = `User: ${user.username}`;
-            
-            loadCustomerData();
+      inventoryData.items.forEach((item, rowIndex) => {
+        html += '<tr>';
+        item.forEach(cell => {
+          html += `<td>${cell}</td>`;
         });
+        html += `<td>
+          <button onclick="editItem(${rowIndex})">Edit</button>
+          <button class="btn-danger" onclick="deleteItem(${rowIndex})">Delete</button>
+        </td></tr>`;
+      });
 
-        async function callAPI(functionName, data = []) {
-            try {
-                const params = new URLSearchParams({
-                    function: functionName,
-                    username: userCredentials.username,
-                    password: userCredentials.password,
-                    data: JSON.stringify(data)
-                });
+      document.getElementById('inventoryTable').innerHTML = html;
+    }
 
-                const response = await fetch(`${WEB_APP_URL}?${params}`);
-                if (!response.ok) throw new Error('Network error');
-                return await response.json();
-            } catch (error) {
-                return { success: false, error: 'Network error: ' + error.message };
-            }
-        }
+    function showAddItem() {
+      let fields = '';
+      inventoryData.headers.forEach(header => {
+        fields += `<input type="text" id="new_${header}" placeholder="${header}"><br>`;
+      });
+      document.getElementById('itemFields').innerHTML = fields;
+      document.getElementById('addItemModal').style.display = 'flex';
+    }
 
-        async function loadCustomerData() {
-            const tableLoading = document.getElementById('tableLoading');
-            tableLoading.style.display = 'block';
+    function saveItem() {
+      const newItem = inventoryData.headers.map(header => 
+        document.getElementById('new_' + header).value
+      );
+      
+      google.script.run
+        .withSuccessHandler(function() {
+          closeModal('addItemModal');
+          loadData();
+        })
+        .addItem(customerSheet, newItem);
+    }
 
-            try {
-                const result = await callAPI('getCustomerData');
-                if (result.success) {
-                    currentData.headers = result.headers || [];
-                    currentData.data = result.data || [];
-                    renderTable();
-                } else {
-                    showMessage(result.error || 'Failed to load data', 'error');
-                }
-            } catch (error) {
-                showMessage('Error loading data: ' + error.message, 'error');
-            } finally {
-                tableLoading.style.display = 'none';
-            }
-        }
+    function deleteItem(rowIndex) {
+      if (confirm('Delete this item?')) {
+        google.script.run
+          .withSuccessHandler(loadData)
+          .deleteItem(customerSheet, rowIndex);
+      }
+    }
 
-        function renderTable() {
-            const tableHeader = document.getElementById('tableHeader');
-            const tableBody = document.getElementById('tableBody');
-            
-            tableHeader.innerHTML = '';
-            let headerRow = document.createElement('tr');
-            currentData.headers.forEach((header, index) => {
-                let th = document.createElement('th');
-                th.textContent = header || `Col ${index + 1}`;
-                headerRow.appendChild(th);
+    function addColumn() {
+      const name = prompt('Column name:');
+      if (name) {
+        google.script.run
+          .withSuccessHandler(loadData)
+          .addColumn(customerSheet, name);
+      }
+    }
+
+    function editColumn(colIndex) {
+      const newName = prompt('New column name:', inventoryData.headers[colIndex]);
+      if (newName) {
+        google.script.run
+          .withSuccessHandler(loadData)
+          .updateColumn(customerSheet, colIndex, newName);
+      }
+    }
+
+    function calculateProfits() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            let html = `<h4>Total Profit: $${result.totalProfit.toFixed(2)}</h4>`;
+            result.items.forEach(item => {
+              html += `<p>${item.name}: $${item.profit.toFixed(2)}</p>`;
             });
-            tableHeader.appendChild(headerRow);
+            document.getElementById('profitResults').innerHTML = html;
+          }
+        })
+        .calculateProfits(customerSheet);
+    }
 
-            tableBody.innerHTML = '';
-            currentData.data.forEach((row, rowIndex) => {
-                let tr = document.createElement('tr');
-                row.forEach((cell, colIndex) => {
-                    let td = document.createElement('td');
-                    let input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = cell || '';
-                    input.addEventListener('input', function() {
-                        currentData.data[rowIndex][colIndex] = this.value;
-                        enableSaveButton();
-                    });
-                    td.appendChild(input);
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
-            });
+    function showTab(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+    }
 
-            enableSaveButton(false);
-        }
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
 
-        // Data Operations
-        async function addNewColumn() {
-            const columnName = document.getElementById('newColumnName').value.trim();
-            if (!columnName) {
-                showMessage('Please enter column name', 'error');
-                return;
-            }
-
-            try {
-                const result = await callAPI('addNewColumn', [columnName]);
-                if (result.success) {
-                    currentData.headers.push(columnName);
-                    currentData.data.forEach(row => row.push(''));
-                    renderTable();
-                    document.getElementById('newColumnName').value = '';
-                    showMessage(result.message, 'success');
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function removeColumn() {
-            const columnIndex = parseInt(document.getElementById('removeColumnIndex').value);
-            if (isNaN(columnIndex) || columnIndex < 0 || columnIndex >= currentData.headers.length) {
-                showMessage('Enter valid column index', 'error');
-                return;
-            }
-
-            try {
-                const result = await callAPI('removeColumn', [columnIndex]);
-                if (result.success) {
-                    currentData.headers.splice(columnIndex, 1);
-                    currentData.data.forEach(row => row.splice(columnIndex, 1));
-                    renderTable();
-                    document.getElementById('removeColumnIndex').value = '';
-                    showMessage(result.message, 'success');
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function addNewRow() {
-            try {
-                const result = await callAPI('addNewRow');
-                if (result.success) {
-                    currentData.data.push(Array(currentData.headers.length).fill(''));
-                    renderTable();
-                    showMessage(result.message, 'success');
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function removeRow() {
-            const rowIndex = parseInt(document.getElementById('removeRowIndex').value);
-            if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= currentData.data.length) {
-                showMessage('Enter valid row index', 'error');
-                return;
-            }
-
-            try {
-                const result = await callAPI('deleteRow', [rowIndex]);
-                if (result.success) {
-                    currentData.data.splice(rowIndex, 1);
-                    renderTable();
-                    document.getElementById('removeRowIndex').value = '';
-                    showMessage(result.message, 'success');
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
-        }
-
-        async function saveAllData() {
-            const saveBtn = document.getElementById('saveBtn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-
-            try {
-                const result = await callAPI('saveAllData', [currentData.headers, currentData.data]);
-                saveBtn.textContent = '💾 Save All Changes';
-                if (result.success) {
-                    showMessage(result.message, 'success');
-                    enableSaveButton(false);
-                } else {
-                    showMessage(result.error, 'error');
-                    enableSaveButton(true);
-                }
-            } catch (error) {
-                saveBtn.textContent = '💾 Save All Changes';
-                showMessage('Error saving: ' + error.message, 'error');
-                enableSaveButton(true);
-            }
-        }
-
-        // Financial Functions
-        async function calculateProfits() {
-            const costColumn = document.getElementById('costColumn').value.trim();
-            const priceColumn = document.getElementById('priceColumn').value.trim();
-            const profitColumn = document.getElementById('profitColumn').value.trim();
-
-            if (!costColumn || !priceColumn) {
-                showMessage('Enter Cost and Price columns', 'error');
-                return;
-            }
-
-            showMessage('Calculating profits...', 'success');
-
-            try {
-                const result = await callAPI('calculateProfits', [costColumn, priceColumn, profitColumn]);
-                if (result.success) {
-                    displayProfitResults(result);
-                    showMessage(result.message, 'success');
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error calculating: ' + error.message, 'error');
-            }
-        }
-
-        function displayProfitResults(result) {
-            const financialResults = document.getElementById('financialResults');
-            const profitCalculations = document.getElementById('profitCalculations');
-            const financialTotals = document.getElementById('financialTotals');
-            const financialSummary = document.getElementById('financialSummary');
-
-            // Summary Cards
-            financialSummary.innerHTML = `
-                <div class="summary-cards">
-                    <div class="summary-card ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        <h5>Total Profit</h5>
-                        <div class="value">$${result.totals.totalProfit.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-card">
-                        <h5>Revenue</h5>
-                        <div class="value">$${result.totals.totalRevenue.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-card">
-                        <h5>Cost</h5>
-                        <div class="value">$${result.totals.totalCost.toFixed(2)}</div>
-                    </div>
-                    <div class="summary-card ${result.totals.averageMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        <h5>Margin</h5>
-                        <div class="value">${result.totals.averageMargin.toFixed(1)}%</div>
-                    </div>
-                </div>
-            `;
-
-            // Item Calculations
-            let calculationsHTML = '<div class="calculation-row header">';
-            calculationsHTML += '<span>Item</span><span>Profit</span><span>Margin</span>';
-            calculationsHTML += '</div>';
-
-            result.calculations.forEach(calc => {
-                calculationsHTML += `
-                    <div class="calculation-row">
-                        <span>${calc.itemName}</span>
-                        <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">$${calc.profit.toFixed(2)}</span>
-                        <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">${calc.profitMargin.toFixed(1)}%</span>
-                    </div>
-                `;
-            });
-
-            profitCalculations.innerHTML = calculationsHTML;
-
-            // Totals
-            financialTotals.innerHTML = `
-                <div class="calculation-row">
-                    <span>Items:</span>
-                    <span>${result.totals.totalItems}</span>
-                </div>
-                <div class="calculation-row">
-                    <span>Total Cost:</span>
-                    <span>$${result.totals.totalCost.toFixed(2)}</span>
-                </div>
-                <div class="calculation-row">
-                    <span>Total Revenue:</span>
-                    <span>$${result.totals.totalRevenue.toFixed(2)}</span>
-                </div>
-                <div class="calculation-row total-row ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                    <span>NET PROFIT:</span>
-                    <span>$${result.totals.totalProfit.toFixed(2)}</span>
-                </div>
-            `;
-
-            financialResults.style.display = 'block';
-        }
-
-        async function analyzeFinancials() {
-            try {
-                const result = await callAPI('getFinancialSummary');
-                if (result.success) {
-                    displayFinancialAnalysis(result);
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error analyzing: ' + error.message, 'error');
-            }
-        }
-
-        function displayFinancialAnalysis(result) {
-            const financialAnalysis = document.getElementById('financialAnalysis');
-            const analysisResults = document.getElementById('analysisResults');
-
-            let analysisHTML = '<h4 class="section-title">📋 Analysis</h4>';
-            
-            if (result.summary.hasFinancialData) {
-                analysisHTML += `
-                    <div class="summary-cards">
-                        <div class="summary-card ${result.summary.quickSummary.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                            <h5>Current Profit</h5>
-                            <div class="value">$${result.summary.quickSummary.totalProfit.toFixed(2)}</div>
-                        </div>
-                        <div class="summary-card">
-                            <h5>Revenue</h5>
-                            <div class="value">$${result.summary.quickSummary.totalRevenue.toFixed(2)}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (result.suggestions.length > 0) {
-                analysisHTML += `
-                    <div class="suggestions">
-                        <h5>💡 Suggestions</h5>
-                        <ul>
-                            ${result.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
-
-            analysisResults.innerHTML = analysisHTML;
-            financialAnalysis.style.display = 'block';
-        }
-
-        async function addFinancialColumns() {
-            const columns = ['Cost', 'Price', 'Profit'];
-            try {
-                const result = await callAPI('addFinancialColumns', [columns]);
-                if (result.success) {
-                    if (result.addedColumns.length > 0) {
-                        loadCustomerData();
-                        showMessage('Added: ' + result.addedColumns.join(', '), 'success');
-                    } else {
-                        showMessage('Columns already exist', 'success');
-                    }
-                } else {
-                    showMessage(result.error, 'error');
-                }
-            } catch (error) {
-                showMessage('Error adding columns', 'error');
-            }
-        }
-
-        function clearFinancialResults() {
-            document.getElementById('financialResults').style.display = 'none';
-            document.getElementById('financialAnalysis').style.display = 'none';
-        }
-
-        function enableSaveButton(enable = true) {
-            document.getElementById('saveBtn').disabled = !enable;
-        }
-
-        function showMessage(message, type) {
-            const messageElement = document.getElementById('message');
-            messageElement.textContent = message;
-            messageElement.className = 'message ' + type;
-            messageElement.style.display = 'block';
-            
-            setTimeout(() => {
-                messageElement.style.display = 'none';
-            }, 4000);
-        }
-
-        function logout() {
-            sessionStorage.removeItem('userData');
-            window.location.href = 'login.html';
-        }
-
-        // Touch improvements
-        document.addEventListener('touchstart', function() {}, {passive: true});
-    </script>
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+    }
+  </script>
 </body>
 </html>
