@@ -58,6 +58,24 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
+        .financial-controls {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #28a745;
+        }
+
+        .financial-controls h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .control-group {
             display: flex;
             gap: 10px;
@@ -99,6 +117,24 @@
 
         .btn-success:hover {
             background: #218838;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
         }
 
         input {
@@ -226,6 +262,129 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .financial-results {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .financial-results h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .calculations-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .item-calculations, .total-calculations {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .calculation-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .calculation-row.header {
+            font-weight: bold;
+            background: #f8f9fa;
+            margin: -15px -15px 10px -15px;
+            padding: 10px 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .profit-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .profit-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background: #e9ecef;
+            margin: 10px -15px -15px -15px;
+            padding: 12px 15px;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .suggestions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .suggestions h5 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .suggestions ul {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h5 {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-card.profit-positive {
+            border-left-color: #28a745;
+        }
+
+        .summary-card.profit-negative {
+            border-left-color: #dc3545;
+        }
+
+        .analysis-results {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +413,45 @@
         </div>
     </div>
 
+    <!-- Financial Controls Section -->
+    <div class="financial-controls">
+        <h3>💰 Profit & Cost Calculations</h3>
+        
+        <div class="control-group">
+            <input type="text" id="costColumn" placeholder="Cost column name" value="Cost">
+            <input type="text" id="priceColumn" placeholder="Price column name" value="Price">
+            <input type="text" id="profitColumn" placeholder="Profit column (optional)" value="Profit">
+            <button class="control-btn btn-primary" onclick="calculateProfits()">Calculate Profits</button>
+        </div>
+        
+        <div class="control-group">
+            <button class="control-btn btn-info" onclick="analyzeFinancials()">Analyze Financial Data</button>
+            <button class="control-btn btn-success" onclick="addFinancialColumns()">Add Financial Columns</button>
+            <button class="control-btn btn-warning" onclick="clearFinancialResults()">Clear Results</button>
+        </div>
+        
+        <!-- Financial Results Display -->
+        <div id="financialResults" class="financial-results" style="display: none;">
+            <h4>📊 Financial Summary</h4>
+            <div id="financialSummary"></div>
+            <div class="calculations-grid">
+                <div class="item-calculations">
+                    <h5>📈 Item-wise Calculations</h5>
+                    <div id="profitCalculations"></div>
+                </div>
+                <div class="total-calculations">
+                    <h5>💰 Total Calculations</h5>
+                    <div id="financialTotals"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Analysis Results -->
+        <div id="financialAnalysis" class="analysis-results" style="display: none;">
+            <div id="analysisResults"></div>
+        </div>
+    </div>
+
     <div class="data-container">
         <div class="loading" id="tableLoading">
             <div class="spinner"></div>
@@ -271,12 +469,11 @@
     </div>
 
     <script>
-        let currentData = {
-            headers: [],
-            data: []
-        };
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
+        
+        let currentData = { headers: [], data: [] };
+        let userCredentials = {};
 
-        // Check authentication and load data
         window.addEventListener('load', function() {
             const userData = sessionStorage.getItem('userData');
             if (!userData) {
@@ -285,40 +482,55 @@
             }
 
             const user = JSON.parse(userData);
+            userCredentials = { username: user.username, password: user.password };
+            
             document.getElementById('customerName').textContent = user.customerName + ' - Data Management';
             document.getElementById('userInfo').textContent = `User: ${user.username} | Sheet: ${user.customerSheet}`;
             
-            loadCustomerData(user.username, userData.password);
+            loadCustomerData();
         });
 
-        function loadCustomerData(username, password) {
+        async function callAPI(functionName, data = []) {
+            try {
+                const params = new URLSearchParams({
+                    function: functionName,
+                    username: userCredentials.username,
+                    password: userCredentials.password,
+                    data: JSON.stringify(data)
+                });
+
+                const response = await fetch(`${WEB_APP_URL}?${params}`);
+                if (!response.ok) throw new Error('Network error');
+                return await response.json();
+            } catch (error) {
+                return { success: false, error: 'Network error: ' + error.message };
+            }
+        }
+
+        async function loadCustomerData() {
             const tableLoading = document.getElementById('tableLoading');
             tableLoading.style.display = 'block';
 
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    tableLoading.style.display = 'none';
-                    
-                    if (result.success) {
-                        currentData.headers = result.headers || [];
-                        currentData.data = result.data || [];
-                        renderTable();
-                    } else {
-                        showMessage(result.error || 'Failed to load data', 'error');
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    tableLoading.style.display = 'none';
-                    showMessage('Error loading data: ' + error.message, 'error');
-                })
-                .getCustomerData(username, password);
+            try {
+                const result = await callAPI('getCustomerData');
+                if (result.success) {
+                    currentData.headers = result.headers || [];
+                    currentData.data = result.data || [];
+                    renderTable();
+                } else {
+                    showMessage(result.error || 'Failed to load data', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading data: ' + error.message, 'error');
+            } finally {
+                tableLoading.style.display = 'none';
+            }
         }
 
         function renderTable() {
             const tableHeader = document.getElementById('tableHeader');
             const tableBody = document.getElementById('tableBody');
             
-            // Render headers
             tableHeader.innerHTML = '';
             let headerRow = document.createElement('tr');
             currentData.headers.forEach((header, index) => {
@@ -328,7 +540,6 @@
             });
             tableHeader.appendChild(headerRow);
 
-            // Render data rows
             tableBody.innerHTML = '';
             currentData.data.forEach((row, rowIndex) => {
                 let tr = document.createElement('tr');
@@ -350,130 +561,295 @@
             enableSaveButton(false);
         }
 
-        function addNewColumn() {
+        async function addNewColumn() {
             const columnName = document.getElementById('newColumnName').value.trim();
             if (!columnName) {
                 showMessage('Please enter a column name', 'error');
                 return;
             }
 
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        currentData.headers.push(columnName);
-                        currentData.data.forEach(row => row.push(''));
-                        renderTable();
-                        document.getElementById('newColumnName').value = '';
-                        showMessage(result.message, 'success');
-                    } else {
-                        showMessage(result.error, 'error');
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    showMessage('Error: ' + error.message, 'error');
-                })
-                .addNewColumn(userData.username, userData.password, columnName);
+            try {
+                const result = await callAPI('addNewColumn', [columnName]);
+                if (result.success) {
+                    currentData.headers.push(columnName);
+                    currentData.data.forEach(row => row.push(''));
+                    renderTable();
+                    document.getElementById('newColumnName').value = '';
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
         }
 
-        function removeColumn() {
+        async function removeColumn() {
             const columnIndex = parseInt(document.getElementById('removeColumnIndex').value);
             if (isNaN(columnIndex) || columnIndex < 0 || columnIndex >= currentData.headers.length) {
                 showMessage('Please enter a valid column index', 'error');
                 return;
             }
 
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        currentData.headers.splice(columnIndex, 1);
-                        currentData.data.forEach(row => row.splice(columnIndex, 1));
-                        renderTable();
-                        document.getElementById('removeColumnIndex').value = '';
-                        showMessage(result.message, 'success');
-                    } else {
-                        showMessage(result.error, 'error');
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    showMessage('Error: ' + error.message, 'error');
-                })
-                .removeColumn(userData.username, userData.password, columnIndex);
+            try {
+                const result = await callAPI('removeColumn', [columnIndex]);
+                if (result.success) {
+                    currentData.headers.splice(columnIndex, 1);
+                    currentData.data.forEach(row => row.splice(columnIndex, 1));
+                    renderTable();
+                    document.getElementById('removeColumnIndex').value = '';
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
         }
 
-        function addNewRow() {
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        currentData.data.push(Array(currentData.headers.length).fill(''));
-                        renderTable();
-                        showMessage(result.message, 'success');
-                    } else {
-                        showMessage(result.error, 'error');
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    showMessage('Error: ' + error.message, 'error');
-                })
-                .addNewRow(userData.username, userData.password);
+        async function addNewRow() {
+            try {
+                const result = await callAPI('addNewRow');
+                if (result.success) {
+                    currentData.data.push(Array(currentData.headers.length).fill(''));
+                    renderTable();
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
         }
 
-        function removeRow() {
+        async function removeRow() {
             const rowIndex = parseInt(document.getElementById('removeRowIndex').value);
             if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= currentData.data.length) {
                 showMessage('Please enter a valid row index', 'error');
                 return;
             }
 
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        currentData.data.splice(rowIndex, 1);
-                        renderTable();
-                        document.getElementById('removeRowIndex').value = '';
-                        showMessage(result.message, 'success');
-                    } else {
-                        showMessage(result.error, 'error');
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    showMessage('Error: ' + error.message, 'error');
-                })
-                .deleteRow(userData.username, userData.password, rowIndex);
+            try {
+                const result = await callAPI('deleteRow', [rowIndex]);
+                if (result.success) {
+                    currentData.data.splice(rowIndex, 1);
+                    renderTable();
+                    document.getElementById('removeRowIndex').value = '';
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
         }
 
-        function saveAllData() {
+        async function saveAllData() {
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.disabled = true;
             saveBtn.textContent = 'Saving...';
 
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    saveBtn.textContent = 'Save All Changes';
-                    
-                    if (result.success) {
-                        showMessage(result.message, 'success');
-                        enableSaveButton(false);
-                    } else {
-                        showMessage(result.error, 'error');
-                        enableSaveButton(true);
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    saveBtn.textContent = 'Save All Changes';
-                    showMessage('Error saving data: ' + error.message, 'error');
+            try {
+                const result = await callAPI('saveAllData', [currentData.headers, currentData.data]);
+                saveBtn.textContent = 'Save All Changes';
+                if (result.success) {
+                    showMessage(result.message, 'success');
+                    enableSaveButton(false);
+                } else {
+                    showMessage(result.error, 'error');
                     enableSaveButton(true);
-                })
-                .saveAllData(userData.username, userData.password, currentData.headers, currentData.data);
+                }
+            } catch (error) {
+                saveBtn.textContent = 'Save All Changes';
+                showMessage('Error saving data: ' + error.message, 'error');
+                enableSaveButton(true);
+            }
+        }
+
+        // FINANCIAL FUNCTIONS
+        async function calculateProfits() {
+            const costColumn = document.getElementById('costColumn').value.trim();
+            const priceColumn = document.getElementById('priceColumn').value.trim();
+            const profitColumn = document.getElementById('profitColumn').value.trim();
+
+            if (!costColumn || !priceColumn) {
+                showMessage('Please enter Cost and Price column names', 'error');
+                return;
+            }
+
+            showMessage('Calculating profits...', 'success');
+
+            try {
+                const result = await callAPI('calculateProfits', [costColumn, priceColumn, profitColumn]);
+                if (result.success) {
+                    displayProfitResults(result);
+                    showMessage(result.message, 'success');
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error calculating profits: ' + error.message, 'error');
+            }
+        }
+
+        function displayProfitResults(result) {
+            const financialResults = document.getElementById('financialResults');
+            const profitCalculations = document.getElementById('profitCalculations');
+            const financialTotals = document.getElementById('financialTotals');
+            const financialSummary = document.getElementById('financialSummary');
+
+            // Display summary cards
+            financialSummary.innerHTML = `
+                <div class="summary-cards">
+                    <div class="summary-card ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        <h5>Total Profit</h5>
+                        <div class="value">$${result.totals.totalProfit.toFixed(2)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h5>Total Revenue</h5>
+                        <div class="value">$${result.totals.totalRevenue.toFixed(2)}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h5>Total Cost</h5>
+                        <div class="value">$${result.totals.totalCost.toFixed(2)}</div>
+                    </div>
+                    <div class="summary-card ${result.totals.averageMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
+                        <h5>Profit Margin</h5>
+                        <div class="value">${result.totals.averageMargin.toFixed(1)}%</div>
+                    </div>
+                </div>
+            `;
+
+            // Display item-wise calculations
+            let calculationsHTML = '<div class="calculation-row header">';
+            calculationsHTML += '<span>Item</span><span>Cost</span><span>Price</span><span>Profit</span><span>Margin</span>';
+            calculationsHTML += '</div>';
+
+            result.calculations.forEach(calc => {
+                calculationsHTML += `
+                    <div class="calculation-row">
+                        <span>${calc.itemName}</span>
+                        <span>$${calc.cost.toFixed(2)}</span>
+                        <span>$${calc.price.toFixed(2)}</span>
+                        <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">$${calc.profit.toFixed(2)}</span>
+                        <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">${calc.profitMargin.toFixed(1)}%</span>
+                    </div>
+                `;
+            });
+
+            profitCalculations.innerHTML = calculationsHTML;
+
+            // Display totals
+            financialTotals.innerHTML = `
+                <div class="calculation-row">
+                    <span>Total Items:</span>
+                    <span>${result.totals.totalItems}</span>
+                </div>
+                <div class="calculation-row">
+                    <span>Total Cost:</span>
+                    <span>$${result.totals.totalCost.toFixed(2)}</span>
+                </div>
+                <div class="calculation-row">
+                    <span>Total Revenue:</span>
+                    <span>$${result.totals.totalRevenue.toFixed(2)}</span>
+                </div>
+                <div class="calculation-row total-row ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                    <span>Total Profit:</span>
+                    <span>$${result.totals.totalProfit.toFixed(2)}</span>
+                </div>
+                <div class="calculation-row">
+                    <span>Average Profit per Item:</span>
+                    <span>$${result.totals.averageProfit.toFixed(2)}</span>
+                </div>
+                <div class="calculation-row ${result.totals.averageMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
+                    <span>Overall Profit Margin:</span>
+                    <span>${result.totals.averageMargin.toFixed(1)}%</span>
+                </div>
+            `;
+
+            financialResults.style.display = 'block';
+        }
+
+        async function analyzeFinancials() {
+            try {
+                const result = await callAPI('getFinancialSummary');
+                if (result.success) {
+                    displayFinancialAnalysis(result);
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error analyzing data: ' + error.message, 'error');
+            }
+        }
+
+        function displayFinancialAnalysis(result) {
+            const financialAnalysis = document.getElementById('financialAnalysis');
+            const analysisResults = document.getElementById('analysisResults');
+
+            let analysisHTML = '<h4>📋 Financial Analysis</h4>';
+            
+            if (result.summary.hasFinancialData) {
+                analysisHTML += `
+                    <div class="summary-cards">
+                        <div class="summary-card ${result.summary.quickSummary.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
+                            <h5>Current Total Profit</h5>
+                            <div class="value">$${result.summary.quickSummary.totalProfit.toFixed(2)}</div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Current Revenue</h5>
+                            <div class="value">$${result.summary.quickSummary.totalRevenue.toFixed(2)}</div>
+                        </div>
+                        <div class="summary-card">
+                            <h5>Current Cost</h5>
+                            <div class="value">$${result.summary.quickSummary.totalCost.toFixed(2)}</div>
+                        </div>
+                        <div class="summary-card ${result.summary.quickSummary.profitMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
+                            <h5>Current Margin</h5>
+                            <div class="value">${result.summary.quickSummary.profitMargin.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (result.suggestions.length > 0) {
+                analysisHTML += `
+                    <div class="suggestions">
+                        <h5>💡 Suggestions for Better Financial Tracking:</h5>
+                        <ul>
+                            ${result.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            analysisResults.innerHTML = analysisHTML;
+            financialAnalysis.style.display = 'block';
+        }
+
+        async function addFinancialColumns() {
+            const columns = ['Cost', 'Price', 'Profit'];
+            try {
+                const result = await callAPI('addFinancialColumns', [columns]);
+                if (result.success) {
+                    if (result.addedColumns.length > 0) {
+                        // Reload data to show new columns
+                        loadCustomerData();
+                        showMessage(result.message, 'success');
+                    } else {
+                        showMessage(result.message, 'success');
+                    }
+                } else {
+                    showMessage(result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding columns: ' + error.message, 'error');
+            }
+        }
+
+        function clearFinancialResults() {
+            document.getElementById('financialResults').style.display = 'none';
+            document.getElementById('financialAnalysis').style.display = 'none';
         }
 
         function enableSaveButton(enable = true) {
