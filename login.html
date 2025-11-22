@@ -1,63 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloud-Share Login</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial; }
-    body { background: #2563eb; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .login-box { background: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; }
-    h2 { text-align: center; margin-bottom: 20px; color: #2563eb; }
-    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-    button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    .message { margin-top: 15px; padding: 10px; text-align: center; display: none; }
-    .error { background: #fee2e2; color: #dc2626; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud-Share | Login</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="login-box">
-    <h2>Cloud-Share Login</h2>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <div id="message" class="message"></div>
-  </div>
-
-  <script>
-    function login() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const message = document.getElementById('message');
-      
-      if (!username || !password) {
-        showMessage('Please enter username and password', 'error');
-        return;
-      }
-      
-      google.script.run
-        .withSuccessHandler(function(result) {
-          if (result.success) {
-            sessionStorage.setItem('customerName', result.customerName);
-            sessionStorage.setItem('customerSheet', result.customerSheet);
-            window.location.href = 'https://script.google.com/macros/s/AKfycby7eIaqlQJ8aiSfhV-6R7bVeZaEatiTEEhkxM6p1Lv9hTanwBwRBYr8Q70sTfJfugjMHg/exec?page=data-manager';
-          } else {
-            showMessage(result.message, 'error');
-          }
-        })
-        .withFailureHandler(function(error) {
-          showMessage('Login error: ' + error.message, 'error');
-        })
-        .verifyLogin(username, password);
-    }
+    <div class="container">
+        <div class="login-card">
+            <h1>Cloud-Share</h1>
+            <p class="subtitle">Inventory Management System</p>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            
+            <div id="message" class="message"></div>
+        </div>
+    </div>
     
-    function showMessage(text, type) {
-      const message = document.getElementById('message');
-      message.textContent = text;
-      message.className = 'message ' + type;
-      message.style.display = 'block';
-    }
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
