@@ -9,68 +9,74 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         body {
-            background: #f5f5f5;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
         }
 
         .header {
             background: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .user-info h1 {
             color: #333;
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
         }
 
         .user-info p {
             color: #666;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .logout-btn {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background: #c82333;
+        .logout-btn:active {
+            transform: scale(0.95);
         }
 
         .controls {
             background: white;
-            margin: 20px;
+            margin: 15px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .financial-controls {
             background: white;
-            margin: 20px;
+            margin: 15px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-left: 4px solid #28a745;
         }
 
-        .financial-controls h3 {
+        .section-title {
             color: #333;
             margin-bottom: 15px;
             font-size: 18px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -78,18 +84,36 @@
 
         .control-group {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 12px;
             margin-bottom: 15px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
+        .input-row input {
+            flex: 1;
+            min-width: 120px;
+        }
+
         .control-btn {
-            padding: 10px 20px;
+            padding: 12px 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: 500;
-            transition: background 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
         }
 
         .btn-primary {
@@ -97,17 +121,9 @@
             color: white;
         }
 
-        .btn-primary:hover {
-            background: #5a6fd8;
-        }
-
         .btn-danger {
             background: #dc3545;
             color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
         }
 
         .btn-success {
@@ -115,17 +131,9 @@
             color: white;
         }
 
-        .btn-success:hover {
-            background: #218838;
-        }
-
         .btn-info {
             background: #17a2b8;
             color: white;
-        }
-
-        .btn-info:hover {
-            background: #138496;
         }
 
         .btn-warning {
@@ -133,46 +141,48 @@
             color: #212529;
         }
 
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        input {
-            padding: 10px;
+        input, select {
+            padding: 12px;
             border: 2px solid #e1e1e1;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 14px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
         }
 
-        input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .data-container {
             background: white;
-            margin: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 15px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             overflow: auto;
-            flex: 1;
+            max-height: 50vh;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px;
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #e1e1e1;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
         }
 
         th {
             background: #f8f9fa;
             font-weight: 600;
-            color: #333;
+            color: #495057;
             position: sticky;
             top: 0;
         }
@@ -183,10 +193,11 @@
 
         td input {
             width: 100%;
-            border: 1px solid #e1e1e1;
+            border: 1px solid #dee2e6;
             padding: 8px;
-            border-radius: 3px;
+            border-radius: 6px;
             background: transparent;
+            font-size: 14px;
         }
 
         td input:focus {
@@ -196,10 +207,10 @@
 
         .save-section {
             background: white;
-            margin: 20px;
+            margin: 15px;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             text-align: center;
         }
 
@@ -207,27 +218,32 @@
             background: #28a745;
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 5px;
+            padding: 16px 32px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
         }
 
-        .save-btn:hover {
-            background: #218838;
+        .save-btn:active {
+            transform: scale(0.95);
         }
 
         .save-btn:disabled {
             background: #6c757d;
             cursor: not-allowed;
+            transform: none;
         }
 
         .message {
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            border-radius: 10px;
             margin: 10px 0;
             display: none;
+            font-size: 14px;
         }
 
         .message.success {
@@ -266,107 +282,84 @@
         .financial-results {
             background: #f8f9fa;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-top: 15px;
             border: 1px solid #e9ecef;
         }
 
-        .financial-results h4 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
         .calculations-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .item-calculations, .total-calculations {
             background: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 12px;
             border: 1px solid #dee2e6;
         }
 
         .calculation-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid #f8f9fa;
+            font-size: 14px;
         }
 
         .calculation-row.header {
-            font-weight: bold;
+            font-weight: 700;
             background: #f8f9fa;
             margin: -15px -15px 10px -15px;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-bottom: 2px solid #dee2e6;
         }
 
         .profit-positive {
             color: #28a745;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .profit-negative {
             color: #dc3545;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .total-row {
-            font-weight: bold;
+            font-weight: 700;
             background: #e9ecef;
             margin: 10px -15px -15px -15px;
             padding: 12px 15px;
             border-top: 2px solid #dee2e6;
         }
 
-        .suggestions {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 5px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .suggestions h5 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .suggestions ul {
-            color: #856404;
-            padding-left: 20px;
-        }
-
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .summary-card {
             background: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 12px;
             border-left: 4px solid #667eea;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .summary-card h5 {
             color: #666;
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .summary-card .value {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
             color: #333;
         }
 
@@ -381,9 +374,96 @@
         .analysis-results {
             background: #e7f3ff;
             border: 1px solid #b3d9ff;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 20px;
             margin-top: 15px;
+        }
+
+        .suggestions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .suggestions h5 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .suggestions ul {
+            color: #856404;
+            padding-left: 20px;
+            font-size: 14px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 15px;
+            }
+            
+            .user-info h1 {
+                font-size: 18px;
+            }
+            
+            .controls, .financial-controls, .save-section {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .control-btn {
+                min-width: 120px;
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-container {
+                margin: 10px;
+                max-height: 40vh;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .input-row {
+                flex-direction: column;
+            }
+            
+            .control-btn {
+                min-width: 100%;
+            }
+            
+            .section-title {
+                font-size: 16px;
+            }
+            
+            .save-btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .logout-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -397,56 +477,67 @@
     </div>
 
     <div class="controls">
+        <h3 class="section-title">🛠️ Data Controls</h3>
+        
         <div class="control-group">
-            <input type="text" id="newColumnName" placeholder="New column name">
-            <button class="control-btn btn-primary" onclick="addNewColumn()">Add Column</button>
+            <div class="input-row">
+                <input type="text" id="newColumnName" placeholder="New column name">
+                <button class="control-btn btn-primary" onclick="addNewColumn()">Add Column</button>
+            </div>
             
-            <input type="number" id="removeColumnIndex" placeholder="Column index to remove" min="0">
-            <button class="control-btn btn-danger" onclick="removeColumn()">Remove Column</button>
+            <div class="input-row">
+                <input type="number" id="removeColumnIndex" placeholder="Column index to remove" min="0">
+                <button class="control-btn btn-danger" onclick="removeColumn()">Remove Column</button>
+            </div>
         </div>
         
         <div class="control-group">
-            <button class="control-btn btn-success" onclick="addNewRow()">Add New Row</button>
-            
-            <input type="number" id="removeRowIndex" placeholder="Row index to remove" min="0">
-            <button class="control-btn btn-danger" onclick="removeRow()">Remove Row</button>
+            <div class="input-row">
+                <button class="control-btn btn-success" onclick="addNewRow()">Add New Row</button>
+                <input type="number" id="removeRowIndex" placeholder="Row index to remove" min="0">
+                <button class="control-btn btn-danger" onclick="removeRow()">Remove Row</button>
+            </div>
         </div>
     </div>
 
     <!-- Financial Controls Section -->
     <div class="financial-controls">
-        <h3>💰 Profit & Cost Calculations</h3>
+        <h3 class="section-title">💰 Profit Calculator</h3>
         
         <div class="control-group">
-            <input type="text" id="costColumn" placeholder="Cost column name" value="Cost">
-            <input type="text" id="priceColumn" placeholder="Price column name" value="Price">
-            <input type="text" id="profitColumn" placeholder="Profit column (optional)" value="Profit">
+            <div class="input-row">
+                <input type="text" id="costColumn" placeholder="Cost column" value="Cost">
+                <input type="text" id="priceColumn" placeholder="Price column" value="Price">
+                <input type="text" id="profitColumn" placeholder="Profit column" value="Profit">
+            </div>
             <button class="control-btn btn-primary" onclick="calculateProfits()">Calculate Profits</button>
         </div>
         
         <div class="control-group">
-            <button class="control-btn btn-info" onclick="analyzeFinancials()">Analyze Financial Data</button>
-            <button class="control-btn btn-success" onclick="addFinancialColumns()">Add Financial Columns</button>
-            <button class="control-btn btn-warning" onclick="clearFinancialResults()">Clear Results</button>
+            <div class="input-row">
+                <button class="control-btn btn-info" onclick="analyzeFinancials()">Analyze Data</button>
+                <button class="control-btn btn-success" onclick="addFinancialColumns()">Add Finance Columns</button>
+                <button class="control-btn btn-warning" onclick="clearFinancialResults()">Clear</button>
+            </div>
         </div>
         
-        <!-- Financial Results Display -->
+        <!-- Financial Results -->
         <div id="financialResults" class="financial-results" style="display: none;">
-            <h4>📊 Financial Summary</h4>
+            <h4 class="section-title">📊 Financial Summary</h4>
             <div id="financialSummary"></div>
             <div class="calculations-grid">
                 <div class="item-calculations">
-                    <h5>📈 Item-wise Calculations</h5>
+                    <h5 class="section-title">📈 Item Profits</h5>
                     <div id="profitCalculations"></div>
                 </div>
                 <div class="total-calculations">
-                    <h5>💰 Total Calculations</h5>
+                    <h5 class="section-title">💰 Totals</h5>
                     <div id="financialTotals"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Financial Analysis Results -->
+        <!-- Analysis Results -->
         <div id="financialAnalysis" class="analysis-results" style="display: none;">
             <div id="analysisResults"></div>
         </div>
@@ -465,15 +556,43 @@
 
     <div class="save-section">
         <div class="message" id="message"></div>
-        <button class="save-btn" id="saveBtn" onclick="saveAllData()" disabled>Save All Changes</button>
+        <button class="save-btn" id="saveBtn" onclick="saveAllData()" disabled>💾 Save All Changes</button>
     </div>
-    <script src="api-client.js"></script>
+
     <script>
+        // REPLACE WITH YOUR WEB APP URL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzUnXLl2HK4shgUWqpwfpr8M0RnSBtBtCeAcPhJP_qBXvKiJ6v4hjKwDWBN_zRbYI_txw/exec';
         
         let currentData = { headers: [], data: [] };
         let userCredentials = {};
 
+        // API Client Class
+        class AppsScriptAPI {
+            constructor(webAppUrl) {
+                this.webAppUrl = webAppUrl;
+            }
+
+            async callFunction(functionName, username, password, data = []) {
+                try {
+                    const params = new URLSearchParams({
+                        function: functionName,
+                        username: username,
+                        password: password,
+                        data: JSON.stringify(data)
+                    });
+
+                    const response = await fetch(`${this.webApp_URL}?${params}`);
+                    if (!response.ok) throw new Error('Network error');
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: 'Network error: ' + error.message };
+                }
+            }
+        }
+
+        const api = new AppsScriptAPI(WEB_APP_URL);
+
+        // Initialize
         window.addEventListener('load', function() {
             const userData = sessionStorage.getItem('userData');
             if (!userData) {
@@ -484,8 +603,8 @@
             const user = JSON.parse(userData);
             userCredentials = { username: user.username, password: user.password };
             
-            document.getElementById('customerName').textContent = user.customerName + ' - Data Management';
-            document.getElementById('userInfo').textContent = `User: ${user.username} | Sheet: ${user.customerSheet}`;
+            document.getElementById('customerName').textContent = user.customerName;
+            document.getElementById('userInfo').textContent = `User: ${user.username}`;
             
             loadCustomerData();
         });
@@ -535,7 +654,7 @@
             let headerRow = document.createElement('tr');
             currentData.headers.forEach((header, index) => {
                 let th = document.createElement('th');
-                th.textContent = header || `Column ${index + 1}`;
+                th.textContent = header || `Col ${index + 1}`;
                 headerRow.appendChild(th);
             });
             tableHeader.appendChild(headerRow);
@@ -561,10 +680,11 @@
             enableSaveButton(false);
         }
 
+        // Data Operations
         async function addNewColumn() {
             const columnName = document.getElementById('newColumnName').value.trim();
             if (!columnName) {
-                showMessage('Please enter a column name', 'error');
+                showMessage('Please enter column name', 'error');
                 return;
             }
 
@@ -587,7 +707,7 @@
         async function removeColumn() {
             const columnIndex = parseInt(document.getElementById('removeColumnIndex').value);
             if (isNaN(columnIndex) || columnIndex < 0 || columnIndex >= currentData.headers.length) {
-                showMessage('Please enter a valid column index', 'error');
+                showMessage('Enter valid column index', 'error');
                 return;
             }
 
@@ -625,7 +745,7 @@
         async function removeRow() {
             const rowIndex = parseInt(document.getElementById('removeRowIndex').value);
             if (isNaN(rowIndex) || rowIndex < 0 || rowIndex >= currentData.data.length) {
-                showMessage('Please enter a valid row index', 'error');
+                showMessage('Enter valid row index', 'error');
                 return;
             }
 
@@ -651,7 +771,7 @@
 
             try {
                 const result = await callAPI('saveAllData', [currentData.headers, currentData.data]);
-                saveBtn.textContent = 'Save All Changes';
+                saveBtn.textContent = '💾 Save All Changes';
                 if (result.success) {
                     showMessage(result.message, 'success');
                     enableSaveButton(false);
@@ -660,20 +780,20 @@
                     enableSaveButton(true);
                 }
             } catch (error) {
-                saveBtn.textContent = 'Save All Changes';
-                showMessage('Error saving data: ' + error.message, 'error');
+                saveBtn.textContent = '💾 Save All Changes';
+                showMessage('Error saving: ' + error.message, 'error');
                 enableSaveButton(true);
             }
         }
 
-        // FINANCIAL FUNCTIONS
+        // Financial Functions
         async function calculateProfits() {
             const costColumn = document.getElementById('costColumn').value.trim();
             const priceColumn = document.getElementById('priceColumn').value.trim();
             const profitColumn = document.getElementById('profitColumn').value.trim();
 
             if (!costColumn || !priceColumn) {
-                showMessage('Please enter Cost and Price column names', 'error');
+                showMessage('Enter Cost and Price columns', 'error');
                 return;
             }
 
@@ -688,7 +808,7 @@
                     showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Error calculating profits: ' + error.message, 'error');
+                showMessage('Error calculating: ' + error.message, 'error');
             }
         }
 
@@ -698,7 +818,7 @@
             const financialTotals = document.getElementById('financialTotals');
             const financialSummary = document.getElementById('financialSummary');
 
-            // Display summary cards
+            // Summary Cards
             financialSummary.innerHTML = `
                 <div class="summary-cards">
                     <div class="summary-card ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
@@ -706,31 +826,29 @@
                         <div class="value">$${result.totals.totalProfit.toFixed(2)}</div>
                     </div>
                     <div class="summary-card">
-                        <h5>Total Revenue</h5>
+                        <h5>Revenue</h5>
                         <div class="value">$${result.totals.totalRevenue.toFixed(2)}</div>
                     </div>
                     <div class="summary-card">
-                        <h5>Total Cost</h5>
+                        <h5>Cost</h5>
                         <div class="value">$${result.totals.totalCost.toFixed(2)}</div>
                     </div>
                     <div class="summary-card ${result.totals.averageMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
-                        <h5>Profit Margin</h5>
+                        <h5>Margin</h5>
                         <div class="value">${result.totals.averageMargin.toFixed(1)}%</div>
                     </div>
                 </div>
             `;
 
-            // Display item-wise calculations
+            // Item Calculations
             let calculationsHTML = '<div class="calculation-row header">';
-            calculationsHTML += '<span>Item</span><span>Cost</span><span>Price</span><span>Profit</span><span>Margin</span>';
+            calculationsHTML += '<span>Item</span><span>Profit</span><span>Margin</span>';
             calculationsHTML += '</div>';
 
             result.calculations.forEach(calc => {
                 calculationsHTML += `
                     <div class="calculation-row">
                         <span>${calc.itemName}</span>
-                        <span>$${calc.cost.toFixed(2)}</span>
-                        <span>$${calc.price.toFixed(2)}</span>
                         <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">$${calc.profit.toFixed(2)}</span>
                         <span class="${calc.isProfitable ? 'profit-positive' : 'profit-negative'}">${calc.profitMargin.toFixed(1)}%</span>
                     </div>
@@ -739,10 +857,10 @@
 
             profitCalculations.innerHTML = calculationsHTML;
 
-            // Display totals
+            // Totals
             financialTotals.innerHTML = `
                 <div class="calculation-row">
-                    <span>Total Items:</span>
+                    <span>Items:</span>
                     <span>${result.totals.totalItems}</span>
                 </div>
                 <div class="calculation-row">
@@ -754,16 +872,8 @@
                     <span>$${result.totals.totalRevenue.toFixed(2)}</span>
                 </div>
                 <div class="calculation-row total-row ${result.totals.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                    <span>Total Profit:</span>
+                    <span>NET PROFIT:</span>
                     <span>$${result.totals.totalProfit.toFixed(2)}</span>
-                </div>
-                <div class="calculation-row">
-                    <span>Average Profit per Item:</span>
-                    <span>$${result.totals.averageProfit.toFixed(2)}</span>
-                </div>
-                <div class="calculation-row ${result.totals.averageMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
-                    <span>Overall Profit Margin:</span>
-                    <span>${result.totals.averageMargin.toFixed(1)}%</span>
                 </div>
             `;
 
@@ -779,7 +889,7 @@
                     showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Error analyzing data: ' + error.message, 'error');
+                showMessage('Error analyzing: ' + error.message, 'error');
             }
         }
 
@@ -787,26 +897,18 @@
             const financialAnalysis = document.getElementById('financialAnalysis');
             const analysisResults = document.getElementById('analysisResults');
 
-            let analysisHTML = '<h4>📋 Financial Analysis</h4>';
+            let analysisHTML = '<h4 class="section-title">📋 Analysis</h4>';
             
             if (result.summary.hasFinancialData) {
                 analysisHTML += `
                     <div class="summary-cards">
                         <div class="summary-card ${result.summary.quickSummary.totalProfit >= 0 ? 'profit-positive' : 'profit-negative'}">
-                            <h5>Current Total Profit</h5>
+                            <h5>Current Profit</h5>
                             <div class="value">$${result.summary.quickSummary.totalProfit.toFixed(2)}</div>
                         </div>
                         <div class="summary-card">
-                            <h5>Current Revenue</h5>
+                            <h5>Revenue</h5>
                             <div class="value">$${result.summary.quickSummary.totalRevenue.toFixed(2)}</div>
-                        </div>
-                        <div class="summary-card">
-                            <h5>Current Cost</h5>
-                            <div class="value">$${result.summary.quickSummary.totalCost.toFixed(2)}</div>
-                        </div>
-                        <div class="summary-card ${result.summary.quickSummary.profitMargin >= 0 ? 'profit-positive' : 'profit-negative'}">
-                            <h5>Current Margin</h5>
-                            <div class="value">${result.summary.quickSummary.profitMargin.toFixed(1)}%</div>
                         </div>
                     </div>
                 `;
@@ -815,7 +917,7 @@
             if (result.suggestions.length > 0) {
                 analysisHTML += `
                     <div class="suggestions">
-                        <h5>💡 Suggestions for Better Financial Tracking:</h5>
+                        <h5>💡 Suggestions</h5>
                         <ul>
                             ${result.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
                         </ul>
@@ -833,17 +935,16 @@
                 const result = await callAPI('addFinancialColumns', [columns]);
                 if (result.success) {
                     if (result.addedColumns.length > 0) {
-                        // Reload data to show new columns
                         loadCustomerData();
-                        showMessage(result.message, 'success');
+                        showMessage('Added: ' + result.addedColumns.join(', '), 'success');
                     } else {
-                        showMessage(result.message, 'success');
+                        showMessage('Columns already exist', 'success');
                     }
                 } else {
                     showMessage(result.error, 'error');
                 }
             } catch (error) {
-                showMessage('Error adding columns: ' + error.message, 'error');
+                showMessage('Error adding columns', 'error');
             }
         }
 
@@ -864,14 +965,16 @@
             
             setTimeout(() => {
                 messageElement.style.display = 'none';
-            }, 5000);
+            }, 4000);
         }
 
         function logout() {
             sessionStorage.removeItem('userData');
             window.location.href = 'login.html';
         }
+
+        // Touch improvements
+        document.addEventListener('touchstart', function() {}, {passive: true});
     </script>
 </body>
 </html>
-
