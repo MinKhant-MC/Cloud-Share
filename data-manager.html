@@ -18,20 +18,23 @@
         
         <main>
             <div class="controls">
-                <button id="addItemBtn" class="btn-primary">Add New Item</button>
+                <button id="addRowBtn" class="btn-primary">Add New Row</button>
+                <button id="addColumnBtn" class="btn-primary">Add New Column</button>
+                <button id="saveDataBtn" class="btn-success">Save All Changes</button>
                 <button id="calculateProfitBtn" class="btn-secondary">Calculate Profit</button>
+            </div>
+            
+            <div class="table-controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search items...">
+                </div>
             </div>
             
             <div class="table-container">
                 <table id="inventoryTable">
-                    <thead>
+                    <thead id="tableHeader">
                         <tr>
-                            <th>Item Name</th>
-                            <th>Cost Price</th>
-                            <th>Sell Price</th>
-                            <th>Quantity</th>
-                            <th>Profit</th>
-                            <th>Actions</th>
+                            <!-- Headers will be dynamically loaded -->
                         </tr>
                     </thead>
                     <tbody id="inventoryBody">
@@ -46,30 +49,17 @@
         </main>
     </div>
     
-    <!-- Add/Edit Item Modal -->
-    <div id="itemModal" class="modal">
+    <!-- Add Column Modal -->
+    <div id="columnModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2 id="modalTitle">Add New Item</h2>
-            <form id="itemForm">
-                <input type="hidden" id="itemId">
+            <h2>Add New Column</h2>
+            <form id="columnForm">
                 <div class="form-group">
-                    <label for="itemName">Item Name</label>
-                    <input type="text" id="itemName" required>
+                    <label for="columnName">Column Name</label>
+                    <input type="text" id="columnName" placeholder="e.g., Color, Size, Category" required>
                 </div>
-                <div class="form-group">
-                    <label for="costPrice">Cost Price</label>
-                    <input type="number" id="costPrice" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="sellPrice">Sell Price</label>
-                    <input type="number" id="sellPrice" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" required>
-                </div>
-                <button type="submit" class="btn-primary">Save Item</button>
+                <button type="submit" class="btn-primary">Add Column</button>
             </form>
         </div>
     </div>
