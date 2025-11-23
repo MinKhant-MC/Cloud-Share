@@ -3,309 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud-Share | Data Manager</title>
+    <title>Cloud-Share | Mobile Inventory Manager</title>
     <style>
         * { 
             margin: 0; 
             padding: 0; 
             box-sizing: border-box; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
         }
         
         body { 
-            background: #f8f9fa; 
-            color: #333; 
-            font-size: 14px;
-            line-height: 1.5;
+            background: #f0f2f5; 
+            color: #1a1a1a; 
+            font-size: 15px;
+            line-height: 1.4;
+            padding: 0;
+            margin: 0;
         }
         
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto; 
-            padding: 15px; 
+        .mobile-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 8px;
         }
         
-        /* Header */
-        header { 
+        /* Header - Mobile Optimized */
+        .mobile-header { 
             background: white; 
-            padding: 20px 15px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
+            padding: 16px 12px; 
+            border-radius: 16px; 
+            margin-bottom: 12px; 
             display: flex; 
             flex-direction: column;
-            gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
+            position: sticky;
+            top: 8px;
+            z-index: 100;
         }
         
-        header h1 { 
-            color: #2c3e50; 
-            font-size: 22px; 
+        .mobile-header h1 { 
+            color: #1a1a1a; 
+            font-size: 20px; 
             font-weight: 700; 
             text-align: center;
+            line-height: 1.2;
         }
         
-        .user-info { 
+        .mobile-user-info { 
             display: flex; 
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center; 
             gap: 10px; 
         }
         
-        .user-info span { 
-            color: #7f8c8d; 
+        .mobile-user-info span { 
+            color: #666; 
             font-weight: 600; 
             font-size: 14px; 
+            flex: 1;
         }
         
-        /* Controls */
-        .controls { 
+        /* Controls - Mobile Optimized */
+        .mobile-controls { 
             background: white; 
-            padding: 20px 15px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            padding: 16px 12px; 
+            border-radius: 16px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
         }
         
-        .controls-grid { 
+        .mobile-controls-grid { 
             display: grid; 
-            grid-template-columns: 1fr; 
+            grid-template-columns: 1fr 1fr; 
             gap: 10px; 
-            margin-bottom: 15px; 
+            margin-bottom: 16px; 
         }
         
-        .controls button { 
-            padding: 14px 12px; 
+        .mobile-controls button { 
+            padding: 14px 10px; 
             border: none; 
-            border-radius: 8px; 
+            border-radius: 12px; 
             font-size: 14px; 
             font-weight: 600; 
             cursor: pointer; 
-            transition: all 0.3s; 
+            transition: all 0.2s; 
             min-height: 50px;
-            /* Better touch targets for mobile */
-            min-width: 44px;
-            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         
-        .btn-primary { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+        .mobile-btn-primary { 
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%); 
             color: white; 
         }
         
-        .btn-primary:hover, .btn-primary:active { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); 
-        }
-        
-        .btn-success { 
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); 
+        .mobile-btn-success { 
+            background: linear-gradient(135deg, #34C759 0%, #30B456 100%); 
             color: white; 
         }
         
-        .btn-success:hover, .btn-success:active { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4); 
-        }
-        
-        .btn-secondary { 
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); 
+        .mobile-btn-secondary { 
+            background: linear-gradient(135deg, #8E8E93 0%, #6C6C70 100%); 
             color: white; 
         }
         
-        .btn-secondary:hover, .btn-secondary:active { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4); 
-        }
-        
-        .btn-danger { 
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); 
+        .mobile-btn-danger { 
+            background: linear-gradient(135deg, #FF3B30 0%, #D70015 100%); 
             color: white; 
         }
         
-        .btn-danger:hover, .btn-danger:active { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4); 
-        }
-        
-        .btn-warning { 
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); 
+        .mobile-btn-warning { 
+            background: linear-gradient(135deg, #FF9500 0%, #E68500 100%); 
             color: white; 
         }
         
-        .btn-warning:hover, .btn-warning:active { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4); 
-        }
-        
-        /* Search */
-        .search-box { 
+        /* Search - Mobile Optimized */
+        .mobile-search-box { 
             display: flex; 
             gap: 10px; 
             align-items: center; 
+            position: relative;
         }
         
-        .search-box input { 
-            padding: 14px 15px; 
-            border: 2px solid #e1e1e1; 
-            border-radius: 8px; 
+        .mobile-search-box input { 
+            padding: 16px 16px 16px 44px; 
+            border: 1.5px solid #E5E5EA; 
+            border-radius: 12px; 
             font-size: 16px; 
             width: 100%; 
-            transition: border-color 0.3s; 
+            transition: all 0.2s; 
+            background: #f8f9fa;
         }
         
-        .search-box input:focus { 
+        .mobile-search-box:before {
+            content: "🔍";
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            z-index: 2;
+        }
+        
+        .mobile-search-box input:focus { 
             outline: none; 
-            border-color: #667eea; 
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+            border-color: #007AFF; 
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); 
+            background: white;
         }
         
-        /* Messages */
-        .message { 
-            padding: 12px; 
+        /* Messages - Mobile Optimized */
+        .mobile-message { 
+            padding: 14px 16px; 
             margin: 12px 0; 
-            border-radius: 8px; 
+            border-radius: 12px; 
             text-align: center; 
             display: none; 
             font-weight: 500; 
             font-size: 14px;
+            border-left: 4px solid transparent;
         }
         
-        .success { 
-            background: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
+        .mobile-success { 
+            background: #D4F7E2; 
+            color: #1F7F3D; 
+            border-left-color: #34C759;
         }
         
-        .error { 
-            background: #f8d7da; 
-            color: #721c24; 
-            border: 1px solid #f5c6cb; 
+        .mobile-error { 
+            background: #FFE6E6; 
+            color: #D70015; 
+            border-left-color: #FF3B30;
         }
         
-        .warning { 
-            background: #fff3cd; 
-            color: #856404; 
-            border: 1px solid #ffeaa7; 
+        .mobile-warning { 
+            background: #FFF4E6; 
+            color: #CC5500; 
+            border-left-color: #FF9500;
         }
         
-        /* Table */
-        .table-container { 
+        /* Table Container - Mobile Optimized */
+        .mobile-table-container { 
             background: white; 
-            padding: 15px; 
-            border-radius: 12px; 
+            padding: 16px 12px; 
+            border-radius: 16px; 
             overflow-x: auto; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-            margin-bottom: 20px;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
+            margin-bottom: 16px;
+            -webkit-overflow-scrolling: touch;
         }
         
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            min-width: 800px; 
+            min-width: 700px; 
         }
         
         th, td { 
-            padding: 12px 8px; 
+            padding: 14px 10px; 
             text-align: left; 
-            border-bottom: 1px solid #e9ecef; 
+            border-bottom: 1px solid #E5E5EA; 
             vertical-align: middle; 
-            font-size: 13px;
+            font-size: 14px;
         }
         
         th { 
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); 
-            color: white; 
+            background: #f8f9fa; 
+            color: #1a1a1a; 
             font-weight: 600; 
             position: sticky; 
             top: 0; 
             z-index: 10; 
+            border-bottom: 2px solid #E5E5EA;
         }
         
         tr:hover { 
             background-color: #f8f9fa; 
         }
         
-        /* Editable Cells */
-        .editable-cell input { 
+        /* Editable Cells - Mobile Optimized */
+        .mobile-editable-cell input { 
             width: 100%; 
-            padding: 8px; 
-            border: 2px solid #e9ecef; 
-            border-radius: 6px; 
-            font-size: 13px; 
-            transition: border-color 0.3s; 
+            padding: 12px 10px; 
+            border: 1.5px solid #E5E5EA; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            transition: border-color 0.2s; 
+            background: #f8f9fa;
         }
         
-        .editable-cell input:focus { 
+        .mobile-editable-cell input:focus { 
             outline: none; 
-            border-color: #667eea; 
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+            border-color: #007AFF; 
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1); 
+            background: white;
         }
         
-        /* Header Actions */
-        .header-actions { 
+        /* Header Actions - Mobile Optimized */
+        .mobile-header-actions { 
             display: flex; 
             flex-direction: column;
-            gap: 5px; 
-            margin-top: 5px; 
+            gap: 6px; 
+            margin-top: 8px; 
         }
         
-        .header-actions button { 
-            padding: 6px 8px; 
-            font-size: 11px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            min-height: auto;
-            /* Better touch targets for mobile */
-            min-width: 44px;
-            min-height: 44px;
-        }
-        
-        /* Row Actions */
-        .row-actions { 
-            display: flex; 
-            flex-direction: column;
-            gap: 5px; 
-        }
-        
-        .row-actions button { 
-            padding: 8px 10px; 
+        .mobile-header-actions button { 
+            padding: 10px 8px; 
             font-size: 12px; 
-            min-height: auto;
-            /* Better touch targets for mobile */
-            min-width: 44px;
-            min-height: 44px;
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
         
-        /* Profit Summary */
-        .profit-summary { 
+        /* Row Actions - Mobile Optimized */
+        .mobile-row-actions { 
+            display: flex; 
+            flex-direction: column;
+            gap: 6px; 
+        }
+        
+        .mobile-row-actions button { 
+            padding: 10px 8px; 
+            font-size: 12px; 
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        /* Profit Summary - Mobile Optimized */
+        .mobile-profit-summary { 
             background: white; 
-            padding: 20px 15px; 
-            border-radius: 12px; 
-            margin-top: 20px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            padding: 16px 12px; 
+            border-radius: 16px; 
+            margin-top: 16px; 
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
         }
         
-        .profit-summary h3 { 
-            color: #2c3e50; 
+        .mobile-profit-summary h3 { 
+            color: #1a1a1a; 
             margin-bottom: 12px; 
             font-size: 18px; 
-            border-bottom: 3px solid #667eea; 
+            border-bottom: 2px solid #007AFF; 
             padding-bottom: 8px; 
         }
         
-        .profit-summary p { 
-            margin-bottom: 8px; 
+        .mobile-profit-summary p { 
+            margin-bottom: 10px; 
             font-size: 14px; 
+            line-height: 1.5;
         }
         
-        .profit-summary strong { 
-            color: #2c3e50; 
+        .mobile-profit-summary strong { 
+            color: #1a1a1a; 
         }
         
-        /* Modal */
-        .modal { 
+        /* Modal - Mobile Optimized */
+        .mobile-modal { 
             display: none; 
             position: fixed; 
             z-index: 1000; 
@@ -317,228 +321,210 @@
             backdrop-filter: blur(5px); 
         }
         
-        .modal-content { 
+        .mobile-modal-content { 
             background: white; 
-            margin: 10% auto; 
-            padding: 25px 20px; 
-            border-radius: 12px; 
+            margin: 20% auto; 
+            padding: 24px 20px; 
+            border-radius: 20px; 
             width: 90%; 
             max-width: 400px; 
             position: relative; 
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
         }
         
-        .close { 
+        .mobile-close { 
             position: absolute; 
-            top: 15px; 
+            top: 16px; 
             right: 20px; 
             font-size: 28px; 
             cursor: pointer; 
-            color: #7f8c8d; 
-            /* Better touch targets for mobile */
-            min-width: 44px;
-            min-height: 44px;
+            color: #8E8E93; 
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        .close:hover { 
-            color: #e74c3c; 
+        .mobile-close:hover { 
+            color: #FF3B30; 
         }
         
-        .modal h2 { 
-            color: #2c3e50; 
-            margin-bottom: 15px; 
+        .mobile-modal h2 { 
+            color: #1a1a1a; 
+            margin-bottom: 20px; 
             font-size: 20px;
+            text-align: center;
         }
         
-        .modal input { 
+        .mobile-modal input { 
             width: 100%; 
-            padding: 14px; 
-            border: 2px solid #e1e1e1; 
-            border-radius: 8px; 
+            padding: 16px; 
+            border: 1.5px solid #E5E5EA; 
+            border-radius: 12px; 
             font-size: 16px; 
-            margin-bottom: 15px; 
+            margin-bottom: 20px; 
+            background: #f8f9fa;
+        }
+        
+        .mobile-modal input:focus { 
+            outline: none; 
+            border-color: #007AFF; 
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); 
+            background: white;
+        }
+        
+        .mobile-modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .mobile-modal-buttons button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 50px;
         }
         
         /* Mobile-specific improvements */
-        @media (max-width: 767px) {
-            body {
-                font-size: 16px; /* Better readability on mobile */
+        @media (max-width: 480px) {
+            .mobile-controls-grid {
+                grid-template-columns: 1fr;
             }
             
-            .container {
-                padding: 10px;
-            }
-            
-            header {
-                padding: 15px 10px;
-                border-radius: 10px;
-            }
-            
-            header h1 {
-                font-size: 20px;
-            }
-            
-            .controls {
-                padding: 15px 10px;
-                border-radius: 10px;
-            }
-            
-            .controls button {
-                font-size: 15px; /* Larger text for mobile */
-                padding: 12px 10px;
-            }
-            
-            .table-container {
-                padding: 10px;
-                border-radius: 10px;
-            }
-            
-            th, td {
-                padding: 10px 6px;
-                font-size: 14px; /* Slightly larger text for mobile */
-            }
-            
-            .editable-cell input {
-                font-size: 14px;
-                padding: 10px 8px;
-            }
-            
-            .header-actions, .row-actions {
-                gap: 8px; /* More space between buttons on mobile */
-            }
-            
-            .header-actions button, .row-actions button {
-                font-size: 12px;
-                padding: 10px 8px;
-            }
-            
-            .profit-summary {
-                padding: 15px 10px;
-                border-radius: 10px;
-            }
-            
-            .profit-summary h3 {
-                font-size: 16px;
-            }
-            
-            .profit-summary p {
-                font-size: 14px;
-            }
-            
-            .modal-content {
-                padding: 20px 15px;
-                margin: 5% auto;
-            }
-            
-            .modal h2 {
+            .mobile-header h1 {
                 font-size: 18px;
             }
             
-            .modal input {
-                font-size: 16px;
-                padding: 16px;
+            .mobile-user-info {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .mobile-user-info span {
+                text-align: center;
             }
         }
         
         @media (min-width: 768px) {
-            header {
+            .mobile-container {
+                max-width: 700px;
+            }
+            
+            .mobile-controls-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .mobile-header {
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
             }
             
-            header h1 {
+            .mobile-header h1 {
                 text-align: left;
-                font-size: 24px;
+                font-size: 22px;
             }
             
-            .user-info {
+            .mobile-user-info {
                 flex-direction: row;
+                justify-content: flex-end;
             }
             
-            .controls-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .row-actions, .header-actions {
+            .mobile-row-actions, .mobile-header-actions {
                 flex-direction: row;
             }
         }
         
         @media (min-width: 1024px) {
-            .controls-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            .mobile-container {
+                max-width: 900px;
             }
             
-            header h1 {
-                font-size: 28px;
+            .mobile-controls-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             }
         }
         
-        /* Prevent zoom on iOS when focusing inputs */
-        @media screen and (max-width: 768px) {
-            input, select, textarea {
-                font-size: 16px;
-            }
+        /* iOS input fixes */
+        input, select, textarea {
+            font-size: 16px; /* Prevent zoom on iOS */
+        }
+        
+        /* Touch-friendly improvements */
+        button, input, select, textarea {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Loading animation */
+        @keyframes mobilePulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .mobile-loading {
+            animation: mobilePulse 1.5s ease-in-out infinite;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Cloud-Share Inventory Manager</h1>
-            <div class="user-info">
-                <span id="userDisplay">Welcome</span>
-                <button onclick="logout()" class="btn-secondary">Logout</button>
+    <div class="mobile-container">
+        <header class="mobile-header">
+            <h1>📱 Cloud-Share Inventory</h1>
+            <div class="mobile-user-info">
+                <span id="mobileUserDisplay">Welcome</span>
+                <button onclick="logout()" class="mobile-btn-secondary">🚪 Logout</button>
             </div>
         </header>
         
-        <div class="controls">
-            <div class="controls-grid">
-                <button onclick="addNewRow()" class="btn-primary">➕ Add New Row</button>
-                <button onclick="showAddColumnModal()" class="btn-success">📊 Add New Column</button>
-                <button onclick="saveAllData()" class="btn-success">💾 Save All Changes</button>
-                <button onclick="calculateProfit()" class="btn-secondary">💰 Calculate Profit</button>
+        <div class="mobile-controls">
+            <div class="mobile-controls-grid">
+                <button onclick="addNewRow()" class="mobile-btn-primary">➕ Add Row</button>
+                <button onclick="showAddColumnModal()" class="mobile-btn-success">📊 Add Column</button>
+                <button onclick="saveAllData()" class="mobile-btn-success">💾 Save All</button>
+                <button onclick="calculateProfit()" class="mobile-btn-secondary">💰 Profit</button>
             </div>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Search items..." oninput="filterTable()">
+            <div class="mobile-search-box">
+                <input type="text" id="mobileSearchInput" placeholder="Search items..." oninput="filterTable()">
             </div>
         </div>
         
-        <div id="message" class="message"></div>
+        <div id="mobileMessage" class="mobile-message"></div>
         
-        <div class="table-container">
-            <table id="inventoryTable">
-                <thead id="tableHeader">
+        <div class="mobile-table-container">
+            <table id="mobileInventoryTable">
+                <thead id="mobileTableHeader">
                     <!-- Headers will be loaded here -->
                 </thead>
-                <tbody id="inventoryBody">
+                <tbody id="mobileInventoryBody">
                     <!-- Data will be loaded here -->
                 </tbody>
             </table>
         </div>
         
-        <div id="profitSummary" class="profit-summary"></div>
+        <div id="mobileProfitSummary" class="mobile-profit-summary"></div>
     </div>
 
     <!-- Add Column Modal -->
-    <div id="columnModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+    <div id="mobileColumnModal" class="mobile-modal">
+        <div class="mobile-modal-content">
+            <span class="mobile-close" onclick="closeModal()">&times;</span>
             <h2>Add New Column</h2>
-            <input type="text" id="newColumnName" placeholder="Enter column name (e.g., Color, Size, Category)">
-            <div style="display: flex; gap: 10px;">
-                <button onclick="addNewColumn()" class="btn-success" style="flex: 1;">Add Column</button>
-                <button onclick="closeModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
+            <input type="text" id="mobileNewColumnName" placeholder="Enter column name">
+            <div class="mobile-modal-buttons">
+                <button onclick="addNewColumn()" class="mobile-btn-success">Add Column</button>
+                <button onclick="closeModal()" class="mobile-btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Your existing JavaScript remains the same
+        // Your existing JavaScript with mobile-optimized IDs
         const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSNTxxd_cxw__FRemkR5iQqX4gmuncWfOORk1Wtmr2ajUpRX5JKkA7UjZpSZ6lXCTCfw/exec';
         
         let currentUser = null;
@@ -554,12 +540,12 @@
             }
             
             currentUser = JSON.parse(userData);
-            document.getElementById('userDisplay').textContent = 'Welcome, ' + currentUser.customerName;
+            document.getElementById('mobileUserDisplay').textContent = 'Welcome, ' + currentUser.customerName;
             loadInventory();
         });
         
         function loadInventory() {
-            showMessage('📦 Loading inventory from your sheet...', 'success');
+            showMessage('📦 Loading inventory...', 'mobile-success');
             
             const callbackName = 'loadCallback_' + Date.now();
             window[callbackName] = function(response) {
@@ -569,9 +555,9 @@
                     currentHeaders = response.headers;
                     currentRows = response.rows;
                     displayInventory();
-                    showMessage('✅ Inventory loaded successfully!', 'success');
+                    showMessage('✅ Inventory loaded!', 'mobile-success');
                 } else {
-                    showMessage('❌ Error: ' + response.message, 'error');
+                    showMessage('❌ Error: ' + response.message, 'mobile-error');
                 }
             };
             
@@ -581,8 +567,8 @@
         }
         
         function displayInventory() {
-            const thead = document.getElementById('tableHeader');
-            const tbody = document.getElementById('inventoryBody');
+            const thead = document.getElementById('mobileTableHeader');
+            const tbody = document.getElementById('mobileInventoryBody');
             
             // Create headers with editing options
             thead.innerHTML = '';
@@ -591,9 +577,9 @@
                 th.innerHTML = `
                     <div>
                         <div style="font-weight: 600; margin-bottom: 5px;">${header}</div>
-                        <div class="header-actions">
-                            <button onclick="editColumnHeader(${index})" class="btn-warning" title="Rename column">✏️ Rename</button>
-                            ${index >= 4 ? `<button onclick="deleteColumn(${index})" class="btn-danger" title="Delete column">🗑️ Delete</button>` : ''}
+                        <div class="mobile-header-actions">
+                            <button onclick="editColumnHeader(${index})" class="mobile-btn-warning" title="Rename column">✏️</button>
+                            ${index >= 4 ? `<button onclick="deleteColumn(${index})" class="mobile-btn-danger" title="Delete column">🗑️</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -610,8 +596,8 @@
             
             if (currentRows.length === 0) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="${currentHeaders.length + 1}" style="text-align: center; padding: 40px; color: #7f8c8d; font-size: 16px;">
-                    📝 No items found in your sheet. Click "Add New Row" to get started!
+                tr.innerHTML = `<td colspan="${currentHeaders.length + 1}" style="text-align: center; padding: 40px; color: #8E8E93; font-size: 16px;">
+                    📝 No items found. Click "Add Row" to get started!
                 </td>`;
                 tbody.appendChild(tr);
             } else {
@@ -621,11 +607,11 @@
                     // Data cells
                     currentHeaders.forEach(header => {
                         const td = document.createElement('td');
-                        td.className = 'editable-cell';
+                        td.className = 'mobile-editable-cell';
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.value = row[header] || '';
-                        input.placeholder = `Enter ${header}`;
+                        input.placeholder = `${header}`;
                         input.oninput = function() {
                             currentRows[rowIndex][header] = this.value;
                         };
@@ -635,10 +621,10 @@
                     
                     // Actions cell
                     const actionsTd = document.createElement('td');
-                    actionsTd.className = 'row-actions';
+                    actionsTd.className = 'mobile-row-actions';
                     actionsTd.innerHTML = `
-                        <button onclick="deleteRow(${rowIndex})" class="btn-danger" title="Delete row">🗑️ Delete</button>
-                        <button onclick="duplicateRow(${rowIndex})" class="btn-warning" title="Duplicate row">📋 Duplicate</button>
+                        <button onclick="deleteRow(${rowIndex})" class="mobile-btn-danger" title="Delete row">🗑️</button>
+                        <button onclick="duplicateRow(${rowIndex})" class="mobile-btn-warning" title="Duplicate row">📋</button>
                     `;
                     tr.appendChild(actionsTd);
                     
@@ -654,14 +640,14 @@
             });
             currentRows.push(newRow);
             displayInventory();
-            showMessage('➕ New row added - remember to save changes!', 'success');
+            showMessage('➕ New row added - remember to save!', 'mobile-success');
         }
         
         function deleteRow(rowIndex) {
             if (confirm('Are you sure you want to delete this row?')) {
                 currentRows.splice(rowIndex, 1);
                 displayInventory();
-                showMessage('🗑️ Row deleted - remember to save changes!', 'warning');
+                showMessage('🗑️ Row deleted - remember to save!', 'mobile-warning');
             }
         }
         
@@ -669,28 +655,28 @@
             const originalRow = JSON.parse(JSON.stringify(currentRows[rowIndex]));
             currentRows.splice(rowIndex + 1, 0, originalRow);
             displayInventory();
-            showMessage('📋 Row duplicated - remember to save changes!', 'success');
+            showMessage('📋 Row duplicated - remember to save!', 'mobile-success');
         }
         
         function showAddColumnModal() {
-            document.getElementById('newColumnName').value = '';
-            document.getElementById('columnModal').style.display = 'block';
+            document.getElementById('mobileNewColumnName').value = '';
+            document.getElementById('mobileColumnModal').style.display = 'block';
         }
         
         function closeModal() {
-            document.getElementById('columnModal').style.display = 'none';
+            document.getElementById('mobileColumnModal').style.display = 'none';
         }
         
         function addNewColumn() {
-            const columnName = document.getElementById('newColumnName').value.trim();
+            const columnName = document.getElementById('mobileNewColumnName').value.trim();
             
             if (!columnName) {
-                showMessage('Please enter a column name', 'error');
+                showMessage('Please enter a column name', 'mobile-error');
                 return;
             }
             
             if (currentHeaders.includes(columnName)) {
-                showMessage('Column name already exists!', 'error');
+                showMessage('Column name already exists!', 'mobile-error');
                 return;
             }
             
@@ -704,7 +690,7 @@
             
             displayInventory();
             closeModal();
-            showMessage('📊 Column "' + columnName + '" added!', 'success');
+            showMessage('📊 Column "' + columnName + '" added!', 'mobile-success');
         }
         
         function editColumnHeader(headerIndex) {
@@ -724,14 +710,14 @@
                 });
                 
                 displayInventory();
-                showMessage('✏️ Column renamed to "' + newHeader + '"', 'success');
+                showMessage('✏️ Column renamed to "' + newHeader + '"', 'mobile-success');
             }
         }
         
         function deleteColumn(headerIndex) {
             // Don't allow deleting required columns
             if (headerIndex < 4) {
-                showMessage('Cannot delete required columns (Item Name, Cost Price, Sell Price, Quantity)!', 'error');
+                showMessage('Cannot delete required columns!', 'mobile-error');
                 return;
             }
             
@@ -746,21 +732,21 @@
                 });
                 
                 displayInventory();
-                showMessage('🗑️ Column "' + headerName + '" deleted', 'warning');
+                showMessage('🗑️ Column "' + headerName + '" deleted', 'mobile-warning');
             }
         }
         
         function saveAllData() {
-            showMessage('💾 Saving all changes to your sheet...', 'success');
+            showMessage('💾 Saving all changes...', 'mobile-success');
             
             const callbackName = 'saveCallback_' + Date.now();
             window[callbackName] = function(response) {
                 delete window[callbackName];
                 
                 if (response.success) {
-                    showMessage('✅ All changes saved successfully to your Google Sheet!', 'success');
+                    showMessage('✅ All changes saved to your Google Sheet!', 'mobile-success');
                 } else {
-                    showMessage('❌ Save failed: ' + response.message, 'error');
+                    showMessage('❌ Save failed: ' + response.message, 'mobile-error');
                 }
             };
             
@@ -776,21 +762,21 @@
         }
         
         function calculateProfit() {
-            showMessage('💰 Calculating profit from your sheet data...', 'success');
+            showMessage('💰 Calculating profit...', 'mobile-success');
             
             const callbackName = 'profitCallback_' + Date.now();
             window[callbackName] = function(response) {
                 delete window[callbackName];
                 
                 if (response.success) {
-                    document.getElementById('profitSummary').innerHTML = 
-                        '<h3>💰 Profit Summary (From Your Sheet Data)</h3>' +
+                    document.getElementById('mobileProfitSummary').innerHTML = 
+                        '<h3>💰 Profit Summary</h3>' +
                         '<p><strong>Total Profit:</strong> $' + response.totalProfit.toFixed(2) + '</p>' +
                         '<p><strong>Total Items in Stock:</strong> ' + response.totalItems + '</p>' +
                         '<p><strong>Note:</strong> Profit = (Sell Price - Cost Price) × Quantity</p>';
-                    showMessage('✅ Profit calculated from your actual sheet data!', 'success');
+                    showMessage('✅ Profit calculated!', 'mobile-success');
                 } else {
-                    showMessage('❌ Calculation failed: ' + response.message, 'error');
+                    showMessage('❌ Calculation failed: ' + response.message, 'mobile-error');
                 }
             };
             
@@ -800,8 +786,8 @@
         }
         
         function filterTable() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const tbody = document.getElementById('inventoryBody');
+            const searchTerm = document.getElementById('mobileSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('mobileInventoryBody');
             const rows = tbody.getElementsByTagName('tr');
             
             for (let row of rows) {
@@ -823,15 +809,15 @@
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 localStorage.removeItem('currentUser');
-                showMessage('👋 Logging out...', 'success');
+                showMessage('👋 Logging out...', 'mobile-success');
                 setTimeout(() => window.location.href = 'index.html', 1000);
             }
         }
         
         function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
+            const messageDiv = document.getElementById('mobileMessage');
             messageDiv.textContent = message;
-            messageDiv.className = 'message ' + type;
+            messageDiv.className = 'mobile-message ' + type;
             messageDiv.style.display = 'block';
             
             setTimeout(() => {
@@ -841,7 +827,7 @@
         
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('columnModal');
+            const modal = document.getElementById('mobileColumnModal');
             if (event.target === modal) {
                 closeModal();
             }
