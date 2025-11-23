@@ -5,20 +5,142 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud-Share | Login</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        h1 { text-align: center; margin-bottom: 10px; color: #333; font-size: 28px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 16px; }
-        .form-group { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
-        input { width: 100%; padding: 15px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
-        input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        button { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
-        button:hover { transform: translateY(-2px); }
-        .message { padding: 15px; margin-top: 20px; border-radius: 8px; text-align: center; display: none; font-weight: 500; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        
+        .login-card { 
+            background: white; 
+            padding: 30px 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+        }
+        
+        h1 { 
+            text-align: center; 
+            margin-bottom: 10px; 
+            color: #333; 
+            font-size: 24px; 
+        }
+        
+        .subtitle { 
+            text-align: center; 
+            color: #666; 
+            margin-bottom: 25px; 
+            font-size: 14px; 
+        }
+        
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #333; 
+            font-weight: 600; 
+            font-size: 14px;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #e1e1e1; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            transition: border-color 0.3s; 
+        }
+        
+        input:focus { 
+            outline: none; 
+            border-color: #667eea; 
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: transform 0.2s; 
+            margin-top: 10px;
+        }
+        
+        button:hover, button:active { 
+            transform: translateY(-2px); 
+        }
+        
+        .message { 
+            padding: 12px; 
+            margin-top: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            display: none; 
+            font-weight: 500; 
+            font-size: 14px;
+        }
+        
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        
+        /* Mobile-specific improvements */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .subtitle {
+                font-size: 13px;
+            }
+            
+            input, button {
+                padding: 16px;
+            }
+            
+            /* Improve touch targets */
+            input, button {
+                min-height: 50px;
+            }
+        }
+        
+        /* Prevent zoom on iOS when focusing inputs */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -42,7 +164,7 @@
     </div>
 
     <script>
-        // REPLACE WITH YOUR WEB APP URL
+        // Your existing JavaScript remains the same
         const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSNTxxd_cxw__FRemkR5iQqX4gmuncWfOORk1Wtmr2ajUpRX5JKkA7UjZpSZ6lXCTCfw/exec';
         
         document.getElementById('loginForm').addEventListener('submit', function(e) {
