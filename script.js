@@ -1,4 +1,4 @@
-// Configuration - MAKE SURE TO UPDATE THIS URL
+// Configuration - USE YOUR ACTUAL URL
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec';
 
 // DOM Elements
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function testWebAppConnection() {
     try {
         console.log('Testing web app connection to:', APP_SCRIPT_URL);
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec}?action=test`);
+        const response = await fetch(`${APP_SCRIPT_URL}?action=test`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -68,7 +68,7 @@ function initLoginPage() {
         try {
             showMessage('Logging in...', 'success');
             
-            const response = await fetch(`${https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec}?action=login`, {
+            const response = await fetch(`${APP_SCRIPT_URL}?action=login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -328,7 +328,7 @@ async function saveItem(e) {
         const action = itemId ? 'updateItem' : 'addItem';
         console.log('Saving item with action:', action, itemData);
         
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec}?action=${action}`, {
+        const response = await fetch(`${APP_SCRIPT_URL}?action=${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -365,7 +365,7 @@ async function deleteItem(itemId) {
     try {
         console.log('Deleting item ID:', itemId);
         
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec}?action=deleteItem`, {
+        const response = await fetch(`${APP_SCRIPT_URL}?action=deleteItem`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -403,7 +403,7 @@ async function calculateTotalProfit() {
         }
         
         console.log('Calculating profit for user:', currentUser.username);
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
+        const response = await fetch(`${APP_SCRIPT_URL}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -416,7 +416,7 @@ async function calculateTotalProfit() {
             const profitSummary = document.getElementById('profitSummary');
             if (profitSummary) {
                 profitSummary.innerHTML = `
-                    <h3>💰 Profit Summary</h3>
+                    <h3>Profit Summary</h3>
                     <p><strong>Total Profit:</strong> $${Number(result.totalProfit).toFixed(2)}</p>
                     <p><strong>Total Items in Stock:</strong> ${Number(result.totalItems)}</p>
                 `;
