@@ -1,5 +1,5 @@
 // Configuration - MAKE SURE TO UPDATE THIS URL
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec';
 
 // DOM Elements
 let currentUser = null;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function testWebAppConnection() {
     try {
         console.log('Testing web app connection to:', APP_SCRIPT_URL);
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=test`);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=test`);
         const result = await response.json();
         console.log('Web app test result:', result);
         
@@ -61,7 +61,7 @@ function initLoginPage() {
         try {
             showMessage('Logging in...', 'success');
             
-            const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=login`, {
+            const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ function initDataManagerPage() {
 async function loadInventory() {
     try {
         console.log('Loading inventory for user:', currentUser.username);
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=getInventory&username=${encodeURIComponent(currentUser.username)}`);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=getInventory&username=${encodeURIComponent(currentUser.username)}`);
         const result = await response.json();
         
         console.log('Inventory load result:', result);
@@ -247,7 +247,7 @@ async function saveItem(e) {
     
     try {
         const action = itemId ? 'updateItem' : 'addItem';
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=${action}`, {
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ async function deleteItem(itemId) {
     }
     
     try {
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=deleteItem`, {
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=deleteItem`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -305,7 +305,7 @@ async function deleteItem(itemId) {
 // Calculate total profit
 async function calculateTotalProfit() {
     try {
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbzhEfR-znoLgW68WMbi9Bd60iVL05yhsoZidwb0FrEsTRYCCzgADY0zZbl6qNAKXdYHJQ/exec}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
         const result = await response.json();
         
         if (result.success) {
@@ -345,3 +345,4 @@ function showMessage(message, type) {
         alert(message);
     }
 }
+
