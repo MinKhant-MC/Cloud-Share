@@ -1,5 +1,5 @@
-// Configuration - USE YOUR ACTUAL URL
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDfwoONqjyBH4JT1iyZ_5f0hjc0G5dbC1Vk0FkCOiIzp6p-rrdLGFl2LtVj40MKy_ZDg/exec';
+// Configuration - UPDATE WITH YOUR DEPLOYMENT URL
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUgwC4xQFEFDS7MeOyp4ht1yBd8NEj7XkB_lfhjbdbL45xj35gs8exLcIB8aYStVJaLg/exec';
 
 // DOM Elements
 let currentUser = null;
@@ -37,20 +37,27 @@ async function testWebAppConnection() {
         if (result.success) {
             console.log('✅ Web app is working!');
             showMessage('Connected to server successfully!', 'success');
+            return true;
         } else {
             console.error('❌ Web app test failed:', result.message);
             showMessage('Server error: ' + result.message, 'error');
+            return false;
         }
     } catch (error) {
         console.error('❌ Cannot connect to web app:', error);
         showMessage('Cannot connect to server. Please check: 1) Web app URL 2) Deployment permissions 3) Internet connection', 'error');
+        return false;
     }
 }
 
 // Login Page Functions
 function initLoginPage() {
     const loginForm = document.getElementById('loginForm');
-    const messageDiv = document.getElementById('message');
+    
+    if (!loginForm) {
+        console.error('Login form not found');
+        return;
+    }
     
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -67,6 +74,12 @@ function initLoginPage() {
         
         try {
             showMessage('Logging in...', 'success');
+            
+            // Test connection first
+            const canConnect = await testWebAppConnection();
+            if (!canConnect) {
+                return;
+            }
             
             const response = await fetch(`${APP_SCRIPT_URL}?action=login`, {
                 method: 'POST',
@@ -128,28 +141,42 @@ function initDataManagerPage() {
             throw new Error('Invalid user data');
         }
         
-        document.getElementById('userDisplay').textContent = `Welcome, ${currentUser.customerName}`;
+        const userDisplay = document.getElementById('userDisplay');
+        if (userDisplay) {
+            userDisplay.textContent = `Welcome, ${currentUser.customerName}`;
+        }
         
         // Set up event listeners
-        document.getElementById('logoutBtn').addEventListener('click', logout);
-        document.getElementById('addItemBtn').addEventListener('click', showAddItemModal);
-        document.getElementById('calculateProfitBtn').addEventListener('click', calculateTotalProfit);
+        const logoutBtn = document.getElementById('logoutBtn');
+        const addItemBtn = document.getElementById('addItemBtn');
+        const calculateProfitBtn = document.getElementById('calculateProfitBtn');
+        
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        if (addItemBtn) addItemBtn.addEventListener('click', showAddItemModal);
+        if (calculateProfitBtn) calculateProfitBtn.addEventListener('click', calculateTotalProfit);
         
         // Modal setup
         const modal = document.getElementById('itemModal');
         const closeBtn = document.querySelector('.close');
+        const itemForm = document.getElementById('itemForm');
         
-        closeBtn.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                if (modal) modal.style.display = 'none';
+            });
+        }
         
-        window.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
+        if (modal) {
+            window.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
         
-        document.getElementById('itemForm').addEventListener('submit', saveItem);
+        if (itemForm) {
+            itemForm.addEventListener('submit', saveItem);
+        }
         
         // Load inventory data
         loadInventory();
@@ -235,14 +262,18 @@ function displayInventory(items) {
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const index = this.getAttribute('data-index');
-            editItem(items[index]);
+            if (items[index]) {
+                editItem(items[index]);
+            }
         });
     });
     
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const index = this.getAttribute('data-index');
-            deleteItem(items[index].id);
+            if (items[index]) {
+                deleteItem(items[index].id);
+            }
         });
     });
 }
@@ -344,7 +375,8 @@ async function saveItem(e) {
         console.log('Save item result:', result);
         
         if (result.success) {
-            document.getElementById('itemModal').style.display = 'none';
+            const modal = document.getElementById('itemModal');
+            if (modal) modal.style.display = 'none';
             loadInventory();
             showMessage(itemId ? 'Item updated successfully' : 'Item added successfully', 'success');
         } else {
