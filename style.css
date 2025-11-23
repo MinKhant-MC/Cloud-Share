@@ -252,3 +252,153 @@ tr:hover {
         font-size: 14px;
     }
 }
+
+/* New button styles */
+.btn-success {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-success:hover {
+    background-color: #219653;
+}
+
+.btn-warning {
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-warning:hover {
+    background-color: #e67e22;
+}
+
+/* Table Controls */
+.table-controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-box input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 250px;
+}
+
+/* Editable table styles */
+.editable-header {
+    position: relative;
+    min-width: 100px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px;
+}
+
+.header-actions {
+    display: none;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.editable-header:hover .header-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.editable-cell {
+    position: relative;
+}
+
+.editable-cell input {
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 4px;
+    border-radius: 3px;
+}
+
+.cell-actions {
+    display: none;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.editable-cell:hover .cell-actions {
+    display: flex;
+    gap: 2px;
+}
+
+/* Row actions */
+.row-actions {
+    display: flex;
+    gap: 5px;
+}
+
+/* Fixed first column */
+table {
+    table-layout: fixed;
+}
+
+th:first-child,
+td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    min-width: 150px;
+}
+
+th {
+    background-color: #3498db;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+/* Small action buttons */
+.small-btn {
+    padding: 2px 6px;
+    font-size: 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.delete-header-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.delete-row-btn {
+    background: #e74c3c;
+    color: white;
+}
+
+.edit-header-btn {
+    background: #3498db;
+    color: white;
+}
+
+.add-row-btn {
+    background: #27ae60;
+    color: white;
+}
