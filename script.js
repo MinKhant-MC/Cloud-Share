@@ -1,18 +1,44 @@
-// Configuration
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec'; // Replace with your deployed web app URL
+// Configuration - MAKE SURE TO UPDATE THIS URL
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec';
 
 // DOM Elements
 let currentUser = null;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing page...');
+    
     // Check which page we're on
     if (document.getElementById('loginForm')) {
+        console.log('Initializing login page');
         initLoginPage();
     } else if (document.getElementById('inventoryTable')) {
+        console.log('Initializing data manager page');
         initDataManagerPage();
     }
+    
+    // Test web app connection
+    testWebAppConnection();
 });
+
+// Test if web app is accessible
+async function testWebAppConnection() {
+    try {
+        console.log('Testing web app connection to:', APP_SCRIPT_URL);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=test`);
+        const result = await response.json();
+        console.log('Web app test result:', result);
+        
+        if (result.success) {
+            console.log('✅ Web app is working!');
+        } else {
+            console.error('❌ Web app test failed:', result.message);
+        }
+    } catch (error) {
+        console.error('❌ Cannot connect to web app:', error);
+        showMessage('Cannot connect to server. Please check the web app URL.', 'error');
+    }
+}
 
 // Login Page Functions
 function initLoginPage() {
@@ -25,8 +51,17 @@ function initLoginPage() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         
+        console.log('Login attempt with:', { username, password });
+        
+        if (!username || !password) {
+            showMessage('Please enter both username and password', 'error');
+            return;
+        }
+        
         try {
-            const response = await fetch(`${https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec}?action=login`, {
+            showMessage('Logging in...', 'success');
+            
+            const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -34,19 +69,23 @@ function initLoginPage() {
                 body: JSON.stringify({ username, password })
             });
             
+            console.log('Login response status:', response.status);
             const result = await response.json();
+            console.log('Login result:', result);
             
             if (result.success) {
+                console.log('✅ Login successful, user:', result.user);
                 // Store user data in localStorage
                 localStorage.setItem('currentUser', JSON.stringify(result.user));
                 // Redirect to data manager
                 window.location.href = 'data-manager.html';
             } else {
+                console.error('❌ Login failed:', result.message);
                 showMessage(result.message, 'error');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            showMessage('An error occurred during login. Please try again.', 'error');
+            console.error('❌ Login error:', error);
+            showMessage('An error occurred during login. Please check console for details.', 'error');
         }
     });
 }
@@ -56,11 +95,13 @@ function initDataManagerPage() {
     // Check if user is logged in
     const userData = localStorage.getItem('currentUser');
     if (!userData) {
+        console.log('No user data, redirecting to login');
         window.location.href = 'index.html';
         return;
     }
     
     currentUser = JSON.parse(userData);
+    console.log('User logged in:', currentUser);
     document.getElementById('userDisplay').textContent = `Welcome, ${currentUser.customerName}`;
     
     // Set up event listeners
@@ -88,11 +129,17 @@ function initDataManagerPage() {
     loadInventory();
 }
 
+// ... rest of the functions remain the same as previous version ...
+// (loadInventory, displayInventory, showAddItemModal, editItem, saveItem, deleteItem, calculateTotalProfit, logout, showMessage)
+
 // Load inventory data from user's sheet
 async function loadInventory() {
     try {
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec}?action=getInventory&username=${encodeURIComponent(currentUser.username)}`);
+        console.log('Loading inventory for user:', currentUser.username);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=getInventory&username=${encodeURIComponent(currentUser.username)}`);
         const result = await response.json();
+        
+        console.log('Inventory load result:', result);
         
         if (result.success) {
             displayInventory(result.data);
@@ -109,6 +156,8 @@ async function loadInventory() {
 function displayInventory(items) {
     const tbody = document.getElementById('inventoryBody');
     tbody.innerHTML = '';
+    
+    console.log('Displaying inventory items:', items);
     
     if (!items || items.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No items found. Add your first item!</td></tr>';
@@ -198,7 +247,7 @@ async function saveItem(e) {
     
     try {
         const action = itemId ? 'updateItem' : 'addItem';
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec}?action=${action}`, {
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -209,7 +258,6 @@ async function saveItem(e) {
         const result = await response.json();
         
         if (result.success) {
-            // Close modal and refresh inventory
             document.getElementById('itemModal').style.display = 'none';
             loadInventory();
             showMessage(itemId ? 'Item updated successfully' : 'Item added successfully', 'success');
@@ -229,7 +277,7 @@ async function deleteItem(itemId) {
     }
     
     try {
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec}?action=deleteItem`, {
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=deleteItem`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -257,7 +305,7 @@ async function deleteItem(itemId) {
 // Calculate total profit
 async function calculateTotalProfit() {
     try {
-        const response = await fetch(`${https://script.google.com/macros/s/AKfycby_aM3luY5gR3eUTJsRI2lsU3hMtlNvA2dWNRLaAvF2e3loRd6BKmDXGxsRgGO1fw3I0Q/exec}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
+        const response = await fetch(`${https://script.google.com/macros/s/AKfycbwZdzZI5AZN46tt4NBEdJH2MOEicjAf8MMoFGSBsim_nAxpsIIKdJWWHEPhlNiJMbks/exec}?action=calculateProfit&username=${encodeURIComponent(currentUser.username)}`);
         const result = await response.json();
         
         if (result.success) {
@@ -290,7 +338,6 @@ function showMessage(message, type) {
         messageDiv.className = `message ${type}`;
         messageDiv.style.display = 'block';
         
-        // Auto-hide after 5 seconds
         setTimeout(() => {
             messageDiv.style.display = 'none';
         }, 5000);
