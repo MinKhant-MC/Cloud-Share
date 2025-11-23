@@ -16,6 +16,7 @@
             background: #f8f9fa; 
             color: #333; 
             font-size: 14px;
+            line-height: 1.5;
         }
         
         .container { 
@@ -81,6 +82,9 @@
             cursor: pointer; 
             transition: all 0.3s; 
             min-height: 50px;
+            /* Better touch targets for mobile */
+            min-width: 44px;
+            min-height: 44px;
         }
         
         .btn-primary { 
@@ -192,6 +196,7 @@
             overflow-x: auto; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
             margin-bottom: 20px;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         
         table { 
@@ -252,6 +257,9 @@
             border-radius: 4px; 
             cursor: pointer; 
             min-height: auto;
+            /* Better touch targets for mobile */
+            min-width: 44px;
+            min-height: 44px;
         }
         
         /* Row Actions */
@@ -265,6 +273,9 @@
             padding: 8px 10px; 
             font-size: 12px; 
             min-height: auto;
+            /* Better touch targets for mobile */
+            min-width: 44px;
+            min-height: 44px;
         }
         
         /* Profit Summary */
@@ -324,6 +335,12 @@
             font-size: 28px; 
             cursor: pointer; 
             color: #7f8c8d; 
+            /* Better touch targets for mobile */
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .close:hover { 
@@ -346,6 +363,86 @@
         }
         
         /* Mobile-specific improvements */
+        @media (max-width: 767px) {
+            body {
+                font-size: 16px; /* Better readability on mobile */
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px 10px;
+                border-radius: 10px;
+            }
+            
+            header h1 {
+                font-size: 20px;
+            }
+            
+            .controls {
+                padding: 15px 10px;
+                border-radius: 10px;
+            }
+            
+            .controls button {
+                font-size: 15px; /* Larger text for mobile */
+                padding: 12px 10px;
+            }
+            
+            .table-container {
+                padding: 10px;
+                border-radius: 10px;
+            }
+            
+            th, td {
+                padding: 10px 6px;
+                font-size: 14px; /* Slightly larger text for mobile */
+            }
+            
+            .editable-cell input {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+            
+            .header-actions, .row-actions {
+                gap: 8px; /* More space between buttons on mobile */
+            }
+            
+            .header-actions button, .row-actions button {
+                font-size: 12px;
+                padding: 10px 8px;
+            }
+            
+            .profit-summary {
+                padding: 15px 10px;
+                border-radius: 10px;
+            }
+            
+            .profit-summary h3 {
+                font-size: 16px;
+            }
+            
+            .profit-summary p {
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 20px 15px;
+                margin: 5% auto;
+            }
+            
+            .modal h2 {
+                font-size: 18px;
+            }
+            
+            .modal input {
+                font-size: 16px;
+                padding: 16px;
+            }
+        }
+        
         @media (min-width: 768px) {
             header {
                 flex-direction: row;
