@@ -94,7 +94,7 @@ function initLoginPage() {
     });
 }
 
-// Login using JSONP
+// Login using JSONP - FIXED ACTION NAME
 function loginWithJSONP(username, password) {
     return new Promise((resolve, reject) => {
         const callbackName = 'login_callback_' + Math.round(100000 * Math.random());
@@ -125,6 +125,7 @@ function loginWithJSONP(username, password) {
         const script = document.createElement('script');
         const loginData = JSON.stringify({ username, password });
         
+        // FIXED: Using lowercase 'login' instead of 'Login'
         script.src = `${APP_SCRIPT_URL}?action=login&data=${encodeURIComponent(loginData)}&callback=${callbackName}`;
         
         const timeoutId = setTimeout(() => {
