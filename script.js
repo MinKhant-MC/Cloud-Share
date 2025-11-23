@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Test connection using JSONP to avoid CORS
+// Test connection using JSONP
 async function testWebAppConnection() {
     return new Promise((resolve) => {
         console.log('🔍 Testing connection...');
@@ -94,7 +94,7 @@ function initLoginPage() {
     });
 }
 
-// Login using JSONP - FIXED ACTION NAME
+// Login using JSONP
 function loginWithJSONP(username, password) {
     return new Promise((resolve, reject) => {
         const callbackName = 'login_callback_' + Math.round(100000 * Math.random());
@@ -125,7 +125,6 @@ function loginWithJSONP(username, password) {
         const script = document.createElement('script');
         const loginData = JSON.stringify({ username, password });
         
-        // FIXED: Using lowercase 'login' instead of 'Login'
         script.src = `${APP_SCRIPT_URL}?action=login&data=${encodeURIComponent(loginData)}&callback=${callbackName}`;
         
         const timeoutId = setTimeout(() => {
@@ -195,11 +194,11 @@ function initDataManagerPage() {
     }
 }
 
-// Load inventory with dynamic columns
+// Load inventory with dynamic columns - NO DEMO DATA
 async function loadInventory() {
     return new Promise((resolve) => {
         if (!currentUser) {
-            displayInventory([], []);
+            showMessage('No user logged in', 'error');
             resolve();
             return;
         }
@@ -217,10 +216,11 @@ async function loadInventory() {
                 showMessage('Inventory loaded successfully', 'success');
             } else {
                 console.error('❌ Inventory load failed:', response.message);
+                showMessage('Error loading inventory: ' + response.message, 'error');
+                // NO DEMO DATA - just show empty table
                 currentHeaders = ['Item Name', 'Cost Price', 'Sell Price', 'Quantity'];
                 currentRows = [];
                 displayInventory(currentHeaders, currentRows);
-                showMessage('Error loading inventory: ' + response.message, 'error');
             }
             resolve();
         };
@@ -234,10 +234,11 @@ async function loadInventory() {
                 delete window[callbackName];
                 document.body.removeChild(script);
                 console.error('❌ Inventory load timeout');
+                showMessage('Inventory load timeout', 'error');
+                // NO DEMO DATA - just show empty table
                 currentHeaders = ['Item Name', 'Cost Price', 'Sell Price', 'Quantity'];
                 currentRows = [];
                 displayInventory(currentHeaders, currentRows);
-                showMessage('Inventory load timeout', 'error');
                 resolve();
             }
         }, 10000);
@@ -281,44 +282,43 @@ function displayInventory(headers, rows) {
     
     thead.appendChild(headerRow);
     
-    // Create data rows
-    rows.forEach((row, rowIndex) => {
-        const tr = document.createElement('tr');
-        
-        headers.forEach(header => {
-            const td = document.createElement('td');
-            td.className = 'editable-cell';
-            const value = row[header] || '';
-            td.innerHTML = `
-                <input type="text" value="${value}" onchange="updateCellValue(${rowIndex}, '${header}', this.value)">
-                <div class="cell-actions">
-                    <button class="small-btn" onclick="this.parentElement.previousElementSibling.focus()">✏️</button>
-                </div>
-            `;
-            tr.appendChild(td);
-        });
-        
-        // Add actions column
-        const actionsTd = document.createElement('td');
-        actionsTd.className = 'row-actions';
-        actionsTd.innerHTML = `
-            <button class="btn-danger small-btn" onclick="deleteRow(${rowIndex})">Delete</button>
-            <button class="btn-warning small-btn" onclick="duplicateRow(${rowIndex})">Duplicate</button>
-        `;
-        tr.appendChild(actionsTd);
-        
-        tbody.appendChild(tr);
-    });
-    
-    // Add empty row if no data
+    // Create data rows - ONLY FROM ACTUAL SHEET DATA
     if (rows.length === 0) {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="${headers.length + 1}" style="text-align: center; padding: 20px;">No items found. Add your first item!</td>`;
+        tr.innerHTML = `<td colspan="${headers.length + 1}" style="text-align: center; padding: 20px;">No items found in your sheet. Add your first item!</td>`;
         tbody.appendChild(tr);
+    } else {
+        rows.forEach((row, rowIndex) => {
+            const tr = document.createElement('tr');
+            
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                td.className = 'editable-cell';
+                const value = row[header] || '';
+                td.innerHTML = `
+                    <input type="text" value="${value}" onchange="updateCellValue(${rowIndex}, '${header}', this.value)">
+                    <div class="cell-actions">
+                        <button class="small-btn" onclick="this.parentElement.previousElementSibling.focus()">✏️</button>
+                    </div>
+                `;
+                tr.appendChild(td);
+            });
+            
+            // Add actions column
+            const actionsTd = document.createElement('td');
+            actionsTd.className = 'row-actions';
+            actionsTd.innerHTML = `
+                <button class="btn-danger small-btn" onclick="deleteRow(${rowIndex})">Delete</button>
+                <button class="btn-warning small-btn" onclick="duplicateRow(${rowIndex})">Duplicate</button>
+            `;
+            tr.appendChild(actionsTd);
+            
+            tbody.appendChild(tr);
+        });
     }
 }
 
-// Add new row
+// Add new row - SAVES TO SHEET IMMEDIATELY
 function addNewRow() {
     const newRow = {};
     currentHeaders.forEach(header => {
@@ -326,25 +326,27 @@ function addNewRow() {
     });
     currentRows.push(newRow);
     displayInventory(currentHeaders, currentRows);
-    showMessage('New row added', 'success');
+    showMessage('New row added - remember to save changes', 'success');
 }
 
-// Delete row
-function deleteRow(rowIndex) {
+// Delete row - SAVES TO SHEET IMMEDIATELY
+async function deleteRow(rowIndex) {
     if (confirm('Are you sure you want to delete this row?')) {
         currentRows.splice(rowIndex, 1);
         displayInventory(currentHeaders, currentRows);
-        showMessage('Row deleted', 'success');
+        await saveAllData(); // Save to sheet immediately
+        showMessage('Row deleted from sheet', 'success');
     }
 }
 
-// Duplicate row
-function duplicateRow(rowIndex) {
+// Duplicate row - SAVES TO SHEET IMMEDIATELY
+async function duplicateRow(rowIndex) {
     const originalRow = currentRows[rowIndex];
     const duplicatedRow = JSON.parse(JSON.stringify(originalRow));
     currentRows.splice(rowIndex + 1, 0, duplicatedRow);
     displayInventory(currentHeaders, currentRows);
-    showMessage('Row duplicated', 'success');
+    await saveAllData(); // Save to sheet immediately
+    showMessage('Row duplicated in sheet', 'success');
 }
 
 // Update cell value
@@ -361,7 +363,7 @@ function showAddColumnModal() {
     modal.style.display = 'block';
 }
 
-// Add new column
+// Add new column - SAVES TO SHEET IMMEDIATELY
 async function addNewColumn(e) {
     e.preventDefault();
     
@@ -378,7 +380,7 @@ async function addNewColumn(e) {
     }
     
     try {
-        showMessage('Adding column...', 'success');
+        showMessage('Adding column to sheet...', 'success');
         
         // Add column locally
         currentHeaders.push(columnName);
@@ -391,13 +393,13 @@ async function addNewColumn(e) {
         // Update display
         displayInventory(currentHeaders, currentRows);
         
-        // Save to server
+        // Save to server immediately
         await saveAllData();
         
         const modal = document.getElementById('columnModal');
         modal.style.display = 'none';
         
-        showMessage(`Column "${columnName}" added successfully`, 'success');
+        showMessage(`Column "${columnName}" added to sheet`, 'success');
         
     } catch (error) {
         console.error('Add column error:', error);
@@ -405,8 +407,8 @@ async function addNewColumn(e) {
     }
 }
 
-// Edit header
-function editHeader(headerIndex) {
+// Edit header - SAVES TO SHEET IMMEDIATELY
+async function editHeader(headerIndex) {
     const newHeaderName = prompt('Enter new header name:', currentHeaders[headerIndex]);
     
     if (newHeaderName && newHeaderName.trim() !== '') {
@@ -422,11 +424,12 @@ function editHeader(headerIndex) {
         });
         
         displayInventory(currentHeaders, currentRows);
-        showMessage('Header updated', 'success');
+        await saveAllData(); // Save to sheet immediately
+        showMessage('Header updated in sheet', 'success');
     }
 }
 
-// Delete column
+// Delete column - SAVES TO SHEET IMMEDIATELY
 async function deleteColumn(columnIndex) {
     if (columnIndex < 4) {
         showMessage('Cannot delete required columns (Item Name, Cost Price, Sell Price, Quantity)', 'error');
@@ -447,17 +450,17 @@ async function deleteColumn(columnIndex) {
         // Update display
         displayInventory(currentHeaders, currentRows);
         
-        // Save to server
+        // Save to server immediately
         await saveAllData();
         
-        showMessage(`Column "${columnName}" deleted`, 'success');
+        showMessage(`Column "${columnName}" deleted from sheet`, 'success');
     }
 }
 
-// Save all data to server
+// Save all data to sheet
 async function saveAllData() {
     try {
-        showMessage('Saving data...', 'success');
+        showMessage('Saving to sheet...', 'success');
         
         await saveInventoryWithJSONP(currentHeaders, currentRows);
         
@@ -475,7 +478,7 @@ function saveInventoryWithJSONP(headers, rows) {
             delete window[callbackName];
             
             if (response.success) {
-                showMessage('All changes saved successfully!', 'success');
+                showMessage('All changes saved to sheet!', 'success');
                 resolve(response);
             } else {
                 showMessage('Save failed: ' + response.message, 'error');
@@ -526,16 +529,16 @@ function filterTable() {
     }
 }
 
-// Calculate total profit
+// Calculate total profit - FROM ACTUAL SHEET DATA
 async function calculateTotalProfit() {
     try {
-        showMessage('Calculating profit...', 'success');
+        showMessage('Calculating profit from sheet data...', 'success');
         
         await calculateProfitWithJSONP();
         
     } catch (error) {
         console.error('Profit calculation error:', error);
-        showMessage('Error calculating profit', 'error');
+        showMessage('Error calculating profit from sheet', 'error');
     }
 }
 
@@ -549,11 +552,11 @@ function calculateProfitWithJSONP() {
             if (response.success) {
                 const profitSummary = document.getElementById('profitSummary');
                 profitSummary.innerHTML = `
-                    <h3>Profit Summary</h3>
+                    <h3>Profit Summary (From Sheet Data)</h3>
                     <p><strong>Total Profit:</strong> $${response.totalProfit.toFixed(2)}</p>
                     <p><strong>Total Items:</strong> ${response.totalItems}</p>
                 `;
-                showMessage('Profit calculated!', 'success');
+                showMessage('Profit calculated from sheet data!', 'success');
                 resolve(response);
             } else {
                 showMessage('Profit calculation failed: ' + response.message, 'error');
