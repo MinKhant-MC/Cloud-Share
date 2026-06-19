@@ -377,7 +377,7 @@
       placeholder.className = 'image-placeholder';
       placeholder.textContent = '-';
       cell.appendChild(placeholder);
-      return cell;
+      return labelText ? setCellLabel(cell, labelText) : cell;
     }
 
     image = document.createElement('img');
