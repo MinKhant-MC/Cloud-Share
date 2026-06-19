@@ -123,6 +123,12 @@
     });
   }
 
+  function variantSearchText(value) {
+    return parseVariantOptions(value).map(function (option) {
+      return option.name;
+    }).join(' ');
+  }
+
   function formatActiveVariants(label, value) {
     var labels = getActiveVariantLabels(value);
     return labels.length ? label + ' ' + labels.join(', ') : '';
@@ -399,6 +405,34 @@
     return product ? product.image_src || product.image_url || '' : '';
   }
 
+  function getSaleProductSearchQuery() {
+    var input = byId('saleProductSearch');
+    return input ? input.value.trim().toLowerCase() : '';
+  }
+
+  function getProductSearchText(product) {
+    return [
+      product.product_id,
+      product.product_name,
+      product.category,
+      variantSearchText(product.color),
+      variantSearchText(product.size),
+      product.image_name
+    ].join(' ').toLowerCase();
+  }
+
+  function getFilteredSaleProducts() {
+    var query = getSaleProductSearchQuery();
+
+    if (!query) {
+      return products.slice();
+    }
+
+    return products.filter(function (product) {
+      return getProductSearchText(product).indexOf(query) !== -1;
+    });
+  }
+
   function getVoucherDialog() {
     return byId('saleVoucherDialog');
   }
@@ -515,7 +549,9 @@
   function renderProductOptions() {
     var select = byId('saleProduct');
     var currentValue = select ? select.value : '';
+    var visibleProducts = getFilteredSaleProducts();
     var placeholder;
+    var emptyOption;
 
     if (!select) {
       return;
@@ -528,7 +564,16 @@
     placeholder.textContent = 'ရွေးချယ်ရန်';
     select.appendChild(placeholder);
 
-    products.forEach(function (product) {
+    if (!visibleProducts.length) {
+      emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'ကုန်ပစ္စည်း မတွေ့ပါ';
+      emptyOption.disabled = true;
+      select.appendChild(emptyOption);
+      return;
+    }
+
+    visibleProducts.forEach(function (product) {
       var option = document.createElement('option');
       var quantity = toNumber(product.quantity);
       var productLabel = [product.product_id, product.product_name].filter(Boolean).join(' - ');
@@ -539,8 +584,20 @@
       select.appendChild(option);
     });
 
-    if (currentValue && findProduct(currentValue)) {
+    if (currentValue && visibleProducts.some(function (product) {
+      return product.product_id === currentValue;
+    })) {
       select.value = currentValue;
+    }
+  }
+
+  function handleProductSearchInput() {
+    var select = byId('saleProduct');
+
+    renderProductOptions();
+
+    if (select && !select.value) {
+      handleProductChange();
     }
   }
 
@@ -972,6 +1029,7 @@
   }
 
   function bindEvents() {
+    var productSearch = byId('saleProductSearch');
     var productSelect = byId('saleProduct');
     var colorSelect = byId('saleColor');
     var sizeSelect = byId('saleSize');
@@ -979,6 +1037,10 @@
     var form = byId('saleForm');
     var printVoucherButton = byId('printVoucherButton');
     var downloadVoucherButton = byId('downloadVoucherButton');
+
+    if (productSearch) {
+      productSearch.addEventListener('input', handleProductSearchInput);
+    }
 
     if (productSelect) {
       productSelect.addEventListener('change', handleProductChange);
