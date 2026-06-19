@@ -5,6 +5,8 @@
   var cache = window.MMC_CACHE;
   var products = [];
   var filteredProducts = [];
+  var editingProductId = '';
+  var PRODUCT_COLUMN_COUNT = 11;
   var variantOptionState = {
     color: [],
     size: []
@@ -318,7 +320,7 @@
     var row = document.createElement('tr');
     var cell = document.createElement('td');
 
-    cell.colSpan = 10;
+    cell.colSpan = PRODUCT_COLUMN_COUNT;
     cell.textContent = message;
     row.appendChild(cell);
 
@@ -330,7 +332,7 @@
     var cell = document.createElement('td');
     var loading = document.createElement('span');
 
-    cell.colSpan = 10;
+    cell.colSpan = PRODUCT_COLUMN_COUNT;
     loading.className = 'loading-state';
     loading.textContent = message;
     cell.appendChild(loading);
@@ -427,6 +429,7 @@
       var actions;
 
       row.appendChild(createImageCell(product.image_src || product.image_url, product.product_name, 'ပုံ'));
+      row.appendChild(createCell(product.product_id || '-', 'ကုန်ပစ္စည်း ID'));
       row.appendChild(createCell(product.product_name, 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(createCell(product.category, 'အမျိုးအစား'));
       row.appendChild(createVariantCell(product.color, 'အရောင်'));
@@ -617,8 +620,15 @@
   }
 
   function fillProductForm(product) {
+    var productIdInput = byId('productId');
+
+    editingProductId = product ? product.product_id || '' : '';
     setText('productFormTitle', product ? 'ကုန်ပစ္စည်းပြင်ရန်' : 'ကုန်ပစ္စည်းထည့်ရန်');
-    byId('productId').value = product ? product.product_id || '' : '';
+
+    productIdInput.value = product ? product.product_id || '' : '';
+    productIdInput.readOnly = Boolean(product);
+    productIdInput.placeholder = product ? '' : 'မထည့်ပါက အလိုအလျောက်ထည့်မည်';
+
     byId('productName').value = product ? product.product_name || '' : '';
     byId('productImageFile').value = '';
     byId('productCategory').value = product ? product.category || '' : '';
@@ -747,7 +757,7 @@
           product.image_upload = imageUpload;
         }
 
-        return product.product_id
+        return editingProductId
           ? api.updateProduct(product)
           : api.addProduct(product);
       })
