@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ရောင်းချမှုများ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page" data-page="sales">
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="မီနူး">
+      <a class="brand" href="dashboard.html">
+        <span id="shopName">ဆိုင်အမည်</span>
+      </a>
+
+      <nav class="nav-list" aria-label="အဓိကမီနူး">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-link" href="products.html">ကုန်ပစ္စည်းများ</a>
+        <a class="nav-link is-active" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link" href="reports.html">အစီရင်ခံစာများ</a>
+        <a class="nav-link" href="settings.html">ဆက်တင်များ</a>
+      </nav>
+
+      <button id="logoutButton" class="ghost-button" type="button">ထွက်ရန်</button>
+    </aside>
+
+    <main class="content">
+      <header class="page-header">
+        <div>
+          <h1>ရောင်းချမှုများ</h1>
+          <p id="salesCount">0 ခု</p>
+        </div>
+      </header>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>ရောင်းချမှုထည့်ရန်</h2>
+          </div>
+
+          <form id="saleForm" class="form-stack">
+            <div class="field">
+              <label for="saleProduct">ကုန်ပစ္စည်း</label>
+              <select id="saleProduct" name="product_id" required>
+                <option value="">ရွေးချယ်ရန်</option>
+              </select>
+            </div>
+
+            <div id="saleProductPreview" class="product-preview" hidden>
+              <div class="product-preview-image">
+                <img id="saleProductImage" alt="ကုန်ပစ္စည်းပုံ">
+              </div>
+              <div>
+                <strong id="saleProductName">ကုန်ပစ္စည်းအမည်</strong>
+                <span id="saleProductMeta">လက်ကျန် 0</span>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div id="saleColorField" class="field" hidden>
+                <label for="saleColor">အရောင်</label>
+                <select id="saleColor" name="sale_color">
+                  <option value="">ရွေးချယ်ရန်</option>
+                </select>
+              </div>
+              <div id="saleSizeField" class="field" hidden>
+                <label for="saleSize">အရွယ်အစား</label>
+                <select id="saleSize" name="sale_size">
+                  <option value="">ရွေးချယ်ရန်</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="soldQuantity">အရေအတွက်</label>
+                <input id="soldQuantity" name="sold_quantity" type="number" min="1" step="1" required>
+              </div>
+              <div class="field">
+                <label for="saleDate">ရက်စွဲ</label>
+                <input id="saleDate" name="sale_date" type="date" required>
+              </div>
+            </div>
+
+            <div class="calc-grid" aria-label="ရောင်းချမှုတွက်ချက်ချက်">
+              <div>
+                <span>ဝယ်ဈေး</span>
+                <strong id="saleBuyPrice">0</strong>
+              </div>
+              <div>
+                <span>ရောင်းဈေး</span>
+                <strong id="saleSellPrice">0</strong>
+              </div>
+              <div>
+                <span>စုစုပေါင်းကုန်ကျစရိတ်</span>
+                <strong id="saleTotalCost">0</strong>
+              </div>
+              <div>
+                <span>စုစုပေါင်းဝင်ငွေ</span>
+                <strong id="saleTotalIncome">0</strong>
+              </div>
+              <div>
+                <span>အမြတ်</span>
+                <strong id="saleProfit">0</strong>
+              </div>
+              <div>
+                <span>လက်ကျန်</span>
+                <strong id="saleAvailableStock">0</strong>
+              </div>
+            </div>
+
+            <p id="saleMessage" class="form-message" aria-live="polite"></p>
+
+            <button class="primary-button" type="submit">ရောင်းချမှုထည့်ရန်</button>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2>ယနေ့</h2>
+          </div>
+          <div class="metric-list">
+            <div>
+              <span>ယနေ့ဝင်ငွေ</span>
+              <strong id="todayIncome">0</strong>
+            </div>
+            <div>
+              <span>ယနေ့အမြတ်</span>
+              <strong id="todayProfit">0</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>ရောင်းချမှုစာရင်း</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ရက်စွဲ</th>
+                <th>ပုံ</th>
+                <th>ကုန်ပစ္စည်းအမည်</th>
+                <th>အရောင်</th>
+                <th>အရွယ်အစား</th>
+                <th>အရေအတွက်</th>
+                <th>ဝယ်ဈေး</th>
+                <th>ရောင်းဈေး</th>
+                <th>စုစုပေါင်းဝင်ငွေ</th>
+                <th>အမြတ်</th>
+                <th>ဘောင်ချာ</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable">
+              <tr>
+                <td colspan="11">ဒေတာမရှိပါ</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="saleVoucherDialog" class="modal voucher-modal">
+    <section class="voucher-shell" aria-label="ရောင်းချမှုဘောင်ချာ">
+      <header class="modal-header voucher-modal-header">
+        <h2>ဘောင်ချာ</h2>
+        <button class="icon-button" type="button" data-close-voucher aria-label="ပိတ်ရန်">×</button>
+      </header>
+
+      <div id="saleVoucher" class="sale-voucher" aria-live="polite"></div>
+
+      <footer class="modal-actions voucher-actions">
+        <button id="downloadVoucherButton" class="ghost-button" type="button">ဒေါင်းလုဒ်လုပ်ရန်</button>
+        <button id="printVoucherButton" class="primary-button" type="button">ပရင့်ထုတ်ရန်</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="sales.js"></script>
+</body>
+</html>
