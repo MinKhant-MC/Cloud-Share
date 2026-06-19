@@ -531,9 +531,10 @@
     products.forEach(function (product) {
       var option = document.createElement('option');
       var quantity = toNumber(product.quantity);
+      var productLabel = [product.product_id, product.product_name].filter(Boolean).join(' - ');
 
       option.value = product.product_id;
-      option.textContent = product.product_name + ' - လက်ကျန် ' + formatNumber(quantity);
+      option.textContent = productLabel + ' - လက်ကျန် ' + formatNumber(quantity);
       option.disabled = quantity <= 0;
       select.appendChild(option);
     });
@@ -562,6 +563,7 @@
     preview.hidden = false;
     setText('saleProductName', selectedProduct.product_name || 'ကုန်ပစ္စည်းအမည်');
     meta = [
+      'ID ' + (selectedProduct.product_id || '-'),
       'လက်ကျန် ' + formatNumber(selectedProduct.quantity),
       'ရောင်းဈေး ' + formatNumber(selectedProduct.sell_price),
       formatActiveVariants('အရောင်', selectedProduct.color),
