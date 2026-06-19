@@ -1195,6 +1195,12 @@ td[colspan] {
 }
 
 @media (max-width: 780px) {
+  html,
+  body {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .app-shell {
     display: block;
   }
@@ -1244,7 +1250,16 @@ td[colspan] {
   }
 
   .content {
+    width: 100%;
     padding: 18px 14px 24px;
+  }
+
+  .panel,
+  .summary-card,
+  .toolbar,
+  .modal,
+  .sale-voucher {
+    max-width: 100%;
   }
 
   .page-header {
@@ -1272,75 +1287,79 @@ td[colspan] {
     grid-template-columns: 1fr;
   }
 
-  .app-page[data-page="products"] .table-wrap,
-  .app-page[data-page="sales"] .table-wrap {
+  .app-page .table-wrap {
     overflow: visible;
     border: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .app-page[data-page="products"] table,
-  .app-page[data-page="sales"] table {
+  .app-page .table-wrap table {
     min-width: 0;
     border-collapse: separate;
     border-spacing: 0 12px;
     background: transparent;
   }
 
-  .app-page[data-page="products"] thead,
-  .app-page[data-page="sales"] thead {
+  .app-page .table-wrap thead {
     display: none;
   }
 
-  .app-page[data-page="products"] tbody,
-  .app-page[data-page="products"] tr,
-  .app-page[data-page="products"] td,
-  .app-page[data-page="sales"] tbody,
-  .app-page[data-page="sales"] tr,
-  .app-page[data-page="sales"] td {
+  .app-page .table-wrap tbody,
+  .app-page .table-wrap tr,
+  .app-page .table-wrap td {
     display: block;
     width: 100%;
   }
 
-  .app-page[data-page="products"] tbody tr,
-  .app-page[data-page="sales"] tbody tr {
-    padding: 10px;
+  .app-page .table-wrap tbody tr {
+    overflow: hidden;
     background: #ffffff;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   }
 
-  .app-page[data-page="products"] td,
-  .app-page[data-page="sales"] td {
+  .app-page .table-wrap td {
     display: grid;
-    grid-template-columns: minmax(96px, 38%) minmax(0, 1fr);
+    grid-template-columns: minmax(96px, 40%) minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
-    padding: 8px;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+    overflow-wrap: anywhere;
+  }
+
+  .app-page .table-wrap td:last-child {
     border-bottom: 0;
   }
 
-  .app-page[data-page="products"] td::before,
-  .app-page[data-page="sales"] td::before {
+  .app-page .table-wrap td::before {
     content: attr(data-label);
     color: var(--color-muted);
     font-size: 12px;
     font-weight: 800;
+    line-height: 1.35;
   }
 
-  .app-page[data-page="products"] td[colspan],
-  .app-page[data-page="sales"] td[colspan] {
+  .app-page .table-wrap td[colspan] {
     display: block;
+    min-height: 54px;
+    padding: 16px;
     text-align: center;
   }
 
-  .app-page[data-page="products"] td[colspan]::before,
-  .app-page[data-page="sales"] td[colspan]::before {
+  .app-page .table-wrap td[colspan]::before {
     content: "";
   }
 
-  .app-page[data-page="products"] .table-actions,
-  .app-page[data-page="sales"] .table-actions {
+  .app-page .table-wrap .item-thumb,
+  .app-page .table-wrap .image-placeholder {
+    justify-self: end;
+  }
+
+  .app-page .table-wrap .table-actions {
     justify-content: flex-end;
     flex-wrap: wrap;
     white-space: normal;
