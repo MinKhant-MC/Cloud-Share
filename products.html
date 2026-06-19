@@ -36,7 +36,7 @@
       <section class="toolbar" aria-label="ကုန်ပစ္စည်းရှာရန်">
         <div class="field search-field">
           <label for="productSearch">ရှာရန်</label>
-          <input id="productSearch" name="productSearch" type="search" autocomplete="off">
+          <input id="productSearch" name="productSearch" type="search" autocomplete="off" placeholder="ကုန်ပစ္စည်း ID သို့မဟုတ် အမည်">
         </div>
       </section>
 
@@ -46,6 +46,7 @@
             <thead>
               <tr>
                 <th>ပုံ</th>
+                <th>ကုန်ပစ္စည်း ID</th>
                 <th>ကုန်ပစ္စည်းအမည်</th>
                 <th>အမျိုးအစား</th>
                 <th>အရောင်</th>
@@ -59,7 +60,7 @@
             </thead>
             <tbody id="productsTable">
               <tr>
-                <td colspan="10">ဒေတာမရှိပါ</td>
+                <td colspan="11">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -75,9 +76,11 @@
         <button class="icon-button" type="button" data-close-dialog aria-label="ပိတ်ရန်">×</button>
       </header>
 
-      <input id="productId" name="product_id" type="hidden">
-
       <div class="form-grid">
+        <div class="field">
+          <label for="productId">ကုန်ပစ္စည်း ID</label>
+          <input id="productId" name="product_id" type="text" autocomplete="off" placeholder="မထည့်ပါက အလိုအလျောက်ထည့်မည်">
+        </div>
         <div class="field">
           <label for="productName">ကုန်ပစ္စည်းအမည်</label>
           <input id="productName" name="product_name" type="text" required>
