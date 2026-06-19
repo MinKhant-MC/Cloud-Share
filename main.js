@@ -133,9 +133,14 @@
     });
   }
 
-  function createCell(text) {
+  function createCell(text, label) {
     var cell = document.createElement('td');
     cell.textContent = text === undefined || text === null ? '' : String(text);
+
+    if (label) {
+      cell.setAttribute('data-label', label);
+    }
+
     return cell;
   }
 
@@ -166,12 +171,12 @@
 
     products.forEach(function (product) {
       var row = document.createElement('tr');
-      var quantityCell = createCell(formatNumber(product.quantity));
+      var quantityCell = createCell(formatNumber(product.quantity), 'အရေအတွက်');
 
       quantityCell.classList.add('is-danger');
-      row.appendChild(createCell(product.product_name || 'ကုန်ပစ္စည်းအမည်'));
+      row.appendChild(createCell(product.product_name || 'ကုန်ပစ္စည်းအမည်', 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(quantityCell);
-      row.appendChild(createCell(formatNumber(product.low_stock_alert)));
+      row.appendChild(createCell(formatNumber(product.low_stock_alert), 'သတ်မှတ်ချက်'));
       tableBody.appendChild(row);
     });
   }
