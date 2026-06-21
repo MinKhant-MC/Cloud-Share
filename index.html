@@ -22,7 +22,21 @@
 
         <div class="field">
           <label for="password">စကားဝှက်</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <div class="password-field">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button id="togglePasswordButton" class="password-toggle" type="button" aria-label="စကားဝှက် ပြရန်" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 3l18 18"></path>
+                <path d="M10.6 5.2A10.6 10.6 0 0 1 12 5c6 0 9.5 7 9.5 7a16.2 16.2 0 0 1-3.1 4.1"></path>
+                <path d="M6.3 6.8A16.5 16.5 0 0 0 2.5 12s3.5 7 9.5 7a10.5 10.5 0 0 0 4.1-.8"></path>
+                <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <p id="loginMessage" class="form-message" aria-live="polite"></p>
