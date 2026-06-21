@@ -258,6 +258,25 @@
     }
   }
 
+  function bindPasswordToggle() {
+    var passwordInput = document.getElementById('password');
+    var toggleButton = document.getElementById('togglePasswordButton');
+
+    if (!passwordInput || !toggleButton) {
+      return;
+    }
+
+    toggleButton.addEventListener('click', function () {
+      var shouldShow = passwordInput.type === 'password';
+
+      passwordInput.type = shouldShow ? 'text' : 'password';
+      toggleButton.classList.toggle('is-visible', shouldShow);
+      toggleButton.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
+      toggleButton.setAttribute('aria-label', shouldShow ? 'စကားဝှက် ဖျောက်ရန်' : 'စကားဝှက် ပြရန်');
+      passwordInput.focus();
+    });
+  }
+
   function handleLogout() {
     var button = document.getElementById('logoutButton');
     var shouldCallApi = api && typeof api.logout === 'function' && hasSession();
@@ -288,6 +307,7 @@
     protectPage();
     renderStoredShopName();
     bindLoginForm();
+    bindPasswordToggle();
     bindLogoutButton();
     loadShopNameFromApi();
   }
