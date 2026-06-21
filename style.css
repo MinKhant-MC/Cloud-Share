@@ -69,6 +69,7 @@ button,
 input,
 select {
   font: inherit;
+  font-size: 16px;
   letter-spacing: 0;
   transition:
     background-color 0.16s ease,
@@ -469,6 +470,59 @@ noscript {
 .field select:focus {
   border-color: var(--color-primary);
   box-shadow: var(--focus-ring);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  outline: none;
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.password-toggle .icon-eye-off {
+  display: none;
+}
+
+.password-toggle.is-visible .icon-eye {
+  display: none;
+}
+
+.password-toggle.is-visible .icon-eye-off {
+  display: block;
 }
 
 .option-builder {
@@ -1392,6 +1446,12 @@ td[colspan] {
 @media (max-width: 560px) {
   body {
     font-size: 14px;
+  }
+
+  input,
+  select,
+  button {
+    font-size: 16px;
   }
 
   .auth-page {
