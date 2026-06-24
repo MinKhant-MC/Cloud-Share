@@ -11,12 +11,15 @@
   var barcodeScannerStream = null;
   var barcodeScannerTimer = null;
   var barcodeDetector = null;
+  var zxingReader = null;
+  var zxingScannerControls = null;
+  var barcodeScannerStarting = false;
   var OFFLINE_SALES_KEY = 'mmc_offline_sales_queue';
   var shopSettings = {
     shop_name: '',
     currency: 'MMK'
   };
-  var SALES_COLUMN_COUNT = 12;
+  var SALES_COLUMN_COUNT = 8;
 
   function byId(id) {
     return document.getElementById(id);
@@ -279,7 +282,31 @@
       return totalIncome;
     }
 
+    return getSaleSubtotal(sale) - getSaleDiscountAmount(sale) + getSaleTaxAmount(sale);
+  }
+
+  function getSaleSubtotal(sale) {
     return toNumber(sale && sale.sell_price) * toNumber(sale && sale.sold_quantity);
+  }
+
+  function getSaleDiscountAmount(sale) {
+    var discountAmount = toNumber(sale && sale.discount_amount);
+
+    if (discountAmount > 0) {
+      return discountAmount;
+    }
+
+    return getSaleSubtotal(sale) * (toNumber(sale && sale.discount_percent) / 100);
+  }
+
+  function getSaleTaxAmount(sale) {
+    var taxAmount = toNumber(sale && sale.tax_amount);
+
+    if (taxAmount > 0) {
+      return taxAmount;
+    }
+
+    return (getSaleSubtotal(sale) - getSaleDiscountAmount(sale)) * (toNumber(sale && sale.tax_percent) / 100);
   }
 
   function getSaleTotalCost(sale) {
@@ -299,7 +326,7 @@
       return profit;
     }
 
-    return getSaleTotalIncome(sale) - getSaleTotalCost(sale);
+    return getSaleSubtotal(sale) - getSaleDiscountAmount(sale) - getSaleTotalCost(sale);
   }
 
   function createVoucherGroup(items, voucherId, customerName) {
@@ -340,6 +367,9 @@
     var totals = {
       quantity: 0,
       total_cost: 0,
+      subtotal: 0,
+      discount_amount: 0,
+      tax_amount: 0,
       total_income: 0,
       profit: 0
     };
@@ -347,6 +377,9 @@
     voucher.items.forEach(function (sale) {
       totals.quantity += toNumber(sale.sold_quantity);
       totals.total_cost += getSaleTotalCost(sale);
+      totals.subtotal += getSaleSubtotal(sale);
+      totals.discount_amount += getSaleDiscountAmount(sale);
+      totals.tax_amount += getSaleTaxAmount(sale);
       totals.total_income += getSaleTotalIncome(sale);
       totals.profit += getSaleProfit(sale);
     });
@@ -393,6 +426,7 @@
         '</td>',
         '<td>' + escapeHtml(formatNumber(sale.sold_quantity)) + '</td>',
         '<td>' + escapeHtml(formatMoney(sale.sell_price)) + '</td>',
+        '<td>' + escapeHtml(formatMoney(getSaleTaxAmount(sale))) + '</td>',
         '<td>' + escapeHtml(formatMoney(getSaleTotalIncome(sale))) + '</td>',
         '</tr>'
       ].join('');
@@ -417,13 +451,15 @@
       '<div><span>စုစုပေါင်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
       '</div>',
       '<table class="voucher-table">',
-      '<thead><tr><th>ပစ္စည်း</th><th>အရေအတွက်</th><th>ဈေး</th><th>စုစုပေါင်း</th></tr></thead>',
+      '<thead><tr><th>ပစ္စည်း</th><th>အရေအတွက်</th><th>ဈေး</th><th>အခွန်</th><th>စုစုပေါင်း</th></tr></thead>',
       '<tbody>',
       buildVoucherRows(voucher.items),
       '</tbody>',
       '</table>',
       '<div class="voucher-total-grid">',
-      '<div><span>စုစုပေါင်း</span><strong>' + escapeHtml(formatMoney(totals.total_income)) + '</strong></div>',
+      '<div><span>Subtotal</span><strong>' + escapeHtml(formatMoney(totals.subtotal)) + '</strong></div>',
+      '<div><span>Discount</span><strong>' + escapeHtml(formatMoney(totals.discount_amount)) + '</strong></div>',
+      '<div><span>အခွန်</span><strong>' + escapeHtml(formatMoney(totals.tax_amount)) + '</strong></div>',
       '<div><span>ပစ္စည်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
       '</div>',
       '<div class="voucher-total"><span>ကျသင့်ငွေ</span><strong>' + escapeHtml(formatMoney(totals.total_income)) + '</strong></div>',
@@ -448,7 +484,7 @@
       '.sale-voucher{width:min(100%,86mm);margin:0 auto;padding:18px;background:#fff;border:1px solid #d7dde5;border-radius:8px;box-shadow:0 16px 40px rgba(15,23,42,.12)}',
       '.voucher-brand{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1f6feb}.voucher-brand strong{display:block;font-size:22px;line-height:1.2}.voucher-brand span{color:#667085;font-weight:800}',
       '.voucher-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.voucher-meta-grid div,.voucher-total-grid div{padding:8px;border:1px solid #d7dde5;border-radius:6px;background:#f8fafc}.voucher-meta-grid span,.voucher-total-grid span{display:block;color:#667085;font-size:11px;font-weight:800}.voucher-meta-grid strong,.voucher-total-grid strong{display:block;overflow-wrap:anywhere}',
-      '.voucher-table{width:100%;border-collapse:collapse;border:1px solid #d7dde5;border-radius:6px;overflow:hidden}.voucher-table th,.voucher-table td{padding:8px;border-bottom:1px solid #d7dde5;text-align:left;vertical-align:top}.voucher-table th{background:#eef3f8;font-size:11px;text-transform:uppercase}.voucher-table td:nth-child(2),.voucher-table td:nth-child(3),.voucher-table td:nth-child(4){text-align:right;font-weight:800}.voucher-item-cell{display:block}.voucher-item-cell strong,.voucher-item-cell span,.voucher-item-cell small{display:block;overflow-wrap:anywhere}.voucher-item-cell span,.voucher-item-cell small{color:#667085;font-size:11px;font-weight:700}.voucher-total-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding:12px;background:#111827;color:#fff;border-radius:8px;font-size:18px;font-weight:900}.voucher-thanks{text-align:center;color:#667085;font-weight:800}',
+      '.voucher-table{width:100%;table-layout:fixed;border-collapse:collapse;border:1px solid #d7dde5;border-radius:6px;overflow:hidden}.voucher-table th,.voucher-table td{padding:8px;border-bottom:1px solid #d7dde5;text-align:left;vertical-align:top}.voucher-table th{background:#eef3f8;font-size:11px;text-transform:uppercase}.voucher-table td:nth-child(2),.voucher-table td:nth-child(3),.voucher-table td:nth-child(4),.voucher-table td:nth-child(5){text-align:right;font-weight:800}.voucher-item-cell{display:block}.voucher-item-cell strong,.voucher-item-cell span,.voucher-item-cell small{display:block;overflow-wrap:anywhere}.voucher-item-cell span,.voucher-item-cell small{color:#667085;font-size:11px;font-weight:700}.voucher-total-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding:12px;background:#111827;color:#fff;border-radius:8px;font-size:18px;font-weight:900}.voucher-thanks{text-align:center;color:#667085;font-weight:800}',
       '@media print{body{padding:0;background:#fff}.sale-voucher{width:80mm;border:0;border-radius:0}}',
       '</style>',
       '</head>',
@@ -484,6 +520,32 @@
     var cell = document.createElement('td');
     cell.textContent = text === undefined || text === null ? '' : String(text);
     return label ? setCellLabel(cell, label) : cell;
+  }
+
+  function createSaleItemsCell(items) {
+    var cell = document.createElement('td');
+    var grouped = {};
+    var list = document.createElement('div');
+
+    list.className = 'sale-id-list';
+
+    (items || []).forEach(function (sale) {
+      var productId = cleanOptionName(sale.product_id) || '-';
+      grouped[productId] = (grouped[productId] || 0) + toNumber(sale.sold_quantity);
+    });
+
+    Object.keys(grouped).forEach(function (productId) {
+      var item = document.createElement('span');
+      item.textContent = productId + ' x ' + formatNumber(grouped[productId]);
+      list.appendChild(item);
+    });
+
+    if (!list.children.length) {
+      list.textContent = '-';
+    }
+
+    cell.appendChild(list);
+    return setCellLabel(cell, 'Product IDs');
   }
 
   function createEmptyRow(message) {
@@ -706,7 +768,7 @@
     var cell = document.createElement('td');
     var button = document.createElement('button');
 
-    button.className = 'small-button';
+    button.className = 'small-button icon-voucher';
     button.type = 'button';
     button.textContent = 'ဘောင်ချာ';
     button.addEventListener('click', function () {
@@ -717,11 +779,69 @@
     return setCellLabel(cell, 'ဘောင်ချာ');
   }
 
+  function createNextSaleId(value) {
+    var text = cleanOptionName(value);
+    var match = text.match(/^(.+?)(\d+)$/);
+    var prefix;
+    var numberText;
+
+    if (!match) {
+      return '';
+    }
+
+    prefix = match[1].replace(/[^A-Za-z]/g, '').toUpperCase() || 'S';
+    numberText = match[2];
+
+    return prefix + String(Number(numberText) + 1).padStart(Math.max(numberText.length, 5), '0');
+  }
+
+  function saleIdExists(saleId) {
+    var target = cleanOptionName(saleId).toLowerCase();
+
+    return sales.some(function (sale) {
+      return cleanOptionName(sale.sale_id).toLowerCase() === target;
+    });
+  }
+
+  function findLatestSaleId() {
+    var latest = '';
+
+    sales.some(function (sale) {
+      latest = cleanOptionName(sale.sale_id);
+      return Boolean(latest && !/^OFFLINE-/i.test(latest));
+    });
+
+    return latest;
+  }
+
+  function getSuggestedSaleId() {
+    var saleId = createNextSaleId(findLatestSaleId()) || 'S00001';
+    var guard = 0;
+
+    while (saleId && saleIdExists(saleId) && guard < 1000) {
+      saleId = createNextSaleId(saleId);
+      guard += 1;
+    }
+
+    return saleId;
+  }
+
+  function applyCheckoutSaleId(items) {
+    var saleId = getSuggestedSaleId();
+
+    return items.map(function (item) {
+      return Object.assign({}, item, {
+        sale_id: saleId
+      });
+    });
+  }
+
   function getCartItemKey(item) {
     return [
       cleanOptionName(item.product_id).toLowerCase(),
       cleanOptionName(item.sale_color).toLowerCase(),
-      cleanOptionName(item.sale_size).toLowerCase()
+      cleanOptionName(item.sale_size).toLowerCase(),
+      String(toNumber(item.tax_percent))
     ].join('::');
   }
 
@@ -757,12 +877,18 @@
     return saleCart.reduce(function (totals, item) {
       totals.quantity += toNumber(item.sold_quantity);
       totals.total_cost += getSaleTotalCost(item);
+      totals.subtotal += getSaleSubtotal(item);
+      totals.discount_amount += getSaleDiscountAmount(item);
+      totals.tax_amount += getSaleTaxAmount(item);
       totals.total_income += getSaleTotalIncome(item);
       totals.profit += getSaleProfit(item);
       return totals;
     }, {
       quantity: 0,
       total_cost: 0,
+      subtotal: 0,
+      discount_amount: 0,
+      tax_amount: 0,
       total_income: 0,
       profit: 0
     });
@@ -867,6 +993,12 @@
     var buyPrice;
     var sellPrice;
     var totalCost;
+    var subtotal;
+    var discountPercent;
+    var discountAmount;
+    var taxableSubtotal;
+    var taxPercent;
+    var taxAmount;
     var totalIncome;
 
     if (!selectedProduct) {
@@ -899,7 +1031,13 @@
     buyPrice = toNumber(selectedProduct.buy_price);
     sellPrice = toNumber(selectedProduct.sell_price);
     totalCost = buyPrice * soldQuantity;
-    totalIncome = sellPrice * soldQuantity;
+    subtotal = sellPrice * soldQuantity;
+    discountPercent = Math.max(0, toNumber(byId('saleDiscountPercent') ? byId('saleDiscountPercent').value : 0));
+    discountAmount = subtotal * (discountPercent / 100);
+    taxableSubtotal = Math.max(0, subtotal - discountAmount);
+    taxPercent = Math.max(0, toNumber(byId('saleTaxPercent') ? byId('saleTaxPercent').value : 0));
+    taxAmount = taxableSubtotal * (taxPercent / 100);
+    totalIncome = taxableSubtotal + taxAmount;
 
     return {
       cart_id: 'C-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
@@ -910,8 +1048,12 @@
       buy_price: buyPrice,
       sell_price: sellPrice,
       total_cost: totalCost,
+      discount_percent: discountPercent,
+      discount_amount: discountAmount,
+      tax_percent: taxPercent,
+      tax_amount: taxAmount,
       total_income: totalIncome,
-      profit: totalIncome - totalCost,
+      profit: taxableSubtotal - totalCost,
       sale_color: selectedColor ? selectedColor.name : '',
       sale_size: selectedSize ? selectedSize.name : '',
       customer_name: getSaleCustomerName()
@@ -936,8 +1078,12 @@
     if (existing) {
       existing.sold_quantity += item.sold_quantity;
       existing.total_cost = existing.buy_price * existing.sold_quantity;
-      existing.total_income = existing.sell_price * existing.sold_quantity;
-      existing.profit = existing.total_income - existing.total_cost;
+      existing.discount_percent = item.discount_percent;
+      existing.discount_amount = getSaleSubtotal(existing) * (toNumber(existing.discount_percent) / 100);
+      existing.tax_percent = item.tax_percent;
+      existing.tax_amount = getSaleTaxAmount(existing);
+      existing.total_income = getSaleTotalIncome(existing);
+      existing.profit = getSaleProfit(existing);
     } else {
       saleCart.push(item);
     }
@@ -1082,9 +1228,22 @@
     var startButton = byId('startBarcodeScanButton');
     var stopButton = byId('stopBarcodeScanButton');
 
+    barcodeScannerStarting = false;
+
     if (barcodeScannerTimer) {
       window.clearInterval(barcodeScannerTimer);
       barcodeScannerTimer = null;
+    }
+
+    if (zxingScannerControls && typeof zxingScannerControls.stop === 'function') {
+      zxingScannerControls.stop();
+      zxingScannerControls = null;
+    }
+
+    if (window.ZXingBrowser &&
+        window.ZXingBrowser.BrowserCodeReader &&
+        typeof window.ZXingBrowser.BrowserCodeReader.releaseAllStreams === 'function') {
+      window.ZXingBrowser.BrowserCodeReader.releaseAllStreams();
     }
 
     if (barcodeScannerStream) {
@@ -1137,53 +1296,157 @@
       });
   }
 
-  function startBarcodeScanner() {
+  function setBarcodeScannerUi(isScanning) {
     var video = byId('barcodeScannerVideo');
     var startButton = byId('startBarcodeScanButton');
     var stopButton = byId('stopBarcodeScanButton');
+
+    if (video) {
+      video.hidden = !isScanning;
+    }
+
+    if (startButton) {
+      startButton.hidden = isScanning;
+    }
+
+    if (stopButton) {
+      stopButton.hidden = !isScanning;
+    }
+  }
+
+  function getBarcodeFromZxingResult(result) {
+    if (!result) {
+      return '';
+    }
+
+    if (typeof result.getText === 'function') {
+      return cleanOptionName(result.getText());
+    }
+
+    return cleanOptionName(result.text || result.rawValue || String(result));
+  }
+
+  function startZxingScanner(video) {
+    var preferredConstraints = {
+      video: {
+        facingMode: {
+          ideal: 'environment'
+        },
+        width: {
+          ideal: 1280
+        },
+        height: {
+          ideal: 720
+        }
+      },
+      audio: false
+    };
+    var fallbackConstraints = {
+      video: true,
+      audio: false
+    };
+    var startWithConstraints;
+
+    if (!window.ZXingBrowser || !window.ZXingBrowser.BrowserMultiFormatReader) {
+      return Promise.reject(new Error('ZXing scanner မရှိပါ။'));
+    }
+
+    zxingReader = zxingReader || new window.ZXingBrowser.BrowserMultiFormatReader();
+    startWithConstraints = function (constraints) {
+      return zxingReader.decodeFromConstraints(constraints, video, function (result) {
+        var code = getBarcodeFromZxingResult(result);
+
+        if (code) {
+          handleDetectedBarcode(code);
+        }
+      });
+    };
+
+    return startWithConstraints(preferredConstraints)
+      .catch(function () {
+        return startWithConstraints(fallbackConstraints);
+      })
+      .then(function (controls) {
+        zxingScannerControls = controls;
+        setBarcodeScannerUi(true);
+        setMessage('Camera scanner ဖွင့်ထားပါသည်။ Barcode ကို ကင်မရာရှေ့တွင်ထားပါ။', 'is-warning');
+      });
+  }
+
+  function startNativeBarcodeScanner(video) {
+    barcodeDetector = barcodeDetector || new window.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code']
+    });
+
+    return navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: {
+          ideal: 'environment'
+        },
+        width: {
+          ideal: 1280
+        },
+        height: {
+          ideal: 720
+        }
+      },
+      audio: false
+    })
+      .catch(function () {
+        return navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      })
+      .then(function (stream) {
+        barcodeScannerStream = stream;
+        video.srcObject = stream;
+        setBarcodeScannerUi(true);
+        return video.play();
+      })
+      .then(function () {
+        setMessage('Camera scanner ဖွင့်ထားပါသည်။ Barcode ကို ကင်မရာရှေ့တွင်ထားပါ။', 'is-warning');
+        barcodeScannerTimer = window.setInterval(function () {
+          scanBarcodeFrame(video);
+        }, 450);
+      });
+  }
+
+  function startBarcodeScanner() {
+    var video = byId('barcodeScannerVideo');
 
     if (!video) {
       return;
     }
 
-    if (!('BarcodeDetector' in window) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setMessage('ဤ browser တွင် Camera Barcode Scan မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။', 'is-warning');
+    if (barcodeScannerStarting) {
       return;
     }
 
-    barcodeDetector = barcodeDetector || new window.BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code']
-    });
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setMessage('ဤ browser တွင် camera access မရပါ။ HTTPS ဖြင့်ဖွင့်ပြီး ထပ်စမ်းပါ။', 'is-warning');
+      return;
+    }
 
-    navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment'
-      },
-      audio: false
-    })
-      .then(function (stream) {
-        barcodeScannerStream = stream;
-        video.srcObject = stream;
-        video.hidden = false;
+    barcodeScannerStarting = true;
+    stopBarcodeScanner();
+    barcodeScannerStarting = true;
+    setMessage('Camera ဖွင့်နေပါသည်...', 'is-warning');
 
-        if (startButton) {
-          startButton.hidden = true;
-        }
-
-        if (stopButton) {
-          stopButton.hidden = false;
-        }
-
-        return video.play();
-      })
-      .then(function () {
-        barcodeScannerTimer = window.setInterval(function () {
-          scanBarcodeFrame(video);
-        }, 450);
-      })
+    startZxingScanner(video)
       .catch(function () {
+        if (!('BarcodeDetector' in window)) {
+          throw new Error('Camera barcode scan မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။');
+        }
+
+        return startNativeBarcodeScanner(video);
+      })
+      .catch(function (error) {
         stopBarcodeScanner();
-        setMessage('Camera ဖွင့်ခွင့် မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။', 'is-danger');
+        setMessage(error && error.message ? error.message : 'Camera ဖွင့်ခွင့် မရပါ။ HTTPS/permission ကိုစစ်ပါ။', 'is-danger');
+      })
+      .finally(function () {
+        barcodeScannerStarting = false;
       });
   }
 
@@ -1332,10 +1595,16 @@
     var soldQuantity = quantityInput ? toNumber(quantityInput.value) : 0;
     var buyPrice = selectedProduct ? toNumber(selectedProduct.buy_price) : 0;
     var sellPrice = selectedProduct ? toNumber(selectedProduct.sell_price) : 0;
+    var discountPercent = Math.max(0, toNumber(byId('saleDiscountPercent') ? byId('saleDiscountPercent').value : 0));
+    var taxPercent = Math.max(0, toNumber(byId('saleTaxPercent') ? byId('saleTaxPercent').value : 0));
     var availableQuantity = selectedProduct ? getAvailableSaleQuantity() : 0;
     var totalCost = buyPrice * soldQuantity;
-    var totalIncome = sellPrice * soldQuantity;
-    var profit = totalIncome - totalCost;
+    var subtotal = sellPrice * soldQuantity;
+    var discountAmount = subtotal * (discountPercent / 100);
+    var taxableSubtotal = Math.max(0, subtotal - discountAmount);
+    var taxAmount = taxableSubtotal * (taxPercent / 100);
+    var totalIncome = taxableSubtotal + taxAmount;
+    var profit = taxableSubtotal - totalCost;
 
     if (quantityInput) {
       if (selectedProduct && availableQuantity > 0) {
@@ -1348,6 +1617,8 @@
     setText('saleBuyPrice', formatNumber(buyPrice));
     setText('saleSellPrice', formatNumber(sellPrice));
     setText('saleTotalCost', formatNumber(totalCost));
+    setText('saleDiscountAmount', formatNumber(discountAmount));
+    setText('saleTaxAmount', formatNumber(taxAmount));
     setText('saleTotalIncome', formatNumber(totalIncome));
     setText('saleProfit', formatNumber(profit));
     setText('saleAvailableStock', selectedProduct ? formatNumber(availableQuantity) : '0');
@@ -1367,34 +1638,33 @@
 
   function renderSalesTable() {
     var tableBody = byId('salesTable');
+    var groupedSales;
 
     if (!tableBody) {
       return;
     }
 
     clearElement(tableBody);
-    setText('salesCount', sales.length + ' ခု');
+    groupedSales = getGroupedSales();
+    setText('salesCount', groupedSales.length + ' ??');
 
-    if (!sales.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ'));
+    if (!groupedSales.length) {
+      tableBody.appendChild(createEmptyRow('??????????'));
       return;
     }
 
-    sales.forEach(function (sale) {
+    groupedSales.forEach(function (saleGroup) {
       var row = document.createElement('tr');
+      var totals = getVoucherTotals(saleGroup);
 
-      row.appendChild(createCell(sale.sale_date, 'ရက်စွဲ'));
-      row.appendChild(createCell(sale.customer_name || '-', 'ဖောက်သည်'));
-      row.appendChild(createImageCell(getProductImageUrl(sale.product_id), sale.product_name, 'ပုံ'));
-      row.appendChild(createCell(sale.product_name, 'ကုန်ပစ္စည်းအမည်'));
-      row.appendChild(createCell(sale.sale_color || '-', 'အရောင်'));
-      row.appendChild(createCell(sale.sale_size || '-', 'အရွယ်အစား'));
-      row.appendChild(createCell(formatNumber(sale.sold_quantity), 'အရေအတွက်'));
-      row.appendChild(createCell(formatNumber(sale.buy_price), 'ဝယ်ဈေး'));
-      row.appendChild(createCell(formatNumber(sale.sell_price), 'ရောင်းဈေး'));
-      row.appendChild(createCell(formatNumber(sale.total_income), 'စုစုပေါင်းဝင်ငွေ'));
-      row.appendChild(createCell(formatNumber(sale.profit), 'အမြတ်'));
-      row.appendChild(createVoucherCell(sale));
+      row.appendChild(createCell(saleGroup.voucher_id || '-', 'Sale ID'));
+      row.appendChild(createCell(saleGroup.sale_date || '-', '??????'));
+      row.appendChild(createCell(saleGroup.customer_name || '-', '????????'));
+      row.appendChild(createSaleItemsCell(saleGroup.items));
+      row.appendChild(createCell(formatNumber(totals.quantity), '????????'));
+      row.appendChild(createCell(formatNumber(totals.total_income), '????????????????'));
+      row.appendChild(createCell(formatNumber(totals.profit), '?????'));
+      row.appendChild(createVoucherCell(saleGroup));
       tableBody.appendChild(row);
     });
   }
@@ -1649,18 +1919,28 @@
     var buyPrice = toNumber(product.buy_price);
     var sellPrice = toNumber(product.sell_price);
     var totalCost = buyPrice * soldQuantity;
-    var totalIncome = sellPrice * soldQuantity;
+    var subtotal = sellPrice * soldQuantity;
+    var discountPercent = Math.max(0, toNumber(sale.discount_percent));
+    var discountAmount = subtotal * (discountPercent / 100);
+    var taxableSubtotal = Math.max(0, subtotal - discountAmount);
+    var taxPercent = Math.max(0, toNumber(sale.tax_percent));
+    var taxAmount = taxableSubtotal * (taxPercent / 100);
+    var totalIncome = taxableSubtotal + taxAmount;
 
     return {
-      sale_id: 'OFFLINE-' + Date.now(),
+      sale_id: cleanOptionName(sale.sale_id) || ('OFFLINE-' + Date.now()),
       product_id: product.product_id,
       product_name: product.product_name,
       sold_quantity: soldQuantity,
       buy_price: buyPrice,
       sell_price: sellPrice,
       total_cost: totalCost,
+      discount_percent: discountPercent,
+      discount_amount: discountAmount,
+      tax_percent: taxPercent,
+      tax_amount: taxAmount,
       total_income: totalIncome,
-      profit: totalIncome - totalCost,
+      profit: taxableSubtotal - totalCost,
       sale_date: sale.sale_date,
       created_at: new Date().toISOString(),
       sale_color: sale.sale_color || '',
@@ -1702,12 +1982,15 @@
 
   function createSalePayloadFromItem(item) {
     return {
+      sale_id: cleanOptionName(item.sale_id),
       product_id: item.product_id,
       sold_quantity: toNumber(item.sold_quantity),
       sale_date: byId('saleDate') && byId('saleDate').value ? byId('saleDate').value : todayString(),
       sale_color: item.sale_color || '',
       sale_size: item.sale_size || '',
-      customer_name: cleanOptionName(item.customer_name)
+      customer_name: cleanOptionName(item.customer_name),
+      discount_percent: Math.max(0, toNumber(item.discount_percent)),
+      tax_percent: Math.max(0, toNumber(item.tax_percent))
     };
   }
 
@@ -1719,6 +2002,30 @@
         customer_name: customerName || cleanOptionName(item.customer_name)
       });
     });
+  }
+
+  function getGroupedSales() {
+    var grouped = [];
+    var byId = {};
+
+    sales.forEach(function (sale) {
+      var saleId = cleanOptionName(sale.sale_id) || ('SALE-' + grouped.length);
+
+      if (!byId[saleId]) {
+        byId[saleId] = createVoucherGroup([], saleId, sale.customer_name);
+        byId[saleId].sale_date = cleanOptionName(sale.sale_date) || todayString();
+        byId[saleId].created_at = cleanOptionName(sale.created_at);
+        grouped.push(byId[saleId]);
+      }
+
+      if (!byId[saleId].customer_name && sale.customer_name) {
+        byId[saleId].customer_name = sale.customer_name;
+      }
+
+      byId[saleId].items.push(sale);
+    });
+
+    return grouped;
   }
 
   function addSavedSalesToTable(savedSales) {
@@ -1841,6 +2148,7 @@
   function clearSaleFormAfterSubmit(productId, clearCustomer) {
     var quantityInput = byId('soldQuantity');
     var customerInput = byId('saleCustomerName');
+    var taxInput = byId('saleTaxPercent');
 
     if (quantityInput) {
       quantityInput.value = '';
@@ -1848,6 +2156,10 @@
 
     if (clearCustomer && customerInput) {
       customerInput.value = '';
+    }
+
+    if (clearCustomer && taxInput) {
+      taxInput.value = '';
     }
 
     if (productId && byId('saleProduct')) {
@@ -1876,7 +2188,7 @@
       }
     }
 
-    items = applyCheckoutCustomerName(items);
+    items = applyCheckoutSaleId(applyCheckoutCustomerName(items));
 
     setFormBusy(true);
     setMessage('ဘောင်ချာ သိမ်းနေပါသည်', 'is-warning');
@@ -1943,6 +2255,7 @@
     var colorSelect = byId('saleColor');
     var sizeSelect = byId('saleSize');
     var quantityInput = byId('soldQuantity');
+    var taxInput = byId('saleTaxPercent');
     var customerInput = byId('saleCustomerName');
     var form = byId('saleForm');
     var printVoucherButton = byId('printVoucherButton');
@@ -1977,6 +2290,10 @@
 
     if (quantityInput) {
       quantityInput.addEventListener('input', calculateSale);
+    }
+
+    if (taxInput) {
+      taxInput.addEventListener('input', calculateSale);
     }
 
     if (customerInput) {
