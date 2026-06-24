@@ -353,9 +353,9 @@
       return '';
     }
 
-    prefix = match[1];
+    prefix = match[1].replace(/[^A-Za-z]/g, '').toUpperCase() || 'P';
     numberText = match[2];
-    nextNumberText = String(Number(numberText) + 1).padStart(numberText.length, '0');
+    nextNumberText = String(Number(numberText) + 1).padStart(Math.max(numberText.length, 5), '0');
 
     return prefix + nextNumberText;
   }
@@ -385,7 +385,7 @@
   }
 
   function getSuggestedProductId() {
-    var nextId = createNextProductId(findLatestProductId()) || 'P001';
+    var nextId = createNextProductId(findLatestProductId()) || 'P00001';
     var guard = 0;
 
     while (nextId && productIdExists(nextId) && guard < 1000) {
@@ -549,10 +549,10 @@
       actionsCell.setAttribute('data-label', 'လုပ်ဆောင်ချက်');
       actions = document.createElement('div');
       actions.className = 'table-actions';
-      actions.appendChild(createActionButton('ပြင်ရန်', 'small-button', function () {
+      actions.appendChild(createActionButton('ပြင်ရန်', 'small-button icon-edit', function () {
         openProductDialog(product);
       }));
-      actions.appendChild(createActionButton('ဖျက်ရန်', 'small-button danger-button', function () {
+      actions.appendChild(createActionButton('ဖျက်ရန်', 'small-button danger-button icon-delete', function () {
         deleteProduct(product);
       }));
       actionsCell.appendChild(actions);
@@ -616,10 +616,10 @@
       actionsCell.setAttribute('data-label', t('action', 'လုပ်ဆောင်ချက်'));
       actions = document.createElement('div');
       actions.className = 'table-actions';
-      actions.appendChild(createActionButton(t('edit', 'ပြင်ရန်'), 'small-button', function () {
+      actions.appendChild(createActionButton(t('edit', 'ပြင်ရန်'), 'small-button icon-edit', function () {
         openProductDialog(product);
       }));
-      actions.appendChild(createActionButton(t('delete', 'ဖျက်ရန်'), 'small-button danger-button', function () {
+      actions.appendChild(createActionButton(t('delete', 'ဖျက်ရန်'), 'small-button danger-button icon-delete', function () {
         deleteProduct(product);
       }));
       actionsCell.appendChild(actions);
@@ -789,7 +789,7 @@
 
     productIdInput.value = product ? product.product_id || '' : getSuggestedProductId();
     productIdInput.readOnly = Boolean(product);
-    productIdInput.placeholder = product ? '' : 'မထည့်ပါက အလိုအလျောက်ထည့်မည်';
+    productIdInput.placeholder = product ? '' : 'P00001';
 
     byId('productBarcode').value = product ? product.barcode || '' : '';
     byId('productName').value = product ? product.product_name || '' : '';
