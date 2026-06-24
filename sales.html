@@ -44,12 +44,12 @@
           <form id="saleForm" class="form-stack">
             <div class="field">
               <label for="saleCustomerName">ဖောက်သည်အမည် (မထည့်လည်းရ)</label>
-              <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="ဖောက်သည်အမည်">
+              <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="C00001">
             </div>
 
             <div class="field">
               <label for="saleProductSearch">ကုန်ပစ္စည်းရှာရန်</label>
-              <input id="saleProductSearch" name="sale_product_search" type="search" autocomplete="off" placeholder="ကုန်ပစ္စည်း ID သို့မဟုတ် အမည်">
+              <input id="saleProductSearch" name="sale_product_search" type="search" autocomplete="off" placeholder="P00001">
             </div>
 
             <div class="field">
@@ -97,6 +97,14 @@
                 <input id="soldQuantity" name="sold_quantity" type="number" min="1" step="1" required>
               </div>
               <div class="field">
+                <label for="saleDiscountPercent">Discount % (မထည့်လည်းရ)</label>
+                <input id="saleDiscountPercent" name="discount_percent" type="number" min="0" max="100" step="0.01" placeholder="0">
+              </div>
+              <div class="field">
+                <label for="saleTaxPercent">အခွန် % (မထည့်လည်းရ)</label>
+                <input id="saleTaxPercent" name="tax_percent" type="number" min="0" max="100" step="0.01" placeholder="0">
+              </div>
+              <div class="field">
                 <label for="saleDate">ရက်စွဲ</label>
                 <input id="saleDate" name="sale_date" type="date" required>
               </div>
@@ -114,6 +122,14 @@
               <div>
                 <span>စုစုပေါင်းကုန်ကျစရိတ်</span>
                 <strong id="saleTotalCost">0</strong>
+              </div>
+              <div>
+                <span>Discount</span>
+                <strong id="saleDiscountAmount">0</strong>
+              </div>
+              <div>
+                <span>အခွန်</span>
+                <strong id="saleTaxAmount">0</strong>
               </div>
               <div>
                 <span>စုစုပေါင်းဝင်ငွေ</span>
@@ -186,15 +202,11 @@
           <table>
             <thead>
               <tr>
+                <th>Sale ID</th>
                 <th>ရက်စွဲ</th>
                 <th>ဖောက်သည်</th>
-                <th>ပုံ</th>
-                <th>ကုန်ပစ္စည်းအမည်</th>
-                <th>အရောင်</th>
-                <th>အရွယ်အစား</th>
+                <th>Product IDs</th>
                 <th>အရေအတွက်</th>
-                <th>ဝယ်ဈေး</th>
-                <th>ရောင်းဈေး</th>
                 <th>စုစုပေါင်းဝင်ငွေ</th>
                 <th>အမြတ်</th>
                 <th>ဘောင်ချာ</th>
@@ -202,7 +214,7 @@
             </thead>
             <tbody id="salesTable">
               <tr>
-                <td colspan="12">ဒေတာမရှိပါ</td>
+                <td colspan="8">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -231,6 +243,7 @@
   <script src="api.js"></script>
   <script src="auth.js"></script>
   <script src="i18n.js"></script>
+  <script src="vendor/zxing-browser.min.js"></script>
   <script src="sales.js"></script>
 </body>
 </html>
