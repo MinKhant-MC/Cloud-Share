@@ -6,7 +6,8 @@
   var products = [];
   var filteredProducts = [];
   var editingProductId = '';
-  var PRODUCT_COLUMN_COUNT = 11;
+  var lastAddedProductId = '';
+  var PRODUCT_COLUMN_COUNT = 13;
   var variantOptionState = {
     color: [],
     size: []
@@ -22,6 +23,14 @@
     if (element) {
       element.textContent = value;
     }
+  }
+
+  function t(key, fallback) {
+    if (window.MMC_I18N && typeof window.MMC_I18N.translate === 'function') {
+      return window.MMC_I18N.translate(key);
+    }
+
+    return fallback || key;
   }
 
   function setMessage(message, type) {
@@ -59,6 +68,32 @@
     return quantity >= 0 ? quantity : 0;
   }
 
+  function parseVariantTextOption(value) {
+    var text = cleanOptionName(value);
+    var match;
+
+    if (!text) {
+      return {
+        name: '',
+        quantity: 0
+      };
+    }
+
+    match = text.match(/^(.+?)\s*(?:-|:|=|x|X)\s*(\d+(?:\.\d+)?)\s*(?:ခု|pcs?|items?)?\s*$/i);
+
+    if (!match) {
+      return {
+        name: text,
+        quantity: 0
+      };
+    }
+
+    return {
+      name: cleanOptionName(match[1]),
+      quantity: toVariantQuantity(match[2])
+    };
+  }
+
   function normalizeVariantOptions(options) {
     var normalized = [];
 
@@ -67,9 +102,11 @@
     }
 
     options.forEach(function (option) {
-      var name = typeof option === 'string' ? option : option && option.name;
+      var legacyOption = typeof option === 'string' ? parseVariantTextOption(option) : null;
+      var name = legacyOption ? legacyOption.name : option && option.name;
       var cleanName = cleanOptionName(name);
       var existing;
+      var quantity = legacyOption ? legacyOption.quantity : toVariantQuantity(option && option.quantity);
 
       if (!cleanName) {
         return;
@@ -81,14 +118,14 @@
 
       if (existing) {
         existing.active = existing.active || !(option && option.active === false);
-        existing.quantity = Math.max(existing.quantity, toVariantQuantity(option && option.quantity));
+        existing.quantity = Math.max(existing.quantity, quantity);
         return;
       }
 
       normalized.push({
         name: cleanName,
         active: !(option && option.active === false),
-        quantity: toVariantQuantity(option && option.quantity)
+        quantity: quantity
       });
     });
 
@@ -305,6 +342,60 @@
     return toNumber(product.quantity) <= toNumber(product.low_stock_alert);
   }
 
+  function createNextProductId(value) {
+    var text = String(value || '').trim();
+    var match = text.match(/^(.+?)(\d+)$/);
+    var prefix;
+    var numberText;
+    var nextNumberText;
+
+    if (!match) {
+      return '';
+    }
+
+    prefix = match[1];
+    numberText = match[2];
+    nextNumberText = String(Number(numberText) + 1).padStart(numberText.length, '0');
+
+    return prefix + nextNumberText;
+  }
+
+  function productIdExists(productId) {
+    var target = String(productId || '').trim().toLowerCase();
+
+    if (!target) {
+      return false;
+    }
+
+    return products.some(function (product) {
+      return String(product.product_id || '').trim().toLowerCase() === target;
+    });
+  }
+
+  function findLatestProductId() {
+    if (lastAddedProductId) {
+      return lastAddedProductId;
+    }
+
+    if (!products.length) {
+      return '';
+    }
+
+    return products[products.length - 1].product_id || '';
+  }
+
+  function getSuggestedProductId() {
+    var nextId = createNextProductId(findLatestProductId()) || 'P001';
+    var guard = 0;
+
+    while (nextId && productIdExists(nextId) && guard < 1000) {
+      nextId = createNextProductId(nextId);
+      guard += 1;
+    }
+
+    return nextId;
+  }
+
   function setCellLabel(cell, label) {
     cell.setAttribute('data-label', label);
     return cell;
@@ -405,7 +496,7 @@
     return button;
   }
 
-  function renderProducts() {
+  function renderProductsLegacy_() {
     var tableBody = byId('productsTable');
 
     if (!tableBody) {
@@ -430,10 +521,12 @@
 
       row.appendChild(createImageCell(product.image_src || product.image_url, product.product_name, 'ပုံ'));
       row.appendChild(createCell(product.product_id || '-', 'ကုန်ပစ္စည်း ID'));
+      row.appendChild(createCell(product.barcode || '-', 'Barcode'));
       row.appendChild(createCell(product.product_name, 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(createCell(product.category, 'အမျိုးအစား'));
       row.appendChild(createVariantCell(product.color, 'အရောင်'));
       row.appendChild(createVariantCell(product.size, 'အရွယ်အစား'));
+      row.appendChild(createCell(product.expiry_date || '-', 'သက်တမ်းကုန်ရက်'));
 
       stockCell = createCell(formatNumber(product.quantity), 'အရေအတွက်');
       if (lowStock) {
@@ -469,6 +562,73 @@
     });
   }
 
+  function renderProducts() {
+    var tableBody = byId('productsTable');
+
+    if (!tableBody) {
+      return;
+    }
+
+    clearElement(tableBody);
+    setText('productsCount', filteredProducts.length + ' ' + t('itemUnit', 'ခု'));
+
+    if (!filteredProducts.length) {
+      tableBody.appendChild(createEmptyRow(t('noData', 'ဒေတာမရှိပါ')));
+      return;
+    }
+
+    filteredProducts.forEach(function (product) {
+      var row = document.createElement('tr');
+      var lowStock = isLowStock(product);
+      var stockCell;
+      var alertCell;
+      var actionsCell;
+      var actions;
+
+      row.className = lowStock ? 'is-low-stock-row' : '';
+      row.appendChild(createImageCell(product.image_src || product.image_url, product.product_name, 'Image'));
+      row.appendChild(createCell(product.product_id || '-', t('productId', 'ကုန်ပစ္စည်း ID')));
+      row.appendChild(createCell(product.barcode || '-', t('barcode', 'Barcode')));
+      row.appendChild(createCell(product.product_name, t('productName', 'ကုန်ပစ္စည်းအမည်')));
+      row.appendChild(createCell(product.category, t('category', 'အမျိုးအစား')));
+      row.appendChild(createVariantCell(product.color, t('color', 'အရောင်')));
+      row.appendChild(createVariantCell(product.size, t('size', 'အရွယ်အစား')));
+      row.appendChild(createCell(product.expiry_date || '-', t('expiryDate', 'သက်တမ်းကုန်ရက်')));
+
+      stockCell = createCell(formatNumber(product.quantity), t('quantity', 'အရေအတွက်'));
+      if (lowStock) {
+        stockCell.classList.add('is-danger');
+      }
+      row.appendChild(stockCell);
+
+      row.appendChild(createCell(formatNumber(product.buy_price), t('buyPrice', 'ဝယ်ဈေး')));
+      row.appendChild(createCell(formatNumber(product.sell_price), t('sellPrice', 'ရောင်းဈေး')));
+
+      alertCell = document.createElement('td');
+      alertCell.setAttribute('data-label', t('lowStock', 'လက်ကျန်နည်းနေပါသည်'));
+      alertCell.textContent = lowStock ? t('lowStock', 'လက်ကျန်နည်းနေပါသည်') : formatNumber(product.low_stock_alert);
+      if (lowStock) {
+        alertCell.classList.add('is-danger');
+      }
+      row.appendChild(alertCell);
+
+      actionsCell = document.createElement('td');
+      actionsCell.setAttribute('data-label', t('action', 'လုပ်ဆောင်ချက်'));
+      actions = document.createElement('div');
+      actions.className = 'table-actions';
+      actions.appendChild(createActionButton(t('edit', 'ပြင်ရန်'), 'small-button', function () {
+        openProductDialog(product);
+      }));
+      actions.appendChild(createActionButton(t('delete', 'ဖျက်ရန်'), 'small-button danger-button', function () {
+        deleteProduct(product);
+      }));
+      actionsCell.appendChild(actions);
+      row.appendChild(actionsCell);
+
+      tableBody.appendChild(row);
+    });
+  }
+
   function applySearch() {
     var searchInput = byId('productSearch');
     var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -486,6 +646,8 @@
         product.category,
         variantSearchText(product.color),
         variantSearchText(product.size),
+        product.barcode,
+        product.expiry_date,
         product.image_name
       ].join(' ').toLowerCase().indexOf(query) !== -1;
     });
@@ -578,7 +740,7 @@
         }
 
         if (!options.silent) {
-          window.alert(error && error.message ? error.message : 'ကုန်ပစ္စည်းများ မယူနိုင်ပါ။');
+          setText('productsCount', filteredProducts.length + ' ခု | ယာယီဒေတာဖြင့် ပြထားပါသည်');
         }
       });
   }
@@ -625,13 +787,15 @@
     editingProductId = product ? product.product_id || '' : '';
     setText('productFormTitle', product ? 'ကုန်ပစ္စည်းပြင်ရန်' : 'ကုန်ပစ္စည်းထည့်ရန်');
 
-    productIdInput.value = product ? product.product_id || '' : '';
+    productIdInput.value = product ? product.product_id || '' : getSuggestedProductId();
     productIdInput.readOnly = Boolean(product);
     productIdInput.placeholder = product ? '' : 'မထည့်ပါက အလိုအလျောက်ထည့်မည်';
 
+    byId('productBarcode').value = product ? product.barcode || '' : '';
     byId('productName').value = product ? product.product_name || '' : '';
     byId('productImageFile').value = '';
     byId('productCategory').value = product ? product.category || '' : '';
+    byId('productExpiryDate').value = product ? String(product.expiry_date || '').substring(0, 10) : '';
     setVariantOptions('color', product ? product.color || '' : '');
     setVariantOptions('size', product ? product.size || '' : '');
     byId('productQuantity').value = product ? product.quantity || 0 : '';
@@ -651,8 +815,10 @@
   function collectProductForm() {
     return {
       product_id: byId('productId').value.trim(),
+      barcode: byId('productBarcode').value.trim(),
       product_name: byId('productName').value.trim(),
       category: byId('productCategory').value.trim(),
+      expiry_date: byId('productExpiryDate').value,
       color: serializeVariantOptions(variantOptionState.color),
       size: serializeVariantOptions(variantOptionState.size),
       quantity: toNumber(byId('productQuantity').value),
@@ -765,6 +931,9 @@
         clearSearch();
 
         if (data && data.product) {
+          if (!editingProductId) {
+            lastAddedProductId = data.product.product_id || lastAddedProductId;
+          }
           upsertProduct(data.product);
         }
 
@@ -858,6 +1027,8 @@
         }
       });
     }
+
+    window.addEventListener('mmc:languagechange', renderProducts);
 
     bindDialogCloseButtons();
   }
