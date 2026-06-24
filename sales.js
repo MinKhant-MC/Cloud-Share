@@ -6,12 +6,17 @@
   var products = [];
   var sales = [];
   var selectedProduct = null;
+  var saleCart = [];
   var currentVoucherSale = null;
+  var barcodeScannerStream = null;
+  var barcodeScannerTimer = null;
+  var barcodeDetector = null;
+  var OFFLINE_SALES_KEY = 'mmc_offline_sales_queue';
   var shopSettings = {
     shop_name: '',
     currency: 'MMK'
   };
-  var SALES_COLUMN_COUNT = 11;
+  var SALES_COLUMN_COUNT = 12;
 
   function byId(id) {
     return document.getElementById(id);
@@ -60,6 +65,32 @@
     return quantity >= 0 ? quantity : 0;
   }
 
+  function parseVariantTextOption(value) {
+    var text = cleanOptionName(value);
+    var match;
+
+    if (!text) {
+      return {
+        name: '',
+        quantity: 0
+      };
+    }
+
+    match = text.match(/^(.+?)\s*(?:-|:|=|x|X)\s*(\d+(?:\.\d+)?)\s*(?:ခု|pcs?|items?)?\s*$/i);
+
+    if (!match) {
+      return {
+        name: text,
+        quantity: 0
+      };
+    }
+
+    return {
+      name: cleanOptionName(match[1]),
+      quantity: toVariantQuantity(match[2])
+    };
+  }
+
   function normalizeVariantOptions(options) {
     var normalized = [];
 
@@ -68,8 +99,10 @@
     }
 
     options.forEach(function (option) {
-      var name = typeof option === 'string' ? option : option && option.name;
+      var legacyOption = typeof option === 'string' ? parseVariantTextOption(option) : null;
+      var name = legacyOption ? legacyOption.name : option && option.name;
       var cleanName = cleanOptionName(name);
+      var quantity = legacyOption ? legacyOption.quantity : toVariantQuantity(option && option.quantity);
 
       if (!cleanName) {
         return;
@@ -78,7 +111,7 @@
       normalized.push({
         name: cleanName,
         active: !(option && option.active === false),
-        quantity: toVariantQuantity(option && option.quantity)
+        quantity: quantity
       });
     });
 
@@ -109,6 +142,11 @@
     }
 
     return normalizeVariantOptions(text.split(/[\n,]+/));
+  }
+
+  function serializeVariantOptions(options) {
+    var normalized = normalizeVariantOptions(options);
+    return normalized.length ? JSON.stringify(normalized) : '';
   }
 
   function getActiveVariantOptions(value) {
@@ -219,6 +257,11 @@
     return 'ဆိုင်အမည်';
   }
 
+  function getSaleCustomerName() {
+    var input = byId('saleCustomerName');
+    return cleanOptionName(input ? input.value : '');
+  }
+
   function applyShopSettings(settings) {
     settings = settings || {};
     shopSettings.shop_name = cleanOptionName(settings.shop_name) || shopSettings.shop_name;
@@ -239,32 +282,127 @@
     return toNumber(sale && sale.sell_price) * toNumber(sale && sale.sold_quantity);
   }
 
-  function getVoucherFileName(sale) {
-    var saleId = cleanOptionName(sale && sale.sale_id) || 'sale';
-    var saleDate = cleanOptionName(sale && sale.sale_date) || todayString();
+  function getSaleTotalCost(sale) {
+    var totalCost = toNumber(sale && sale.total_cost);
+
+    if (totalCost > 0) {
+      return totalCost;
+    }
+
+    return toNumber(sale && sale.buy_price) * toNumber(sale && sale.sold_quantity);
+  }
+
+  function getSaleProfit(sale) {
+    var profit = toNumber(sale && sale.profit);
+
+    if (profit !== 0) {
+      return profit;
+    }
+
+    return getSaleTotalIncome(sale) - getSaleTotalCost(sale);
+  }
+
+  function createVoucherGroup(items, voucherId, customerName) {
+    var list = Array.isArray(items) ? items.filter(Boolean) : [];
+    var firstSale = list[0] || {};
+    var voucherCustomerName = cleanOptionName(customerName) || cleanOptionName(firstSale.customer_name);
+
+    if (!voucherCustomerName) {
+      list.some(function (sale) {
+        voucherCustomerName = cleanOptionName(sale.customer_name);
+        return Boolean(voucherCustomerName);
+      });
+    }
+
+    return {
+      voucher_id: voucherId || cleanOptionName(firstSale.voucher_id) || cleanOptionName(firstSale.sale_id) || ('V-' + Date.now()),
+      sale_date: cleanOptionName(firstSale.sale_date) || todayString(),
+      customer_name: voucherCustomerName,
+      created_at: new Date().toISOString(),
+      items: list
+    };
+  }
+
+  function normalizeVoucher(value) {
+    if (Array.isArray(value)) {
+      return createVoucherGroup(value);
+    }
+
+    if (value && Array.isArray(value.items)) {
+      return createVoucherGroup(value.items, value.voucher_id, value.customer_name);
+    }
+
+    return createVoucherGroup(value ? [value] : []);
+  }
+
+  function getVoucherTotals(voucherInput) {
+    var voucher = normalizeVoucher(voucherInput);
+    var totals = {
+      quantity: 0,
+      total_cost: 0,
+      total_income: 0,
+      profit: 0
+    };
+
+    voucher.items.forEach(function (sale) {
+      totals.quantity += toNumber(sale.sold_quantity);
+      totals.total_cost += getSaleTotalCost(sale);
+      totals.total_income += getSaleTotalIncome(sale);
+      totals.profit += getSaleProfit(sale);
+    });
+
+    return totals;
+  }
+
+  function getVoucherFileName(voucherInput) {
+    var voucher = normalizeVoucher(voucherInput);
+    var saleId = cleanOptionName(voucher.voucher_id) || 'sale';
+    var saleDate = cleanOptionName(voucher.sale_date) || todayString();
 
     return ('voucher-' + saleDate + '-' + saleId)
       .replace(/[\\/:*?"<>|]+/g, '-')
       .replace(/\s+/g, '-');
   }
 
-  function buildVoucherMarkup(sale) {
-    var productImageUrl = getProductImageUrl(sale.product_id);
+  function getSaleVariantText(sale) {
     var variantParts = [];
-    var totalIncome = getSaleTotalIncome(sale);
-    var imageMarkup = '<div class="voucher-image-placeholder">-</div>';
 
     if (sale.sale_color) {
-      variantParts.push('အရောင် - ' + sale.sale_color);
+      variantParts.push('အရောင်: ' + sale.sale_color);
     }
 
     if (sale.sale_size) {
-      variantParts.push('အရွယ်အစား - ' + sale.sale_size);
+      variantParts.push('အရွယ်အစား: ' + sale.sale_size);
     }
 
-    if (productImageUrl) {
-      imageMarkup = '<img src="' + escapeHtml(productImageUrl) + '" alt="' + escapeHtml(sale.product_name || 'ကုန်ပစ္စည်းပုံ') + '">';
-    }
+    return variantParts.length ? variantParts.join(' | ') : 'အရောင် / အရွယ်အစား မရှိပါ';
+  }
+
+  function buildVoucherRows(items) {
+    return items.map(function (sale, index) {
+      return [
+        '<tr>',
+        '<td>',
+        '<div class="voucher-item-cell">',
+        '<div>',
+        '<strong>' + escapeHtml(sale.product_name || '-') + '</strong>',
+        '<span>' + escapeHtml(sale.product_id || '-') + '</span>',
+        '<small>' + escapeHtml(getSaleVariantText(sale)) + '</small>',
+        '</div>',
+        '</div>',
+        '</td>',
+        '<td>' + escapeHtml(formatNumber(sale.sold_quantity)) + '</td>',
+        '<td>' + escapeHtml(formatMoney(sale.sell_price)) + '</td>',
+        '<td>' + escapeHtml(formatMoney(getSaleTotalIncome(sale))) + '</td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+  }
+
+  function buildVoucherMarkup(voucherInput) {
+    var voucher = normalizeVoucher(voucherInput);
+    var totals = getVoucherTotals(voucher);
+    var firstSale = voucher.items[0] || {};
 
     return [
       '<div class="voucher-brand">',
@@ -272,51 +410,51 @@
       '<span>ရောင်းချမှုဘောင်ချာ</span>',
       '</div>',
       '<div class="voucher-meta-grid">',
-      '<div><span>ဘောင်ချာနံပါတ်</span><strong>' + escapeHtml(sale.sale_id || '-') + '</strong></div>',
-      '<div><span>ရက်စွဲ</span><strong>' + escapeHtml(sale.sale_date || '-') + '</strong></div>',
-      '</div>',
-      '<div class="voucher-product">',
-      '<div class="voucher-product-image">' + imageMarkup + '</div>',
-      '<div>',
-      '<span>ကုန်ပစ္စည်း</span>',
-      '<strong>' + escapeHtml(sale.product_name || '-') + '</strong>',
-      '<small>' + escapeHtml(variantParts.length ? variantParts.join(' | ') : 'အရောင် / အရွယ်အစား မရှိပါ') + '</small>',
-      '</div>',
+      '<div><span>ဘောင်ချာနံပါတ်</span><strong>' + escapeHtml(voucher.voucher_id || '-') + '</strong></div>',
+      '<div><span>ရက်စွဲ</span><strong>' + escapeHtml(voucher.sale_date || firstSale.sale_date || '-') + '</strong></div>',
+      voucher.customer_name ? '<div><span>ဖောက်သည်</span><strong>' + escapeHtml(voucher.customer_name) + '</strong></div>' : '',
+      '<div><span>ပစ္စည်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(voucher.items.length)) + '</strong></div>',
+      '<div><span>စုစုပေါင်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
       '</div>',
       '<table class="voucher-table">',
-      '<thead><tr><th>အကြောင်းအရာ</th><th>တန်ဖိုး</th></tr></thead>',
+      '<thead><tr><th>ပစ္စည်း</th><th>အရေအတွက်</th><th>ဈေး</th><th>စုစုပေါင်း</th></tr></thead>',
       '<tbody>',
-      '<tr><td>အရေအတွက်</td><td>' + escapeHtml(formatNumber(sale.sold_quantity)) + '</td></tr>',
-      '<tr><td>ရောင်းဈေး</td><td>' + escapeHtml(formatMoney(sale.sell_price)) + '</td></tr>',
-      '<tr><td>စုစုပေါင်း</td><td>' + escapeHtml(formatMoney(totalIncome)) + '</td></tr>',
+      buildVoucherRows(voucher.items),
       '</tbody>',
       '</table>',
-      '<div class="voucher-total"><span>ကျသင့်ငွေ</span><strong>' + escapeHtml(formatMoney(totalIncome)) + '</strong></div>',
+      '<div class="voucher-total-grid">',
+      '<div><span>စုစုပေါင်း</span><strong>' + escapeHtml(formatMoney(totals.total_income)) + '</strong></div>',
+      '<div><span>ပစ္စည်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
+      '</div>',
+      '<div class="voucher-total"><span>ကျသင့်ငွေ</span><strong>' + escapeHtml(formatMoney(totals.total_income)) + '</strong></div>',
       '<p class="voucher-thanks">ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။</p>'
     ].join('');
   }
 
-  function buildVoucherDocument(sale) {
+  function buildVoucherDocument(voucherInput) {
+    var voucher = normalizeVoucher(voucherInput);
+
     return [
       '<!DOCTYPE html>',
       '<html lang="my">',
       '<head>',
       '<meta charset="UTF-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
-      '<title>ဘောင်ချာ - ' + escapeHtml(sale.sale_id || '') + '</title>',
+      '<meta name="referrer" content="no-referrer">',
+      '<meta http-equiv="Content-Security-Policy" content="default-src ' + "'none'" + '; style-src ' + "'unsafe-inline'" + '; img-src data:; base-uri ' + "'none'" + '; form-action ' + "'none'" + '">',
+      '<title>ဘောင်ချာ - ' + escapeHtml(voucher.voucher_id || '') + '</title>',
       '<style>',
-      'body{margin:0;padding:18px;background:#f6f7f9;color:#17202a;font-family:"Myanmar Text","Noto Sans Myanmar",Arial,sans-serif;font-size:14px;line-height:1.5;}',
-      '.sale-voucher{width:min(100%,80mm);margin:0 auto;padding:18px;background:#fff;border:1px solid #d7dde5;border-radius:8px;}',
-      '.voucher-brand{text-align:center;margin-bottom:14px}.voucher-brand strong{display:block;font-size:20px}.voucher-brand span{color:#667085;font-weight:700}',
-      '.voucher-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.voucher-meta-grid div{padding:8px;border:1px solid #d7dde5;border-radius:6px}.voucher-meta-grid span,.voucher-product span{display:block;color:#667085;font-size:12px;font-weight:700}.voucher-meta-grid strong,.voucher-product strong{display:block;overflow-wrap:anywhere}',
-      '.voucher-product{display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:center;padding:8px;margin-bottom:12px;border:1px solid #d7dde5;border-radius:6px}.voucher-product-image{width:58px;height:58px;display:grid;place-items:center;overflow:hidden;border:1px solid #d7dde5;border-radius:6px;background:#f8fafc}.voucher-product-image img{width:100%;height:100%;object-fit:cover}.voucher-product small{display:block;color:#667085;font-weight:700}',
-      '.voucher-table{width:100%;border-collapse:collapse}.voucher-table th,.voucher-table td{padding:8px;border-bottom:1px solid #d7dde5;text-align:left}.voucher-table th{background:#eef3f8;font-size:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:18px;font-weight:800}.voucher-thanks{text-align:center;color:#667085;font-weight:700}',
+      'body{margin:0;padding:18px;background:#eef4f8;color:#111827;font-family:"Myanmar Text","Noto Sans Myanmar",Arial,sans-serif;font-size:13px;line-height:1.5;}',
+      '.sale-voucher{width:min(100%,86mm);margin:0 auto;padding:18px;background:#fff;border:1px solid #d7dde5;border-radius:8px;box-shadow:0 16px 40px rgba(15,23,42,.12)}',
+      '.voucher-brand{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1f6feb}.voucher-brand strong{display:block;font-size:22px;line-height:1.2}.voucher-brand span{color:#667085;font-weight:800}',
+      '.voucher-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.voucher-meta-grid div,.voucher-total-grid div{padding:8px;border:1px solid #d7dde5;border-radius:6px;background:#f8fafc}.voucher-meta-grid span,.voucher-total-grid span{display:block;color:#667085;font-size:11px;font-weight:800}.voucher-meta-grid strong,.voucher-total-grid strong{display:block;overflow-wrap:anywhere}',
+      '.voucher-table{width:100%;border-collapse:collapse;border:1px solid #d7dde5;border-radius:6px;overflow:hidden}.voucher-table th,.voucher-table td{padding:8px;border-bottom:1px solid #d7dde5;text-align:left;vertical-align:top}.voucher-table th{background:#eef3f8;font-size:11px;text-transform:uppercase}.voucher-table td:nth-child(2),.voucher-table td:nth-child(3),.voucher-table td:nth-child(4){text-align:right;font-weight:800}.voucher-item-cell{display:block}.voucher-item-cell strong,.voucher-item-cell span,.voucher-item-cell small{display:block;overflow-wrap:anywhere}.voucher-item-cell span,.voucher-item-cell small{color:#667085;font-size:11px;font-weight:700}.voucher-total-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding:12px;background:#111827;color:#fff;border-radius:8px;font-size:18px;font-weight:900}.voucher-thanks{text-align:center;color:#667085;font-weight:800}',
       '@media print{body{padding:0;background:#fff}.sale-voucher{width:80mm;border:0;border-radius:0}}',
       '</style>',
       '</head>',
       '<body>',
       '<main class="sale-voucher">',
-      buildVoucherMarkup(sale),
+      buildVoucherMarkup(voucher),
       '</main>',
       '</body>',
       '</html>'
@@ -410,13 +548,20 @@
     return input ? input.value.trim().toLowerCase() : '';
   }
 
+  function getSaleBarcodeSearchQuery() {
+    var input = byId('saleBarcodeSearch');
+    return input ? input.value.trim().toLowerCase() : '';
+  }
+
   function getProductSearchText(product) {
     return [
       product.product_id,
+      product.barcode,
       product.product_name,
       product.category,
       variantSearchText(product.color),
       variantSearchText(product.size),
+      product.expiry_date,
       product.image_name
     ].join(' ').toLowerCase();
   }
@@ -431,6 +576,32 @@
     return products.filter(function (product) {
       return getProductSearchText(product).indexOf(query) !== -1;
     });
+  }
+
+  function findProductByBarcode(code) {
+    var target = cleanOptionName(code).toLowerCase();
+
+    if (!target) {
+      return null;
+    }
+
+    return products.find(function (product) {
+      return cleanOptionName(product.barcode).toLowerCase() === target ||
+        cleanOptionName(product.product_id).toLowerCase() === target;
+    }) || null;
+  }
+
+  function selectProduct(product) {
+    var productSelect = byId('saleProduct');
+
+    if (!product || !productSelect) {
+      return false;
+    }
+
+    renderProductOptions();
+    productSelect.value = product.product_id;
+    handleProductChange();
+    return true;
   }
 
   function getVoucherDialog() {
@@ -546,6 +717,275 @@
     return setCellLabel(cell, 'ဘောင်ချာ');
   }
 
+  function getCartItemKey(item) {
+    return [
+      cleanOptionName(item.product_id).toLowerCase(),
+      cleanOptionName(item.sale_color).toLowerCase(),
+      cleanOptionName(item.sale_size).toLowerCase()
+    ].join('::');
+  }
+
+  function getCartReservedQuantity(productId, saleColor, saleSize, mode) {
+    var productKey = cleanOptionName(productId).toLowerCase();
+    var colorKey = cleanOptionName(saleColor).toLowerCase();
+    var sizeKey = cleanOptionName(saleSize).toLowerCase();
+
+    return saleCart.reduce(function (sum, item) {
+      if (cleanOptionName(item.product_id).toLowerCase() !== productKey) {
+        return sum;
+      }
+
+      if (mode === 'color' && cleanOptionName(item.sale_color).toLowerCase() !== colorKey) {
+        return sum;
+      }
+
+      if (mode === 'size' && cleanOptionName(item.sale_size).toLowerCase() !== sizeKey) {
+        return sum;
+      }
+
+      if (mode === 'exact' &&
+          (cleanOptionName(item.sale_color).toLowerCase() !== colorKey ||
+          cleanOptionName(item.sale_size).toLowerCase() !== sizeKey)) {
+        return sum;
+      }
+
+      return sum + toNumber(item.sold_quantity);
+    }, 0);
+  }
+
+  function getCartTotals() {
+    return saleCart.reduce(function (totals, item) {
+      totals.quantity += toNumber(item.sold_quantity);
+      totals.total_cost += getSaleTotalCost(item);
+      totals.total_income += getSaleTotalIncome(item);
+      totals.profit += getSaleProfit(item);
+      return totals;
+    }, {
+      quantity: 0,
+      total_cost: 0,
+      total_income: 0,
+      profit: 0
+    });
+  }
+
+  function renderSaleCart() {
+    var container = byId('saleCartItems');
+    var totals = getCartTotals();
+
+    setText('saleCartSummary', saleCart.length + ' ခု | အရေအတွက် ' + formatNumber(totals.quantity));
+    setText('saleCartTotal', formatMoney(totals.total_income));
+    setText('saleCartProfit', formatMoney(totals.profit));
+
+    if (!container) {
+      return;
+    }
+
+    clearElement(container);
+
+    if (!saleCart.length) {
+      var empty = document.createElement('p');
+      empty.className = 'sale-cart-empty';
+      empty.textContent = 'ပစ္စည်းများ ထည့်မထားသေးပါ။';
+      container.appendChild(empty);
+      return;
+    }
+
+    saleCart.forEach(function (item) {
+      var row = document.createElement('article');
+      var imageBox = document.createElement('div');
+      var details = document.createElement('div');
+      var name = document.createElement('strong');
+      var meta = document.createElement('span');
+      var quantity = document.createElement('span');
+      var total = document.createElement('strong');
+      var removeButton = document.createElement('button');
+      var image;
+      var placeholder;
+
+      row.className = 'sale-cart-item';
+      imageBox.className = 'sale-cart-image';
+
+      if (item.product_image) {
+        image = document.createElement('img');
+        image.src = item.product_image;
+        image.alt = item.product_name || 'ကုန်ပစ္စည်းပုံ';
+        image.loading = 'lazy';
+        image.referrerPolicy = 'no-referrer';
+        image.onerror = function () {
+          clearElement(imageBox);
+          placeholder = document.createElement('span');
+          placeholder.textContent = '-';
+          imageBox.appendChild(placeholder);
+        };
+        imageBox.appendChild(image);
+      } else {
+        placeholder = document.createElement('span');
+        placeholder.textContent = '-';
+        imageBox.appendChild(placeholder);
+      }
+
+      details.className = 'sale-cart-details';
+      name.textContent = item.product_name || '-';
+      meta.textContent = [
+        item.customer_name ? 'ဖောက်သည်: ' + item.customer_name : '',
+        item.product_id || '-',
+        getSaleVariantText(item)
+      ].filter(Boolean).join(' | ');
+      details.appendChild(name);
+      details.appendChild(meta);
+
+      quantity.className = 'sale-cart-quantity';
+      quantity.textContent = 'x ' + formatNumber(item.sold_quantity);
+
+      total.className = 'sale-cart-line-total';
+      total.textContent = formatMoney(getSaleTotalIncome(item));
+
+      removeButton.className = 'icon-button sale-cart-remove';
+      removeButton.type = 'button';
+      removeButton.textContent = '×';
+      removeButton.setAttribute('aria-label', 'ဖယ်ရန်');
+      removeButton.addEventListener('click', function () {
+        removeSaleCartItem(item.cart_id);
+      });
+
+      row.appendChild(imageBox);
+      row.appendChild(details);
+      row.appendChild(quantity);
+      row.appendChild(total);
+      row.appendChild(removeButton);
+      container.appendChild(row);
+    });
+  }
+
+  function buildCurrentSaleItem() {
+    var soldQuantity;
+    var colorOptions;
+    var sizeOptions;
+    var selectedColor;
+    var selectedSize;
+    var availableQuantity;
+    var buyPrice;
+    var sellPrice;
+    var totalCost;
+    var totalIncome;
+
+    if (!selectedProduct) {
+      throw new Error('ကုန်ပစ္စည်း ရွေးချယ်ပါ။');
+    }
+
+    soldQuantity = toNumber(byId('soldQuantity').value);
+    colorOptions = getActiveVariantOptions(selectedProduct.color);
+    sizeOptions = getActiveVariantOptions(selectedProduct.size);
+    selectedColor = getSelectedVariant('color');
+    selectedSize = getSelectedVariant('size');
+    availableQuantity = getAvailableSaleQuantity();
+
+    if (soldQuantity <= 0) {
+      throw new Error('အရေအတွက် မှန်ကန်စွာ ထည့်ပါ။');
+    }
+
+    if (colorOptions.length && !selectedColor) {
+      throw new Error('အရောင် ရွေးချယ်ပါ။');
+    }
+
+    if (sizeOptions.length && !selectedSize) {
+      throw new Error('အရွယ်အစား ရွေးချယ်ပါ။');
+    }
+
+    if (soldQuantity > availableQuantity) {
+      throw new Error('လက်ကျန်အရေအတွက်ထက် ပိုမရောင်းနိုင်ပါ။');
+    }
+
+    buyPrice = toNumber(selectedProduct.buy_price);
+    sellPrice = toNumber(selectedProduct.sell_price);
+    totalCost = buyPrice * soldQuantity;
+    totalIncome = sellPrice * soldQuantity;
+
+    return {
+      cart_id: 'C-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
+      product_id: selectedProduct.product_id,
+      product_name: selectedProduct.product_name,
+      product_image: selectedProduct.image_src || selectedProduct.image_url || '',
+      sold_quantity: soldQuantity,
+      buy_price: buyPrice,
+      sell_price: sellPrice,
+      total_cost: totalCost,
+      total_income: totalIncome,
+      profit: totalIncome - totalCost,
+      sale_color: selectedColor ? selectedColor.name : '',
+      sale_size: selectedSize ? selectedSize.name : '',
+      customer_name: getSaleCustomerName()
+    };
+  }
+
+  function addCurrentItemToCart() {
+    var item;
+    var existing;
+
+    try {
+      item = buildCurrentSaleItem();
+    } catch (error) {
+      setMessage(error.message || 'ပစ္စည်း ထည့်မရပါ။', 'is-danger');
+      return;
+    }
+
+    existing = saleCart.find(function (cartItem) {
+      return getCartItemKey(cartItem) === getCartItemKey(item);
+    });
+
+    if (existing) {
+      existing.sold_quantity += item.sold_quantity;
+      existing.total_cost = existing.buy_price * existing.sold_quantity;
+      existing.total_income = existing.sell_price * existing.sold_quantity;
+      existing.profit = existing.total_income - existing.total_cost;
+    } else {
+      saleCart.push(item);
+    }
+
+    renderSaleCart();
+    renderVariantSelect('color');
+    renderVariantSelect('size');
+    calculateSale();
+    clearSaleFormAfterSubmit(item.product_id);
+    setMessage('ဘောင်ချာထဲ ထည့်ပြီးပါပြီ။', 'is-success');
+  }
+
+  function removeSaleCartItem(cartId) {
+    saleCart = saleCart.filter(function (item) {
+      return item.cart_id !== cartId;
+    });
+
+    renderSaleCart();
+    renderVariantSelect('color');
+    renderVariantSelect('size');
+    calculateSale();
+  }
+
+  function clearSaleCart() {
+    saleCart = [];
+    renderSaleCart();
+    renderVariantSelect('color');
+    renderVariantSelect('size');
+    calculateSale();
+    setMessage('');
+  }
+
+  function handleCustomerNameInput() {
+    var customerName;
+
+    if (!saleCart.length) {
+      return;
+    }
+
+    customerName = getSaleCustomerName();
+    saleCart = saleCart.map(function (item) {
+      return Object.assign({}, item, {
+        customer_name: customerName
+      });
+    });
+    renderSaleCart();
+  }
+
   function renderProductOptions() {
     var select = byId('saleProduct');
     var currentValue = select ? select.value : '';
@@ -577,9 +1017,10 @@
       var option = document.createElement('option');
       var quantity = toNumber(product.quantity);
       var productLabel = [product.product_id, product.product_name].filter(Boolean).join(' - ');
+      var barcodeLabel = product.barcode ? ' | Barcode ' + product.barcode : '';
 
       option.value = product.product_id;
-      option.textContent = productLabel + ' - လက်ကျန် ' + formatNumber(quantity);
+      option.textContent = productLabel + barcodeLabel + ' - လက်ကျန် ' + formatNumber(quantity);
       option.disabled = quantity <= 0;
       select.appendChild(option);
     });
@@ -599,6 +1040,151 @@
     if (select && !select.value) {
       handleProductChange();
     }
+  }
+
+  function handleBarcodeSearchInput(shouldSelectPartial) {
+    var input = byId('saleBarcodeSearch');
+    var query = getSaleBarcodeSearchQuery();
+    var exactProduct;
+    var visibleProducts;
+
+    if (!query) {
+      return;
+    }
+
+    exactProduct = findProductByBarcode(query);
+    if (exactProduct) {
+      selectProduct(exactProduct);
+      setMessage('Barcode ဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
+      return;
+    }
+
+    if (shouldSelectPartial) {
+      if (byId('saleProductSearch')) {
+        byId('saleProductSearch').value = input ? input.value.trim() : '';
+      }
+
+      renderProductOptions();
+      visibleProducts = getFilteredSaleProducts();
+
+      if (visibleProducts.length === 1) {
+        selectProduct(visibleProducts[0]);
+        setMessage('Barcode ရှာဖွေမှုဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
+        return;
+      }
+
+      setMessage('Barcode နှင့်ကိုက်ညီသော ကုန်ပစ္စည်း မတွေ့ပါ။', 'is-danger');
+    }
+  }
+
+  function stopBarcodeScanner() {
+    var video = byId('barcodeScannerVideo');
+    var startButton = byId('startBarcodeScanButton');
+    var stopButton = byId('stopBarcodeScanButton');
+
+    if (barcodeScannerTimer) {
+      window.clearInterval(barcodeScannerTimer);
+      barcodeScannerTimer = null;
+    }
+
+    if (barcodeScannerStream) {
+      barcodeScannerStream.getTracks().forEach(function (track) {
+        track.stop();
+      });
+      barcodeScannerStream = null;
+    }
+
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+      video.hidden = true;
+    }
+
+    if (startButton) {
+      startButton.hidden = false;
+    }
+
+    if (stopButton) {
+      stopButton.hidden = true;
+    }
+  }
+
+  function handleDetectedBarcode(code) {
+    var input = byId('saleBarcodeSearch');
+
+    if (input) {
+      input.value = code;
+    }
+
+    handleBarcodeSearchInput(true);
+    stopBarcodeScanner();
+  }
+
+  function scanBarcodeFrame(video) {
+    if (!barcodeDetector || !video || video.hidden) {
+      return;
+    }
+
+    barcodeDetector.detect(video)
+      .then(function (codes) {
+        if (codes && codes.length && codes[0].rawValue) {
+          handleDetectedBarcode(codes[0].rawValue);
+        }
+      })
+      .catch(function () {
+        stopBarcodeScanner();
+        setMessage('Camera barcode scan မအောင်မြင်ပါ။', 'is-danger');
+      });
+  }
+
+  function startBarcodeScanner() {
+    var video = byId('barcodeScannerVideo');
+    var startButton = byId('startBarcodeScanButton');
+    var stopButton = byId('stopBarcodeScanButton');
+
+    if (!video) {
+      return;
+    }
+
+    if (!('BarcodeDetector' in window) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setMessage('ဤ browser တွင် Camera Barcode Scan မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။', 'is-warning');
+      return;
+    }
+
+    barcodeDetector = barcodeDetector || new window.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code']
+    });
+
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment'
+      },
+      audio: false
+    })
+      .then(function (stream) {
+        barcodeScannerStream = stream;
+        video.srcObject = stream;
+        video.hidden = false;
+
+        if (startButton) {
+          startButton.hidden = true;
+        }
+
+        if (stopButton) {
+          stopButton.hidden = false;
+        }
+
+        return video.play();
+      })
+      .then(function () {
+        barcodeScannerTimer = window.setInterval(function () {
+          scanBarcodeFrame(video);
+        }, 450);
+      })
+      .catch(function () {
+        stopBarcodeScanner();
+        setMessage('Camera ဖွင့်ခွင့် မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။', 'is-danger');
+      });
   }
 
   function renderSelectedProduct() {
@@ -621,8 +1207,10 @@
     setText('saleProductName', selectedProduct.product_name || 'ကုန်ပစ္စည်းအမည်');
     meta = [
       'ID ' + (selectedProduct.product_id || '-'),
+      selectedProduct.barcode ? 'Barcode ' + selectedProduct.barcode : '',
       'လက်ကျန် ' + formatNumber(selectedProduct.quantity),
       'ရောင်းဈေး ' + formatNumber(selectedProduct.sell_price),
+      selectedProduct.expiry_date ? 'သက်တမ်းကုန် ' + selectedProduct.expiry_date : '',
       formatActiveVariants('အရောင်', selectedProduct.color),
       formatActiveVariants('အရွယ်အစား', selectedProduct.size)
     ].filter(Boolean).join(' | ');
@@ -711,25 +1299,32 @@
   }
 
   function getAvailableSaleQuantity() {
-    var available = selectedProduct ? toNumber(selectedProduct.quantity) : 0;
+    var productId = selectedProduct ? selectedProduct.product_id : '';
+    var available = selectedProduct ? toNumber(selectedProduct.quantity) - getCartReservedQuantity(productId, '', '', 'product') : 0;
     var colorOptions = selectedProduct ? getActiveVariantOptions(selectedProduct.color) : [];
     var sizeOptions = selectedProduct ? getActiveVariantOptions(selectedProduct.size) : [];
     var selectedColor = getSelectedVariant('color');
     var selectedSize = getSelectedVariant('size');
 
     if (colorOptions.length && selectedColor) {
-      available = Math.min(available, toNumber(selectedColor.quantity));
+      available = Math.min(
+        available,
+        toNumber(selectedColor.quantity) - getCartReservedQuantity(productId, selectedColor.name, '', 'color')
+      );
     }
 
     if (sizeOptions.length && selectedSize) {
-      available = Math.min(available, toNumber(selectedSize.quantity));
+      available = Math.min(
+        available,
+        toNumber(selectedSize.quantity) - getCartReservedQuantity(productId, '', selectedSize.name, 'size')
+      );
     }
 
     if ((colorOptions.length && !selectedColor) || (sizeOptions.length && !selectedSize)) {
       return 0;
     }
 
-    return available;
+    return Math.max(0, available);
   }
 
   function calculateSale() {
@@ -789,6 +1384,7 @@
       var row = document.createElement('tr');
 
       row.appendChild(createCell(sale.sale_date, 'ရက်စွဲ'));
+      row.appendChild(createCell(sale.customer_name || '-', 'ဖောက်သည်'));
       row.appendChild(createImageCell(getProductImageUrl(sale.product_id), sale.product_name, 'ပုံ'));
       row.appendChild(createCell(sale.product_name, 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(createCell(sale.sale_color || '-', 'အရောင်'));
@@ -855,7 +1451,7 @@
     tableBody.appendChild(isLoading ? createLoadingRow(message) : createEmptyRow(message));
   }
 
-  function loadProducts() {
+  function loadProductsLegacy_() {
     if (!api || typeof api.listProducts !== 'function') {
       renderCachedProducts();
       setMessage('API ချိတ်ဆက်မှု မရှိပါ။', 'is-danger');
@@ -882,7 +1478,43 @@
       });
   }
 
-  function loadSales() {
+  function loadProducts() {
+    if (!api || typeof api.listProducts !== 'function') {
+      renderCachedProducts();
+      if (!products.length) {
+        setMessage('API ချိတ်ဆက်မှု မရှိပါ။', 'is-danger');
+      }
+      return Promise.resolve();
+    }
+
+    renderCachedProducts();
+
+    return api.listProducts()
+      .then(function (data) {
+        var nextProducts = data && Array.isArray(data.products) ? data.products : [];
+
+        if (!nextProducts.length && products.length) {
+          return;
+        }
+
+        products = nextProducts;
+        setCachedProducts(products);
+        renderProductOptions();
+        handleProductChange();
+      })
+      .catch(function (error) {
+        if (products.length) {
+          renderProductOptions();
+          handleProductChange();
+          setMessage(error && error.message ? error.message : 'ယာယီဒေတာဖြင့် ပြထားပါသည်။', 'is-warning');
+          return;
+        }
+
+        setMessage(error && error.message ? error.message : 'ကုန်ပစ္စည်းများ မယူနိုင်ပါ။', 'is-danger');
+      });
+  }
+
+  function loadSalesLegacy_() {
     if (!api || typeof api.listSales !== 'function') {
       setSalesLoading('API ချိတ်ဆက်မှု မရှိပါ။', false);
       return Promise.resolve();
@@ -910,6 +1542,43 @@
       });
   }
 
+  function loadSales() {
+    if (!api || typeof api.listSales !== 'function') {
+      if (!renderCachedSales()) {
+        setSalesLoading('API ချိတ်ဆက်မှု မရှိပါ။', false);
+      }
+      return Promise.resolve();
+    }
+
+    if (!renderCachedSales()) {
+      setSalesLoading('ဒေတာယူနေပါသည်', true);
+    }
+
+    return api.listSales()
+      .then(function (data) {
+        var nextSales = data && Array.isArray(data.sales) ? data.sales : [];
+
+        if (!nextSales.length && sales.length) {
+          return;
+        }
+
+        sales = nextSales;
+        setCachedSales(sales);
+        renderSalesTable();
+        summarizeToday();
+      })
+      .catch(function (error) {
+        if (sales.length) {
+          renderSalesTable();
+          summarizeToday();
+          setMessage(error && error.message ? error.message : 'ယာယီဒေတာဖြင့် ပြထားပါသည်။', 'is-warning');
+          return;
+        }
+
+        setSalesLoading(error && error.message ? error.message : 'ရောင်းချမှုများ မယူနိုင်ပါ။', false);
+      });
+  }
+
   function setFormBusy(isBusy) {
     var form = byId('saleForm');
     var buttons = form ? form.querySelectorAll('button') : [];
@@ -919,11 +1588,266 @@
     });
   }
 
-  function clearSaleFormAfterSubmit(productId) {
+  function readOfflineSalesQueue() {
+    var raw;
+
+    try {
+      raw = localStorage.getItem(OFFLINE_SALES_KEY);
+    } catch (error) {
+      return [];
+    }
+
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(raw) || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeOfflineSalesQueue(queue) {
+    try {
+      localStorage.setItem(OFFLINE_SALES_KEY, JSON.stringify(Array.isArray(queue) ? queue : []));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function isOfflineError(error) {
+    var message = String(error && error.message ? error.message : '').toLowerCase();
+
+    return navigator.onLine === false ||
+      message.indexOf('fetch') !== -1 ||
+      message.indexOf('ချိတ်ဆက်') !== -1 ||
+      message.indexOf('offline') !== -1;
+  }
+
+  function adjustVariantQuantity(value, selectedName, soldQuantity) {
+    var options = parseVariantOptions(value);
+    var target = cleanOptionName(selectedName).toLowerCase();
+
+    if (!target) {
+      return value;
+    }
+
+    options.forEach(function (option) {
+      if (cleanOptionName(option.name).toLowerCase() === target) {
+        option.quantity = Math.max(0, toNumber(option.quantity) - soldQuantity);
+        option.active = option.quantity > 0;
+      }
+    });
+
+    return serializeVariantOptions(options);
+  }
+
+  function buildLocalSalePreview(sale, product) {
+    var soldQuantity = toNumber(sale.sold_quantity);
+    var buyPrice = toNumber(product.buy_price);
+    var sellPrice = toNumber(product.sell_price);
+    var totalCost = buyPrice * soldQuantity;
+    var totalIncome = sellPrice * soldQuantity;
+
+    return {
+      sale_id: 'OFFLINE-' + Date.now(),
+      product_id: product.product_id,
+      product_name: product.product_name,
+      sold_quantity: soldQuantity,
+      buy_price: buyPrice,
+      sell_price: sellPrice,
+      total_cost: totalCost,
+      total_income: totalIncome,
+      profit: totalIncome - totalCost,
+      sale_date: sale.sale_date,
+      created_at: new Date().toISOString(),
+      sale_color: sale.sale_color || '',
+      sale_size: sale.sale_size || '',
+      customer_name: sale.customer_name || '',
+      pending_sync: true
+    };
+  }
+
+  function applyOfflineStockDeduction(product, sale) {
+    var updated = Object.assign({}, product);
+    var soldQuantity = toNumber(sale.sold_quantity);
+
+    updated.quantity = Math.max(0, toNumber(updated.quantity) - soldQuantity);
+    updated.color = adjustVariantQuantity(updated.color, sale.sale_color, soldQuantity);
+    updated.size = adjustVariantQuantity(updated.size, sale.sale_size, soldQuantity);
+
+    updateProductFromSale(updated);
+  }
+
+  function queueOfflineSale(sale, product) {
+    var queue = readOfflineSalesQueue();
+    var preview = buildLocalSalePreview(sale, product);
+
+    queue.push({
+      sale: sale,
+      queued_at: new Date().toISOString()
+    });
+    writeOfflineSalesQueue(queue);
+
+    sales.unshift(preview);
+    setCachedSales(sales);
+    applyOfflineStockDeduction(product, sale);
+    renderSalesTable();
+    summarizeToday();
+    showSaleVoucher(preview);
+    setMessage('Internet မရှိသေးပါ။ ရောင်းချမှုကို သိမ်းထားပြီး Online ပြန်ရလျှင် Sync လုပ်ပါမည်။', 'is-warning');
+  }
+
+  function createSalePayloadFromItem(item) {
+    return {
+      product_id: item.product_id,
+      sold_quantity: toNumber(item.sold_quantity),
+      sale_date: byId('saleDate') && byId('saleDate').value ? byId('saleDate').value : todayString(),
+      sale_color: item.sale_color || '',
+      sale_size: item.sale_size || '',
+      customer_name: cleanOptionName(item.customer_name)
+    };
+  }
+
+  function applyCheckoutCustomerName(items) {
+    var customerName = getSaleCustomerName();
+
+    return items.map(function (item) {
+      return Object.assign({}, item, {
+        customer_name: customerName || cleanOptionName(item.customer_name)
+      });
+    });
+  }
+
+  function addSavedSalesToTable(savedSales) {
+    if (!savedSales || !savedSales.length) {
+      return;
+    }
+
+    sales = savedSales.slice().reverse().concat(sales);
+    setCachedSales(sales);
+    renderSalesTable();
+    summarizeToday();
+  }
+
+  function queueOfflineSaleItems(items) {
+    var queue = readOfflineSalesQueue();
+    var previews = [];
+
+    items.forEach(function (item) {
+      var sale = createSalePayloadFromItem(item);
+      var product = findProduct(item.product_id) || item;
+      var preview = buildLocalSalePreview(sale, product);
+
+      queue.push({
+        sale: sale,
+        queued_at: new Date().toISOString()
+      });
+
+      sales.unshift(preview);
+      previews.push(preview);
+
+      if (product) {
+        applyOfflineStockDeduction(product, sale);
+      }
+    });
+
+    writeOfflineSalesQueue(queue);
+    setCachedSales(sales);
+    renderSalesTable();
+    summarizeToday();
+
+    return previews;
+  }
+
+  function saveSaleItemsOnline(items) {
+    var savedSales = [];
+
+    function saveNext(index) {
+      if (index >= items.length) {
+        return Promise.resolve(savedSales);
+      }
+
+      return api.recordSale(createSalePayloadFromItem(items[index]))
+        .then(function (data) {
+          if (data && data.sale) {
+            savedSales.push(data.sale);
+          }
+
+          if (data && data.product) {
+            updateProductFromSale(data.product);
+          }
+
+          return saveNext(index + 1);
+        })
+        .catch(function (error) {
+          error.savedSales = savedSales.slice();
+          error.failedIndex = index;
+          throw error;
+        });
+    }
+
+    return saveNext(0);
+  }
+
+  function syncOfflineSalesQueue() {
+    var queue = readOfflineSalesQueue();
+    var item;
+
+    if (!queue.length || !api || typeof api.recordSale !== 'function' || navigator.onLine === false) {
+      return Promise.resolve();
+    }
+
+    item = queue[0];
+
+    return api.recordSale(item.sale, {
+      silentLoading: true
+    })
+      .then(function (data) {
+        queue.shift();
+        writeOfflineSalesQueue(queue);
+
+        if (data && data.sale) {
+          sales = sales.filter(function (sale) {
+            return !(sale.pending_sync &&
+              sale.product_id === data.sale.product_id &&
+              sale.sale_date === data.sale.sale_date);
+          });
+          sales.unshift(data.sale);
+          setCachedSales(sales);
+        }
+
+        if (data && data.product) {
+          updateProductFromSale(data.product);
+        }
+
+        renderSalesTable();
+        summarizeToday();
+
+        if (queue.length) {
+          return syncOfflineSalesQueue();
+        }
+
+        setMessage('Offline ရောင်းချမှုများ Sync ပြီးပါပြီ။', 'is-success');
+        return null;
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  function clearSaleFormAfterSubmit(productId, clearCustomer) {
     var quantityInput = byId('soldQuantity');
+    var customerInput = byId('saleCustomerName');
 
     if (quantityInput) {
       quantityInput.value = '';
+    }
+
+    if (clearCustomer && customerInput) {
+      customerInput.value = '';
     }
 
     if (productId && byId('saleProduct')) {
@@ -934,85 +1858,69 @@
   }
 
   function recordSale(event) {
-    var soldQuantity;
-    var saleDate;
-    var sale;
-    var colorOptions;
-    var sizeOptions;
-    var selectedColor;
-    var selectedSize;
-    var availableQuantity;
-    var savedSale = null;
+    var items;
+    var directItem;
 
     event.preventDefault();
     setMessage('');
 
-    if (!selectedProduct) {
-      setMessage('ကုန်ပစ္စည်း ရွေးချယ်ပါ။', 'is-danger');
-      return;
+    items = saleCart.slice();
+
+    if (!items.length) {
+      try {
+        directItem = buildCurrentSaleItem();
+        items = [directItem];
+      } catch (error) {
+        setMessage(error.message || 'ရောင်းချမှု မမှန်ပါ။', 'is-danger');
+        return;
+      }
     }
 
-    soldQuantity = toNumber(byId('soldQuantity').value);
-    colorOptions = getActiveVariantOptions(selectedProduct.color);
-    sizeOptions = getActiveVariantOptions(selectedProduct.size);
-    selectedColor = getSelectedVariant('color');
-    selectedSize = getSelectedVariant('size');
-    availableQuantity = getAvailableSaleQuantity();
-
-    if (soldQuantity <= 0) {
-      setMessage('အရေအတွက် မှန်ကန်စွာ ထည့်ပါ။', 'is-danger');
-      return;
-    }
-
-    if (colorOptions.length && !selectedColor) {
-      setMessage('အရောင် ရွေးချယ်ပါ။', 'is-danger');
-      return;
-    }
-
-    if (sizeOptions.length && !selectedSize) {
-      setMessage('အရွယ်အစား ရွေးချယ်ပါ။', 'is-danger');
-      return;
-    }
-
-    if (soldQuantity > availableQuantity) {
-      setMessage('လက်ကျန်အရေအတွက်ထက် ပိုမရောင်းနိုင်ပါ။', 'is-danger');
-      return;
-    }
-
-    saleDate = byId('saleDate').value || todayString();
-    sale = {
-      product_id: selectedProduct.product_id,
-      sold_quantity: soldQuantity,
-      sale_date: saleDate,
-      sale_color: selectedColor ? selectedColor.name : '',
-      sale_size: selectedSize ? selectedSize.name : ''
-    };
+    items = applyCheckoutCustomerName(items);
 
     setFormBusy(true);
-    setMessage('သိမ်းနေပါသည်', 'is-warning');
+    setMessage('ဘောင်ချာ သိမ်းနေပါသည်', 'is-warning');
 
-    api.recordSale(sale)
-      .then(function (data) {
-        if (data && data.sale) {
-          savedSale = data.sale;
-          sales.unshift(savedSale);
-          setCachedSales(sales);
-        }
+    saveSaleItemsOnline(items)
+      .then(function (savedSales) {
+        var voucher = createVoucherGroup(savedSales, 'V-' + Date.now());
 
-        if (data && data.product) {
-          updateProductFromSale(data.product);
-        }
-
-        renderSalesTable();
-        summarizeToday();
-        clearSaleFormAfterSubmit(selectedProduct ? selectedProduct.product_id : '');
-        setMessage('ရောင်းချမှုထည့်ပြီးပါပြီ။', 'is-success');
-
-        if (savedSale) {
-          showSaleVoucher(savedSale);
-        }
+        addSavedSalesToTable(savedSales);
+        saleCart = [];
+        renderSaleCart();
+        clearSaleFormAfterSubmit(selectedProduct ? selectedProduct.product_id : '', true);
+        setMessage('ဘောင်ချာ သိမ်းပြီးပါပြီ။', 'is-success');
+        showSaleVoucher(voucher);
       })
       .catch(function (error) {
+        var savedSales = error && error.savedSales ? error.savedSales : [];
+        var failedIndex = Number.isFinite(error && error.failedIndex) ? error.failedIndex : 0;
+        var remainingItems = items.slice(failedIndex);
+        var offlinePreviews;
+        var voucherItems;
+
+        if (savedSales.length) {
+          addSavedSalesToTable(savedSales);
+        }
+
+        if (isOfflineError(error)) {
+          offlinePreviews = queueOfflineSaleItems(remainingItems);
+          voucherItems = savedSales.concat(offlinePreviews);
+          saleCart = [];
+          renderSaleCart();
+          clearSaleFormAfterSubmit(selectedProduct ? selectedProduct.product_id : '', true);
+          setMessage('Internet မရှိသေးပါ။ ကျန်ရောင်းချမှုများကို Offline သိမ်းထားပါသည်။', 'is-warning');
+          if (voucherItems.length) {
+            showSaleVoucher(createVoucherGroup(voucherItems, 'OFFLINE-' + Date.now()));
+          }
+          return;
+        }
+
+        if (savedSales.length) {
+          saleCart = remainingItems;
+          renderSaleCart();
+        }
+
         setMessage(error && error.message ? error.message : 'ရောင်းချမှုထည့်ခြင်း မအောင်မြင်ပါ။', 'is-danger');
       })
       .finally(function () {
@@ -1030,16 +1938,37 @@
 
   function bindEvents() {
     var productSearch = byId('saleProductSearch');
+    var barcodeSearch = byId('saleBarcodeSearch');
     var productSelect = byId('saleProduct');
     var colorSelect = byId('saleColor');
     var sizeSelect = byId('saleSize');
     var quantityInput = byId('soldQuantity');
+    var customerInput = byId('saleCustomerName');
     var form = byId('saleForm');
     var printVoucherButton = byId('printVoucherButton');
     var downloadVoucherButton = byId('downloadVoucherButton');
+    var startBarcodeScanButton = byId('startBarcodeScanButton');
+    var stopBarcodeScanButton = byId('stopBarcodeScanButton');
+    var addSaleItemButton = byId('addSaleItemButton');
+    var clearSaleCartButton = byId('clearSaleCartButton');
 
     if (productSearch) {
       productSearch.addEventListener('input', handleProductSearchInput);
+    }
+
+    if (barcodeSearch) {
+      barcodeSearch.addEventListener('input', function () {
+        handleBarcodeSearchInput(false);
+      });
+      barcodeSearch.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          handleBarcodeSearchInput(true);
+        }
+      });
+      barcodeSearch.addEventListener('change', function () {
+        handleBarcodeSearchInput(true);
+      });
     }
 
     if (productSelect) {
@@ -1048,6 +1977,10 @@
 
     if (quantityInput) {
       quantityInput.addEventListener('input', calculateSale);
+    }
+
+    if (customerInput) {
+      customerInput.addEventListener('input', handleCustomerNameInput);
     }
 
     if (colorSelect) {
@@ -1062,12 +1995,28 @@
       form.addEventListener('submit', recordSale);
     }
 
+    if (addSaleItemButton) {
+      addSaleItemButton.addEventListener('click', addCurrentItemToCart);
+    }
+
+    if (clearSaleCartButton) {
+      clearSaleCartButton.addEventListener('click', clearSaleCart);
+    }
+
     if (printVoucherButton) {
       printVoucherButton.addEventListener('click', printSaleVoucher);
     }
 
     if (downloadVoucherButton) {
       downloadVoucherButton.addEventListener('click', downloadSaleVoucher);
+    }
+
+    if (startBarcodeScanButton) {
+      startBarcodeScanButton.addEventListener('click', startBarcodeScanner);
+    }
+
+    if (stopBarcodeScanButton) {
+      stopBarcodeScanButton.addEventListener('click', stopBarcodeScanner);
     }
 
     document.querySelectorAll('[data-close-voucher]').forEach(function (button) {
@@ -1079,6 +2028,8 @@
     });
 
     window.addEventListener('afterprint', finishPrintingVoucher);
+    window.addEventListener('online', syncOfflineSalesQueue);
+    window.addEventListener('beforeunload', stopBarcodeScanner);
   }
 
   function initSales() {
@@ -1088,7 +2039,8 @@
 
     initDate();
     bindEvents();
-    loadProducts().then(loadSales);
+    renderSaleCart();
+    loadProducts().then(loadSales).then(syncOfflineSalesQueue);
   }
 
   if (document.readyState === 'loading') {
