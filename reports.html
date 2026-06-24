@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <title>အစီရင်ခံစာများ</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +19,7 @@
         <a class="nav-link" href="dashboard.html">Dashboard</a>
         <a class="nav-link" href="products.html">ကုန်ပစ္စည်းများ</a>
         <a class="nav-link" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link" href="customers.html">ဖောက်သည်များ</a>
         <a class="nav-link is-active" href="reports.html">အစီရင်ခံစာများ</a>
         <a class="nav-link" href="settings.html">ဆက်တင်များ</a>
       </nav>
@@ -34,16 +37,12 @@
 
       <section class="toolbar" aria-label="အစီရင်ခံစာရွေးချယ်ရန်">
         <div class="field">
-          <label for="reportDate">နေ့စဉ်</label>
-          <input id="reportDate" name="date" type="date">
+          <label for="reportFromDate">စတင်ရက်</label>
+          <input id="reportFromDate" name="from_date" type="date">
         </div>
         <div class="field">
-          <label for="reportMonth">လစဉ်</label>
-          <input id="reportMonth" name="month" type="month">
-        </div>
-        <div class="field">
-          <label for="reportYear">နှစ်စဉ်</label>
-          <input id="reportYear" name="year" type="number" min="2000" max="2100" step="1">
+          <label for="reportToDate">ဆုံးရက်</label>
+          <input id="reportToDate" name="to_date" type="date">
         </div>
         <button id="loadReportButton" class="primary-button" type="button">အစီရင်ခံစာများ</button>
       </section>
@@ -51,40 +50,40 @@
 
       <section class="summary-grid" aria-label="အစီရင်ခံစာအနှစ်ချုပ်">
         <article class="summary-card">
-          <span>ယနေ့ဝင်ငွေ</span>
-          <strong id="dailyIncome">0</strong>
+          <span>ရွေးထားသောကာလ ဝင်ငွေ</span>
+          <strong id="rangeIncome">0</strong>
         </article>
         <article class="summary-card">
-          <span>ယနေ့အမြတ်</span>
-          <strong id="dailyProfit">0</strong>
+          <span>ရွေးထားသောကာလ အမြတ်</span>
+          <strong id="rangeProfit">0</strong>
         </article>
         <article class="summary-card">
-          <span>လစဉ်ဝင်ငွေ</span>
-          <strong id="monthlyIncome">0</strong>
+          <span>စုစုပေါင်းကုန်ကျစရိတ်</span>
+          <strong id="rangeCost">0</strong>
         </article>
         <article class="summary-card">
-          <span>လစဉ်အမြတ်</span>
-          <strong id="monthlyProfit">0</strong>
+          <span>ရောင်းပြီးအရေအတွက်</span>
+          <strong id="rangeSoldQuantity">0</strong>
         </article>
         <article class="summary-card">
-          <span>နှစ်စဉ်ဝင်ငွေ</span>
-          <strong id="yearlyIncome">0</strong>
+          <span>ရောင်းချမှုအကြိမ်</span>
+          <strong id="rangeSaleCount">0</strong>
         </article>
         <article class="summary-card">
-          <span>နှစ်စဉ်အမြတ်</span>
-          <strong id="yearlyProfit">0</strong>
+          <span>အမြတ်နှုန်း</span>
+          <strong id="rangeMargin">0%</strong>
         </article>
       </section>
 
       <section class="report-chart-grid" aria-label="ပိုင်ချား">
         <article class="panel">
           <div class="panel-header">
-            <h2>လစဉ် ကုန်ပစ္စည်းဝင်ငွေ ပိုင်ချား</h2>
+            <h2>ရွေးထားသောကာလ ကုန်ပစ္စည်းဝင်ငွေ ပိုင်ချား</h2>
             <span id="pieChartTotal" class="panel-note">0</span>
           </div>
           <div class="pie-layout">
             <div class="pie-canvas-wrap">
-              <canvas id="productPieChart" width="320" height="320" aria-label="လစဉ် ကုန်ပစ္စည်းဝင်ငွေ ပိုင်ချား"></canvas>
+              <canvas id="productPieChart" width="320" height="320" aria-label="ရွေးထားသောကာလ ကုန်ပစ္စည်းဝင်ငွေ ပိုင်ချား"></canvas>
               <span id="pieEmptyText" class="pie-empty-text">ဒေတာမရှိပါ</span>
             </div>
             <div id="productPieLegend" class="pie-legend" aria-label="ပိုင်ချားစာရင်း"></div>
@@ -95,21 +94,25 @@
       <section class="dashboard-grid">
         <article class="panel">
           <div class="panel-header">
-            <h2>နေ့စဉ်</h2>
+            <h2 id="reportRestockTitle">Smart Restock Assistant</h2>
           </div>
-          <div class="metric-list">
-            <div>
-              <span>ရောင်းချမှုအရေအတွက်</span>
-              <strong id="dailySaleCount">0</strong>
-            </div>
-            <div>
-              <span>ရောင်းပြီးအရေအတွက်</span>
-              <strong id="dailySoldQuantity">0</strong>
-            </div>
-            <div>
-              <span>စုစုပေါင်းကုန်ကျစရိတ်</span>
-              <strong id="dailyCost">0</strong>
-            </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ကုန်ပစ္စည်း</th>
+                  <th>လက်ကျန်</th>
+                  <th>နေ့စဉ်ရောင်းအား</th>
+                  <th>ကျန်နိုင်သည့်ရက်</th>
+                  <th>ပြန်မှာရန်</th>
+                </tr>
+              </thead>
+              <tbody id="reportRestockTable">
+                <tr>
+                  <td colspan="5">ဒေတာမရှိပါ</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </article>
 
@@ -135,12 +138,73 @@
           </div>
         </article>
       </section>
+
+      <section class="dashboard-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2 id="reportExpiryTitle">Smart Expiry Tracker</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ကုန်ပစ္စည်း</th>
+                  <th>သက်တမ်းကုန်ရက်</th>
+                  <th>ကျန်ရက်</th>
+                  <th>အကြံပြုချက်</th>
+                </tr>
+              </thead>
+              <tbody id="reportExpiryTable">
+                <tr>
+                  <td colspan="4">ဒေတာမရှိပါ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h2 id="reportProfitTitle">AI Profit Advisor</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ကုန်ပစ္စည်း</th>
+                  <th>ဝင်ငွေ</th>
+                  <th>အမြတ်</th>
+                  <th>မှတ်ချက်</th>
+                </tr>
+              </thead>
+              <tbody id="reportProfitTable">
+                <tr>
+                  <td colspan="4">ဒေတာမရှိပါ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel smart-assistant-panel">
+        <div class="panel-header">
+          <h2 id="reportBusinessAssistantTitle">Smart Business Assistant</h2>
+        </div>
+        <div id="assistantSummary" class="assistant-summary"></div>
+        <div class="assistant-input-row">
+          <input id="assistantQuestion" type="text" placeholder="ဥပမာ - What sold best this week?">
+          <button id="askAssistantButton" class="primary-button" type="button">မေးရန်</button>
+        </div>
+        <p id="assistantAnswer" class="assistant-answer"></p>
+      </section>
     </main>
   </div>
 
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script src="auth.js"></script>
+  <script src="i18n.js"></script>
   <script src="reports.js"></script>
 </body>
 </html>
