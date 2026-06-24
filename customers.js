@@ -358,7 +358,7 @@
     var cell = document.createElement('td');
     var button = document.createElement('button');
 
-    button.className = 'small-button';
+    button.className = 'small-button icon-view';
     button.type = 'button';
     button.textContent = 'ကြည့်ရန်';
     button.addEventListener('click', function () {
