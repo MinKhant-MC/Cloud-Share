@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <title>ဆက်သွယ်ရန်</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page contact-page" data-page="contact">
+  <main class="auth-shell contact-shell">
+    <section class="auth-panel contact-panel" aria-labelledby="contactTitle">
+      <div class="auth-brand">
+        <h1 id="contactTitle">ဆက်သွယ်ရန်</h1>
+        <p id="contactSubtitle">Customer service နှင့် payment service အတွက် Telegram Chat Bot ကိုနှိပ်ပါ။</p>
+      </div>
+
+      <div class="contact-list" aria-label="ဆက်သွယ်ရန်လမ်းကြောင်းများ">
+        <a id="contactTelegramButton" class="contact-button primary-contact" href="https://t.me/Cloudshareweb_bot" data-telegram-domain="Cloudshareweb_bot" rel="noopener noreferrer">
+          <span>Customer Service Chat Bot</span>
+          <strong>t.me/Cloudshareweb_bot</strong>
+        </a>
+      </div>
+
+      <section class="contact-info-card">
+        <h2>Payment Service</h2>
+        <dl>
+          <div>
+            <dt>KBZPay Name</dt>
+            <dd>Min Khant</dd>
+          </div>
+          <div>
+            <dt>KBZPay Phone</dt>
+            <dd>09796707170</dd>
+          </div>
+        </dl>
+        <p>ငွေပေးချေပြီးပါက screenshot နှင့် ဆိုင်အမည်ကို Chat Bot သို့ ပို့ပေးပါ။</p>
+      </section>
+
+      <section class="contact-info-card">
+        <h2>About Cloud Share</h2>
+        <p>Cloud Share သည် ဆိုင်ငယ်များအတွက် ကုန်ပစ္စည်း၊ လက်ကျန်၊ ရောင်းချမှု၊ ဘောင်ချာ၊ barcode search၊ report နှင့် stock alert များကို Google Sheets ဖြင့် စီမံနိုင်သော web system ဖြစ်သည်။</p>
+      </section>
+
+      <div class="auth-actions">
+        <a id="backToLoginButton" class="ghost-button" href="index.html">အကောင့်ဝင်ရန်</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="i18n.js"></script>
+  <script src="telegram.js"></script>
+</body>
+</html>
