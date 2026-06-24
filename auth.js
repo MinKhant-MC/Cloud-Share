@@ -7,7 +7,8 @@
 
   var keys = {
     USER_ID: storageKeys.USER_ID || 'mmc_user_id',
-    SESSION_TOKEN: storageKeys.SESSION_TOKEN || 'mmc_session_token'
+    SESSION_TOKEN: storageKeys.SESSION_TOKEN || 'mmc_session_token',
+    ROLE: storageKeys.ROLE || 'mmc_role'
   };
 
   function getPageName() {
@@ -103,6 +104,7 @@
     root.style.setProperty('--color-primary', color);
     root.style.setProperty('--color-primary-dark', mixHexColor(color, '#000000', 0.18));
     root.style.setProperty('--color-primary-soft', mixHexColor(color, '#ffffff', 0.88));
+    root.style.setProperty('--color-primary-rgb', rgb.r + ', ' + rgb.g + ', ' + rgb.b);
     root.style.setProperty('--focus-ring', '0 0 0 3px rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.16)');
   }
 
@@ -127,12 +129,22 @@
     }
 
     if (root && accentColor) {
+      var accentRgb = hexToRgb(accentColor);
       root.style.setProperty('--color-accent', accentColor);
       root.style.setProperty('--color-accent-soft', mixHexColor(accentColor, '#ffffff', 0.9));
+      if (accentRgb) {
+        root.style.setProperty('--color-accent-rgb', accentRgb.r + ', ' + accentRgb.g + ', ' + accentRgb.b);
+      }
     }
 
     if (root && backgroundColor) {
+      var backgroundRgb = hexToRgb(backgroundColor);
       root.style.setProperty('--color-bg', backgroundColor);
+      root.style.setProperty('--color-bg-soft', mixHexColor(backgroundColor, '#ffffff', 0.55));
+      root.style.setProperty('--color-bg-deep', mixHexColor(backgroundColor, '#000000', 0.10));
+      if (backgroundRgb) {
+        root.style.setProperty('--color-bg-rgb', backgroundRgb.r + ', ' + backgroundRgb.g + ', ' + backgroundRgb.b);
+      }
     }
   }
 
@@ -159,8 +171,17 @@
   function getSession() {
     return {
       user_id: localStorage.getItem(keys.USER_ID) || '',
-      session_token: localStorage.getItem(keys.SESSION_TOKEN) || ''
+      session_token: localStorage.getItem(keys.SESSION_TOKEN) || '',
+      role: localStorage.getItem(keys.ROLE) || 'admin'
     };
+  }
+
+  function getRole() {
+    return String(localStorage.getItem(keys.ROLE) || 'admin').trim().toLowerCase();
+  }
+
+  function isStaffRole() {
+    return getRole() === 'staff';
   }
 
   function hasSession() {
@@ -175,6 +196,7 @@
 
     localStorage.setItem(keys.USER_ID, loginData.user_id);
     localStorage.setItem(keys.SESSION_TOKEN, loginData.session_token);
+    localStorage.setItem(keys.ROLE, loginData.role || 'admin');
   }
 
   function clearSession() {
@@ -184,6 +206,7 @@
 
     localStorage.removeItem(keys.USER_ID);
     localStorage.removeItem(keys.SESSION_TOKEN);
+    localStorage.removeItem(keys.ROLE);
   }
 
   function redirectToLogin() {
@@ -191,7 +214,29 @@
   }
 
   function redirectToDashboard() {
-    window.location.href = getDashboardUrl();
+    window.location.href = isStaffRole() ? 'sales.html' : getDashboardUrl();
+  }
+
+  function applyRoleAccess() {
+    var pageName = getPageName();
+    var navLinks;
+
+    if (!hasSession() || !isStaffRole()) {
+      return;
+    }
+
+    document.body.classList.add('is-staff-role');
+    navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(function (link) {
+      var href = link.getAttribute('href') || '';
+      if (href !== 'sales.html') {
+        link.hidden = true;
+      }
+    });
+
+    if (['dashboard', 'products', 'reports', 'settings', 'customers'].indexOf(pageName) !== -1) {
+      window.location.href = 'sales.html';
+    }
   }
 
   function renderStoredShopName() {
@@ -239,7 +284,10 @@
 
     if (!hasSession()) {
       redirectToLogin();
+      return;
     }
+
+    applyRoleAccess();
   }
 
   function handleLoginSubmit(event) {
@@ -351,6 +399,8 @@
     hasSession: hasSession,
     saveSession: saveSession,
     clearSession: clearSession,
+    getRole: getRole,
+    isStaffRole: isStaffRole,
     protectPage: protectPage,
     redirectToLogin: redirectToLogin,
     redirectToDashboard: redirectToDashboard,
