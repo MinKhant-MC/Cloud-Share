@@ -20,6 +20,14 @@
     }
   }
 
+  function t(key, fallback) {
+    if (window.MMC_I18N && typeof window.MMC_I18N.translate === 'function') {
+      return window.MMC_I18N.translate(key);
+    }
+
+    return fallback || key;
+  }
+
   function setMessage(id, message, type) {
     var element = byId(id);
 
@@ -39,6 +47,15 @@
     if (window.MMC_AUTH && typeof window.MMC_AUTH.applyThemeColor === 'function') {
       window.MMC_AUTH.applyThemeColor(themeColor);
     }
+  }
+
+  function applyThemeColors(settings) {
+    if (window.MMC_AUTH && typeof window.MMC_AUTH.applyThemeColors === 'function') {
+      window.MMC_AUTH.applyThemeColors(settings);
+      return;
+    }
+
+    applyThemeColor(settings && (settings.primary_color || settings.theme_color));
   }
 
   function clearElement(element) {
@@ -133,6 +150,187 @@
     });
   }
 
+  function getCssColor(name, fallback) {
+    var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+  }
+
+  function addDays(date, amount) {
+    var next = new Date(date.getTime());
+    next.setDate(next.getDate() + amount);
+    return next;
+  }
+
+  function formatChartDate(date) {
+    return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
+  }
+
+  function getLastSevenDayTrend(sales) {
+    var today = new Date();
+    var days = [];
+    var map = {};
+
+    for (var i = 6; i >= 0; i -= 1) {
+      var date = addDays(today, -i);
+      var key = formatChartDate(date);
+      map[key] = {
+        label: String(date.getDate()),
+        income: 0,
+        profit: 0
+      };
+      days.push(map[key]);
+    }
+
+    sales.forEach(function (sale) {
+      var key = normalizeDate(sale.sale_date);
+      if (map[key]) {
+        map[key].income += toNumber(sale.total_income);
+        map[key].profit += toNumber(sale.profit);
+      }
+    });
+
+    return days;
+  }
+
+  function drawDashboardTrendChart(sales) {
+    var canvas = byId('dashboardTrendChart');
+    var trend = getLastSevenDayTrend(sales || getCachedSales());
+    var maxValue = trend.reduce(function (max, item) {
+      return Math.max(max, item.income, item.profit);
+    }, 0);
+    var rect;
+    var ratio;
+    var context;
+    var width;
+    var height;
+    var padding = 34;
+
+    if (!canvas) {
+      return;
+    }
+
+    rect = canvas.getBoundingClientRect();
+    ratio = window.devicePixelRatio || 1;
+    width = Math.max(320, Math.round((rect.width || 680) * ratio));
+    height = Math.max(180, Math.round((rect.height || 260) * ratio));
+    canvas.width = width;
+    canvas.height = height;
+    context = canvas.getContext('2d');
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    width = width / ratio;
+    height = height / ratio;
+    maxValue = maxValue || 1;
+
+    context.clearRect(0, 0, width, height);
+    context.lineWidth = 1;
+    context.strokeStyle = 'rgba(17, 24, 39, 0.08)';
+
+    for (var grid = 0; grid <= 4; grid += 1) {
+      var y = padding + ((height - padding * 2) / 4) * grid;
+      context.beginPath();
+      context.moveTo(padding, y);
+      context.lineTo(width - padding, y);
+      context.stroke();
+    }
+
+    function point(item, index, key) {
+      var x = padding + ((width - padding * 2) / Math.max(1, trend.length - 1)) * index;
+      var y = height - padding - (toNumber(item[key]) / maxValue) * (height - padding * 2);
+      return { x: x, y: y };
+    }
+
+    function drawLine(key, color) {
+      context.beginPath();
+      trend.forEach(function (item, index) {
+        var pt = point(item, index, key);
+        if (index === 0) {
+          context.moveTo(pt.x, pt.y);
+        } else {
+          context.lineTo(pt.x, pt.y);
+        }
+      });
+      context.lineWidth = 3;
+      context.lineCap = 'round';
+      context.lineJoin = 'round';
+      context.strokeStyle = color;
+      context.stroke();
+    }
+
+    drawLine('income', getCssColor('--color-chart-income', '#fbbf24'));
+    drawLine('profit', getCssColor('--color-chart-profit', '#8b5cf6'));
+
+    context.fillStyle = '#667085';
+    context.font = '700 11px Arial, sans-serif';
+    context.textAlign = 'center';
+    trend.forEach(function (item, index) {
+      var pt = point(item, index, 'income');
+      context.fillText(item.label, pt.x, height - 8);
+    });
+  }
+
+  function getTopProducts(sales) {
+    var grouped = {};
+
+    (sales || []).forEach(function (sale) {
+      var key = sale.product_id || sale.product_name || 'item';
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          product_id: sale.product_id || '',
+          product_name: sale.product_name || '-',
+          sold_quantity: 0,
+          total_income: 0
+        };
+      }
+
+      grouped[key].sold_quantity += toNumber(sale.sold_quantity);
+      grouped[key].total_income += toNumber(sale.total_income);
+    });
+
+    return Object.keys(grouped).map(function (key) {
+      return grouped[key];
+    }).sort(function (a, b) {
+      return b.total_income - a.total_income;
+    }).slice(0, 5);
+  }
+
+  function renderTopProducts(sales) {
+    var container = byId('dashboardTopProducts');
+    var items = getTopProducts(sales || getCachedSales());
+
+    if (!container) {
+      return;
+    }
+
+    clearElement(container);
+
+    if (!items.length) {
+      var empty = document.createElement('p');
+      empty.className = 'empty-note';
+      empty.textContent = t('noData', 'ဒေတာမရှိပါ');
+      container.appendChild(empty);
+      return;
+    }
+
+    items.forEach(function (item, index) {
+      var row = document.createElement('div');
+      var rank = document.createElement('span');
+      var name = document.createElement('strong');
+      var meta = document.createElement('small');
+
+      row.className = 'compact-product-row';
+      rank.className = 'compact-rank';
+      rank.textContent = String(index + 1);
+      name.textContent = item.product_name || item.product_id || '-';
+      meta.textContent = formatNumber(item.total_income) + ' | ' + formatNumber(item.sold_quantity) + ' ' + t('itemUnit', 'ခု');
+
+      row.appendChild(rank);
+      row.appendChild(name);
+      row.appendChild(meta);
+      container.appendChild(row);
+    });
+  }
+
   function createCell(text, label) {
     var cell = document.createElement('td');
     cell.textContent = text === undefined || text === null ? '' : String(text);
@@ -155,7 +353,7 @@
     return row;
   }
 
-  function renderLowStockTable(products) {
+  function renderLowStockTableLegacy_(products) {
     var tableBody = byId('lowStockTable');
 
     if (!tableBody) {
@@ -177,6 +375,32 @@
       row.appendChild(createCell(product.product_name || 'ကုန်ပစ္စည်းအမည်', 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(quantityCell);
       row.appendChild(createCell(formatNumber(product.low_stock_alert), 'သတ်မှတ်ချက်'));
+      tableBody.appendChild(row);
+    });
+  }
+
+  function renderLowStockTable(products) {
+    var tableBody = byId('lowStockTable');
+
+    if (!tableBody) {
+      return;
+    }
+
+    clearElement(tableBody);
+
+    if (!products || !products.length) {
+      tableBody.appendChild(createEmptyRow(t('noData', 'ဒေတာမရှိပါ')));
+      return;
+    }
+
+    products.forEach(function (product) {
+      var row = document.createElement('tr');
+      var quantityCell = createCell(formatNumber(product.quantity), t('quantity', 'အရေအတွက်'));
+
+      quantityCell.classList.add('is-danger');
+      row.appendChild(createCell(product.product_name || t('productName', 'ကုန်ပစ္စည်းအမည်'), t('productName', 'ကုန်ပစ္စည်းအမည်')));
+      row.appendChild(quantityCell);
+      row.appendChild(createCell(formatNumber(product.low_stock_alert), t('lowStock', 'လက်ကျန်နည်းနေပါသည်')));
       tableBody.appendChild(row);
     });
   }
@@ -244,6 +468,7 @@
     }
 
     setText('dashboardDate', reports.generated_at ? 'ထုတ်ထားချိန်: ' + reports.generated_at : todayString());
+    setText('dashboardDate', reports.generated_at ? t('generatedAt', 'ထုတ်ထားချိန်') + ': ' + reports.generated_at : todayString());
     setText('todayIncome', formatNumber(daily.total_income));
     setText('todayProfit', formatNumber(daily.profit));
     setText('monthIncome', formatNumber(monthly.total_income));
@@ -252,6 +477,8 @@
     setText('stockQuantity', formatNumber(dashboard ? dashboard.stock_quantity : 0));
     setText('salesCount', formatNumber(dashboard ? dashboard.sales_count : 0));
     renderLowStockTable(dashboard && dashboard.low_stock_products ? dashboard.low_stock_products : []);
+    drawDashboardTrendChart(getCachedSales());
+    renderTopProducts(getCachedSales());
   }
 
   function loadDashboard() {
@@ -327,10 +554,18 @@
     }
 
     if (byId('settingsThemeColor')) {
-      byId('settingsThemeColor').value = settings.theme_color || '#2563eb';
+      byId('settingsThemeColor').value = settings.primary_color || settings.theme_color || '#2563eb';
     }
 
-    applyThemeColor(settings.theme_color);
+    if (byId('settingsAccentColor')) {
+      byId('settingsAccentColor').value = settings.accent_color || '#0f766e';
+    }
+
+    if (byId('settingsBackgroundColor')) {
+      byId('settingsBackgroundColor').value = settings.background_color || '#f6f7f9';
+    }
+
+    applyThemeColors(settings);
 
     if (settings.shop_name) {
       setText('shopName', settings.shop_name);
@@ -359,7 +594,10 @@
     var settings = {
       shop_name: byId('settingsShopName') ? byId('settingsShopName').value.trim() : '',
       currency: byId('settingsCurrency') ? byId('settingsCurrency').value.trim() : 'MMK',
-      theme_color: byId('settingsThemeColor') ? byId('settingsThemeColor').value : '#2563eb'
+      theme_color: byId('settingsThemeColor') ? byId('settingsThemeColor').value : '#2563eb',
+      primary_color: byId('settingsThemeColor') ? byId('settingsThemeColor').value : '#2563eb',
+      accent_color: byId('settingsAccentColor') ? byId('settingsAccentColor').value : '#0f766e',
+      background_color: byId('settingsBackgroundColor') ? byId('settingsBackgroundColor').value : '#f6f7f9'
     };
 
     event.preventDefault();
@@ -398,22 +636,51 @@
   function initSettings() {
     var form = byId('settingsForm');
     var themeColorInput = byId('settingsThemeColor');
+    var accentColorInput = byId('settingsAccentColor');
+    var backgroundColorInput = byId('settingsBackgroundColor');
+    var previewTheme = function () {
+      applyThemeColors({
+        primary_color: themeColorInput ? themeColorInput.value : '#2563eb',
+        theme_color: themeColorInput ? themeColorInput.value : '#2563eb',
+        accent_color: accentColorInput ? accentColorInput.value : '#0f766e',
+        background_color: backgroundColorInput ? backgroundColorInput.value : '#f6f7f9'
+      });
+    };
 
     if (form) {
       form.addEventListener('submit', saveSettings);
     }
 
     if (themeColorInput) {
-      themeColorInput.addEventListener('input', function () {
-        applyThemeColor(themeColorInput.value);
-      });
+      themeColorInput.addEventListener('input', previewTheme);
+    }
+
+    if (accentColorInput) {
+      accentColorInput.addEventListener('input', previewTheme);
+    }
+
+    if (backgroundColorInput) {
+      backgroundColorInput.addEventListener('input', previewTheme);
     }
 
     loadSettings();
   }
 
+  function bindDashboardInteractions() {
+    window.addEventListener('resize', function () {
+      drawDashboardTrendChart(getCachedSales());
+    });
+
+    window.addEventListener('mmc:languagechange', function () {
+      if (pageName() === 'dashboard') {
+        renderDashboard(buildDashboardFromCache());
+      }
+    });
+  }
+
   function initMain() {
     if (pageName() === 'dashboard') {
+      bindDashboardInteractions();
       loadDashboard();
       return;
     }
