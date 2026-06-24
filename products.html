@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <title>ကုန်ပစ္စည်းများ</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +19,7 @@
         <a class="nav-link" href="dashboard.html">Dashboard</a>
         <a class="nav-link is-active" href="products.html">ကုန်ပစ္စည်းများ</a>
         <a class="nav-link" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link" href="customers.html">ဖောက်သည်များ</a>
         <a class="nav-link" href="reports.html">အစီရင်ခံစာများ</a>
         <a class="nav-link" href="settings.html">ဆက်တင်များ</a>
       </nav>
@@ -47,10 +50,12 @@
               <tr>
                 <th>ပုံ</th>
                 <th>ကုန်ပစ္စည်း ID</th>
+                <th>Barcode</th>
                 <th>ကုန်ပစ္စည်းအမည်</th>
                 <th>အမျိုးအစား</th>
                 <th>အရောင်</th>
                 <th>အရွယ်အစား</th>
+                <th>သက်တမ်းကုန်ရက်</th>
                 <th>အရေအတွက်</th>
                 <th>ဝယ်ဈေး</th>
                 <th>ရောင်းဈေး</th>
@@ -60,7 +65,7 @@
             </thead>
             <tbody id="productsTable">
               <tr>
-                <td colspan="11">ဒေတာမရှိပါ</td>
+                <td colspan="13">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -82,6 +87,10 @@
           <input id="productId" name="product_id" type="text" autocomplete="off" placeholder="မထည့်ပါက အလိုအလျောက်ထည့်မည်">
         </div>
         <div class="field">
+          <label for="productBarcode">Barcode</label>
+          <input id="productBarcode" name="barcode" type="text" autocomplete="off" placeholder="Scanner ဖြင့်ဖတ်နိုင်သည်">
+        </div>
+        <div class="field">
           <label for="productName">ကုန်ပစ္စည်းအမည်</label>
           <input id="productName" name="product_name" type="text" required>
         </div>
@@ -92,6 +101,10 @@
         <div class="field">
           <label for="productCategory">အမျိုးအစား</label>
           <input id="productCategory" name="category" type="text">
+        </div>
+        <div class="field">
+          <label for="productExpiryDate">သက်တမ်းကုန်ရက်</label>
+          <input id="productExpiryDate" name="expiry_date" type="date">
         </div>
         <div class="field option-builder">
           <label for="productColorNew">အရောင်</label>
@@ -141,6 +154,7 @@
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script src="auth.js"></script>
+  <script src="i18n.js"></script>
   <script src="products.js"></script>
 </body>
 </html>
