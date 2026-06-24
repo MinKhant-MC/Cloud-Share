@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <title>ဖောက်သည်များ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-page" data-page="customers">
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="မီနူး">
+      <a class="brand" href="dashboard.html">
+        <span id="shopName">ဆိုင်အမည်</span>
+      </a>
+
+      <nav class="nav-list" aria-label="အဓိကမီနူး">
+        <a class="nav-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-link" href="products.html">ကုန်ပစ္စည်းများ</a>
+        <a class="nav-link" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link is-active" href="customers.html">ဖောက်သည်များ</a>
+        <a class="nav-link" href="reports.html">အစီရင်ခံစာများ</a>
+        <a class="nav-link" href="settings.html">ဆက်တင်များ</a>
+      </nav>
+
+      <button id="logoutButton" class="ghost-button" type="button">ထွက်ရန်</button>
+    </aside>
+
+    <main class="content">
+      <header class="page-header">
+        <div>
+          <h1>ဖောက်သည်များ</h1>
+          <p id="customersStatus">ဖောက်သည်အလိုက် ရောင်းချမှုအနှစ်ချုပ်</p>
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="ဖောက်သည်ရှာရန်">
+        <div class="field search-field">
+          <label for="customerSearch">ရှာရန်</label>
+          <input id="customerSearch" name="customer_search" type="search" autocomplete="off" placeholder="ဖောက်သည်အမည် / ကုန်ပစ္စည်း">
+        </div>
+        <div class="field">
+          <label for="customerFromDate">စတင်ရက်</label>
+          <input id="customerFromDate" name="from_date" type="date">
+        </div>
+        <div class="field">
+          <label for="customerToDate">ဆုံးရက်</label>
+          <input id="customerToDate" name="to_date" type="date">
+        </div>
+        <button id="loadCustomersButton" class="primary-button" type="button">ပြန်ယူရန်</button>
+      </section>
+      <p id="customersMessage" class="form-message" aria-live="polite"></p>
+
+      <section class="summary-grid" aria-label="ဖောက်သည်အနှစ်ချုပ်">
+        <article class="summary-card">
+          <span>ဖောက်သည်အရေအတွက်</span>
+          <strong id="customerCount">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>ယူထားသောပစ္စည်း</span>
+          <strong id="customerItemQuantity">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>စုစုပေါင်းကျသင့်ငွေ</span>
+          <strong id="customerTotalIncome">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>စုစုပေါင်းအမြတ်</span>
+          <strong id="customerTotalProfit">0</strong>
+        </article>
+      </section>
+
+      <section class="dashboard-grid customers-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h2>ဖောက်သည်စာရင်း</h2>
+            <span id="customerTableCount" class="panel-note">0</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ဖောက်သည်</th>
+                  <th>ဝယ်ယူအကြိမ်</th>
+                  <th>ပစ္စည်းအရေအတွက်</th>
+                  <th>ဆိုင်ကုန်ကျစရိတ်</th>
+                  <th>ကျသင့်ငွေ</th>
+                  <th>အမြတ်</th>
+                  <th>နောက်ဆုံးရက်</th>
+                  <th>အသေးစိတ်</th>
+                </tr>
+              </thead>
+              <tbody id="customersTable">
+                <tr>
+                  <td colspan="8">ဒေတာမရှိပါ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel customer-detail-panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="customerDetailName">ဖောက်သည်အသေးစိတ်</h2>
+              <span id="customerDetailMeta" class="panel-note">ဖောက်သည်ရွေးချယ်ပါ</span>
+            </div>
+          </div>
+
+          <div class="customer-kpi-grid" aria-label="ရွေးထားသောဖောက်သည်အနှစ်ချုပ်">
+            <div class="customer-kpi">
+              <span>ယူထားသောပစ္စည်း</span>
+              <strong id="detailQuantity">0</strong>
+            </div>
+            <div class="customer-kpi">
+              <span>ကျသင့်ငွေ</span>
+              <strong id="detailIncome">0</strong>
+            </div>
+          </div>
+
+          <div class="table-wrap customer-detail-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>ကုန်ပစ္စည်း</th>
+                  <th>အရောင်/အရွယ်</th>
+                  <th>အရေအတွက်</th>
+                  <th>ကျသင့်ငွေ</th>
+                </tr>
+              </thead>
+              <tbody id="customerDetailTable">
+                <tr>
+                  <td colspan="4">ဒေတာမရှိပါ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="auth.js"></script>
+  <script src="i18n.js"></script>
+  <script src="customers.js"></script>
+</body>
+</html>
