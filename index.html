@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <title>အကောင့်ဝင်ရန်</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +13,7 @@
     <section class="auth-panel" aria-labelledby="loginTitle">
       <div class="auth-brand">
         <h1 id="loginTitle">အကောင့်ဝင်ရန်</h1>
-        <p id="loginShopName">ကုန်ပစ္စည်းနှင့် ရောင်းချမှု</p>
+        <p id="loginShopName">Cloud Share</p>
       </div>
 
       <form id="loginForm" class="form-stack" autocomplete="on">
@@ -42,6 +44,9 @@
         <p id="loginMessage" class="form-message" aria-live="polite"></p>
 
         <button id="loginButton" class="primary-button" type="submit">အကောင့်ဝင်ရန်</button>
+        <div class="auth-actions">
+          <a id="chatBotButton" class="ghost-button" href="https://t.me/Cloudshareweb_bot" data-telegram-domain="Cloudshareweb_bot" rel="noopener noreferrer">Customer Service Bot</a>
+        </div>
       </form>
     </section>
   </main>
@@ -50,5 +55,7 @@
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script src="auth.js"></script>
+  <script src="i18n.js"></script>
+  <script src="telegram.js"></script>
 </body>
 </html>
