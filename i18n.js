@@ -274,10 +274,10 @@
     ['body[data-page="reports"] h1', 'reports'],
     ['body[data-page="settings"] h1', 'settings'],
     ['body[data-page="contact"] h1', 'contact'],
-    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(1) span', 'todayIncome'],
-    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(2) span', 'todayProfit'],
-    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(3) span', 'monthIncome'],
-    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(4) span', 'monthProfit'],
+    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(1) > span:first-child', 'todayIncome'],
+    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(2) > span:first-child', 'todayProfit'],
+    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(3) > span:first-child', 'monthIncome'],
+    ['body[data-page="dashboard"] .summary-grid .summary-card:nth-child(4) > span:first-child', 'monthProfit'],
     ['#dashboardTrendTitle', 'trend'],
     ['#dashboardTopProductsTitle', 'topProducts'],
     ['body[data-page="dashboard"] .dashboard-grid .panel:nth-child(1) h2', 'lowStockTitle'],
@@ -342,9 +342,9 @@
   ];
 
   var placeholderTargets = [
-    ['#productSearch', { my: 'ကုန်ပစ္စည်း ID / Barcode / အမည်', en: 'Product ID / Barcode / Name', zh: '商品 ID / 条码 / 名称' }],
-    ['#saleProductSearch', { my: 'ကုန်ပစ္စည်း ID / Barcode / အမည်', en: 'Product ID / Barcode / Name', zh: '商品 ID / 条码 / 名称' }],
-    ['#saleCustomerName', { my: 'ဖောက်သည်အမည် (မထည့်လည်းရ)', en: 'Customer name (optional)', zh: '客户名称（可选）' }],
+    ['#productSearch', { my: 'P00001', en: 'P00001', zh: 'P00001' }],
+    ['#saleProductSearch', { my: 'P00001', en: 'P00001', zh: 'P00001' }],
+    ['#saleCustomerName', { my: 'C00001 / Customer name (optional)', en: 'C00001 / Customer name (optional)', zh: 'C00001 / Customer name (optional)' }],
     ['#saleBarcodeSearch', { my: 'Barcode ရိုက်ထည့် / Scanner ဖြင့်ဖတ်ပါ', en: 'Type or scan barcode', zh: '输入或扫描条码' }],
     ['#customerSearch', { my: 'ဖောက်သည်အမည် / ကုန်ပစ္စည်း', en: 'Customer / product', zh: '客户 / 商品' }],
     ['#assistantQuestion', { my: 'ဥပမာ - What sold best this week?', en: 'Example - What sold best this week?', zh: '例如：本周什么卖得最好？' }]
