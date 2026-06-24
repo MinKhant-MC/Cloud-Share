@@ -36,21 +36,29 @@
       </header>
 
       <section class="summary-grid" aria-label="အနှစ်ချုပ်">
-        <article class="summary-card">
+        <article class="summary-card stat-revenue">
           <span>ယနေ့ဝင်ငွေ</span>
+          <span class="summary-icon" aria-hidden="true"></span>
           <strong id="todayIncome">0</strong>
+          <small class="growth-badge" id="todayIncomeGrowth">↗ 0%</small>
         </article>
-        <article class="summary-card">
+        <article class="summary-card stat-profit">
           <span>ယနေ့အမြတ်</span>
+          <span class="summary-icon" aria-hidden="true"></span>
           <strong id="todayProfit">0</strong>
+          <small class="growth-badge" id="todayProfitGrowth">↗ 0%</small>
         </article>
-        <article class="summary-card">
+        <article class="summary-card stat-stock">
           <span>လစဉ်ဝင်ငွေ</span>
+          <span class="summary-icon" aria-hidden="true"></span>
           <strong id="monthIncome">0</strong>
+          <small class="growth-badge" id="monthIncomeGrowth">↗ 0%</small>
         </article>
-        <article class="summary-card">
+        <article class="summary-card stat-orders">
           <span>လစဉ်အမြတ်</span>
+          <span class="summary-icon" aria-hidden="true"></span>
           <strong id="monthProfit">0</strong>
+          <small class="growth-badge" id="monthProfitGrowth">↗ 0%</small>
         </article>
       </section>
 
@@ -58,22 +66,16 @@
         <article class="panel chart-panel">
           <div class="panel-header">
             <h2 id="dashboardTrendTitle">အရောင်းလမ်းကြောင်း</h2>
-            <span class="panel-note">7 days</span>
+            <div class="chart-legend" aria-label="Chart legend">
+              <span class="legend-income">Income</span>
+              <span class="legend-profit">Profit</span>
+            </div>
           </div>
           <div class="line-chart-wrap">
             <canvas id="dashboardTrendChart" width="680" height="260" aria-label="Sales trend"></canvas>
           </div>
         </article>
 
-        <article class="panel compact-list-panel">
-          <div class="panel-header">
-            <h2 id="dashboardTopProductsTitle">Top Products</h2>
-            <a class="text-link" href="reports.html">Reports</a>
-          </div>
-          <div id="dashboardTopProducts" class="compact-product-list">
-            <p class="empty-note">ဒေတာမရှိပါ</p>
-          </div>
-        </article>
       </section>
 
       <section class="dashboard-grid">
