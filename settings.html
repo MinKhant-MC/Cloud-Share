@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <title>ဆက်တင်များ</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +19,7 @@
         <a class="nav-link" href="dashboard.html">Dashboard</a>
         <a class="nav-link" href="products.html">ကုန်ပစ္စည်းများ</a>
         <a class="nav-link" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link" href="customers.html">ဖောက်သည်များ</a>
         <a class="nav-link" href="reports.html">အစီရင်ခံစာများ</a>
         <a class="nav-link is-active" href="settings.html">ဆက်တင်များ</a>
       </nav>
@@ -47,6 +50,14 @@
               <label for="settingsThemeColor">အဓိကအရောင်</label>
               <input id="settingsThemeColor" name="theme_color" type="color" value="#2563eb">
             </div>
+            <div class="field">
+              <label for="settingsAccentColor">ဒုတိယအရောင်</label>
+              <input id="settingsAccentColor" name="accent_color" type="color" value="#0f766e">
+            </div>
+            <div class="field">
+              <label for="settingsBackgroundColor">နောက်ခံအရောင်</label>
+              <input id="settingsBackgroundColor" name="background_color" type="color" value="#f6f7f9">
+            </div>
           </div>
 
           <p id="settingsMessage" class="form-message" aria-live="polite"></p>
@@ -60,6 +71,7 @@
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script src="auth.js"></script>
+  <script src="i18n.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
