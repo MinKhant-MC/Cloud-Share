@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://script.google.com https://script.googleusercontent.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <title>ရောင်းချမှုများ</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +19,7 @@
         <a class="nav-link" href="dashboard.html">Dashboard</a>
         <a class="nav-link" href="products.html">ကုန်ပစ္စည်းများ</a>
         <a class="nav-link is-active" href="sales.html">ရောင်းချမှုများ</a>
+        <a class="nav-link" href="customers.html">ဖောက်သည်များ</a>
         <a class="nav-link" href="reports.html">အစီရင်ခံစာများ</a>
         <a class="nav-link" href="settings.html">ဆက်တင်များ</a>
       </nav>
@@ -40,8 +43,23 @@
 
           <form id="saleForm" class="form-stack">
             <div class="field">
+              <label for="saleCustomerName">ဖောက်သည်အမည် (မထည့်လည်းရ)</label>
+              <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="ဖောက်သည်အမည်">
+            </div>
+
+            <div class="field">
               <label for="saleProductSearch">ကုန်ပစ္စည်းရှာရန်</label>
               <input id="saleProductSearch" name="sale_product_search" type="search" autocomplete="off" placeholder="ကုန်ပစ္စည်း ID သို့မဟုတ် အမည်">
+            </div>
+
+            <div class="field">
+              <label for="saleBarcodeSearch">Barcode</label>
+              <div class="scanner-row">
+                <input id="saleBarcodeSearch" name="sale_barcode_search" type="search" autocomplete="off" placeholder="Barcode ရိုက်ထည့် / Scanner ဖြင့်ဖတ်ပါ">
+                <button id="startBarcodeScanButton" class="ghost-button" type="button">Scan</button>
+                <button id="stopBarcodeScanButton" class="ghost-button" type="button" hidden>Stop</button>
+              </div>
+              <video id="barcodeScannerVideo" class="barcode-video" playsinline muted hidden></video>
             </div>
 
             <div class="field">
@@ -111,9 +129,35 @@
               </div>
             </div>
 
+            <section class="sale-cart-panel" aria-label="ဘောင်ချာထဲရှိ ပစ္စည်းများ">
+              <div class="sale-cart-header">
+                <div>
+                  <strong>ဘောင်ချာပစ္စည်းများ</strong>
+                  <span id="saleCartSummary">0 ခု</span>
+                </div>
+                <button id="clearSaleCartButton" class="ghost-button compact-button" type="button">ရှင်းရန်</button>
+              </div>
+              <div id="saleCartItems" class="sale-cart-items">
+                <p class="sale-cart-empty">ပစ္စည်းများ ထည့်မထားသေးပါ။</p>
+              </div>
+              <div class="sale-cart-totals">
+                <div>
+                  <span>စုစုပေါင်း</span>
+                  <strong id="saleCartTotal">0</strong>
+                </div>
+                <div>
+                  <span>အမြတ်</span>
+                  <strong id="saleCartProfit">0</strong>
+                </div>
+              </div>
+            </section>
+
             <p id="saleMessage" class="form-message" aria-live="polite"></p>
 
-            <button class="primary-button" type="submit">ရောင်းချမှုထည့်ရန်</button>
+            <div class="sale-form-actions">
+              <button id="addSaleItemButton" class="ghost-button" type="button">ဘောင်ချာထဲထည့်ရန်</button>
+              <button class="primary-button" type="submit">ရောင်းချမှုသိမ်းရန်</button>
+            </div>
           </form>
         </article>
 
@@ -143,6 +187,7 @@
             <thead>
               <tr>
                 <th>ရက်စွဲ</th>
+                <th>ဖောက်သည်</th>
                 <th>ပုံ</th>
                 <th>ကုန်ပစ္စည်းအမည်</th>
                 <th>အရောင်</th>
@@ -157,7 +202,7 @@
             </thead>
             <tbody id="salesTable">
               <tr>
-                <td colspan="11">ဒေတာမရှိပါ</td>
+                <td colspan="12">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -185,6 +230,7 @@
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script src="auth.js"></script>
+  <script src="i18n.js"></script>
   <script src="sales.js"></script>
 </body>
 </html>
