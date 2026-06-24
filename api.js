@@ -466,10 +466,10 @@
     listSales: function (filters) {
       return requestWithSession('listSales', filters || {});
     },
-    recordSale: function (sale) {
+    recordSale: function (sale, options) {
       return requestWithSession('recordSale', {
         sale: sale
-      });
+      }, options || {});
     },
     getReports: function (filters) {
       return requestWithSession('getReports', filters || {});
