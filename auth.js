@@ -106,6 +106,36 @@
     root.style.setProperty('--focus-ring', '0 0 0 3px rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.16)');
   }
 
+  function applyThemeColors(settings) {
+    var primaryColor;
+    var accentColor;
+    var backgroundColor;
+    var root = document.documentElement;
+
+    if (typeof settings === 'string') {
+      applyThemeColor(settings);
+      return;
+    }
+
+    settings = settings || {};
+    primaryColor = normalizeHexColor(settings.primary_color || settings.theme_color);
+    accentColor = normalizeHexColor(settings.accent_color);
+    backgroundColor = normalizeHexColor(settings.background_color);
+
+    if (primaryColor) {
+      applyThemeColor(primaryColor);
+    }
+
+    if (root && accentColor) {
+      root.style.setProperty('--color-accent', accentColor);
+      root.style.setProperty('--color-accent-soft', mixHexColor(accentColor, '#ffffff', 0.9));
+    }
+
+    if (root && backgroundColor) {
+      root.style.setProperty('--color-bg', backgroundColor);
+    }
+  }
+
   function setButtonBusy(button, isBusy, busyText) {
     if (!button) {
       return;
@@ -166,7 +196,7 @@
 
   function renderStoredShopName() {
     setText('shopName', 'ဆိုင်အမည်');
-    setText('loginShopName', 'ကုန်ပစ္စည်းနှင့် ရောင်းချမှု');
+    setText('loginShopName', 'Cloud Share');
   }
 
   function loadShopNameFromApi() {
@@ -181,7 +211,7 @@
         var settings = data && data.settings ? data.settings : {};
         var shopName = settings.shop_name || 'ဆိုင်အမည်';
 
-        applyThemeColor(settings.theme_color);
+        applyThemeColors(settings);
         setText('shopName', shopName);
         document.dispatchEvent(new CustomEvent('mmc:settings-loaded', {
           detail: settings
@@ -194,6 +224,10 @@
 
   function protectPage() {
     var pageName = getPageName();
+
+    if (pageName === 'contact') {
+      return;
+    }
 
     if (pageName === 'login') {
       if (hasSession()) {
@@ -320,7 +354,8 @@
     protectPage: protectPage,
     redirectToLogin: redirectToLogin,
     redirectToDashboard: redirectToDashboard,
-    applyThemeColor: applyThemeColor
+    applyThemeColor: applyThemeColor,
+    applyThemeColors: applyThemeColors
   });
 
   if (document.readyState === 'loading') {
