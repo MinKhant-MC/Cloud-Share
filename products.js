@@ -500,6 +500,65 @@
     return button;
   }
 
+
+  function variantViewText(value) {
+    var options = parseVariantOptions(value);
+
+    if (!options.length) {
+      return '-';
+    }
+
+    return options.map(function (option) {
+      return option.name + ' - ' + formatNumber(option.quantity) + ' ' + t('itemUnit', 'ခု');
+    });
+  }
+
+  function openProductView(product) {
+    var imageSrc = product && (product.image_src || product.image_url);
+
+    if (!window.MMC_TABLE_VIEW || !product) {
+      return;
+    }
+
+    window.MMC_TABLE_VIEW.open(t('details', 'အသေးစိတ်') + ' - ' + (product.product_name || product.product_id || t('products', 'ကုန်ပစ္စည်း')), [
+      {
+        title: t('products', 'ကုန်ပစ္စည်းများ'),
+        fields: [
+          { label: t('image', 'ပုံ'), value: imageSrc, alt: product.product_name, type: imageSrc ? 'image' : '' },
+          { label: t('productId', 'ကုန်ပစ္စည်း ID'), value: product.product_id || '-' },
+          { label: t('barcode', 'Barcode'), value: product.barcode || '-' },
+          { label: t('productName', 'ကုန်ပစ္စည်းအမည်'), value: product.product_name || '-' },
+          { label: t('category', 'အမျိုးအစား'), value: product.category || '-' },
+          { label: t('color', 'အရောင်'), value: variantViewText(product.color) },
+          { label: t('size', 'အရွယ်အစား'), value: variantViewText(product.size) },
+          { label: t('expiryDate', 'သက်တမ်းကုန်ရက်'), value: product.expiry_date || '-' }
+        ]
+      },
+      {
+        title: t('stockOverview', 'လက်ကျန်အခြေအနေ'),
+        fields: [
+          { label: t('quantity', 'အရေအတွက်'), value: formatNumber(product.quantity) },
+          { label: t('buyPrice', 'ဝယ်ဈေး'), value: formatNumber(product.buy_price) },
+          { label: t('sellPrice', 'ရောင်းဈေး'), value: formatNumber(product.sell_price) },
+          { label: t('lowStockLimit', 'သတ်မှတ်ချက်'), value: formatNumber(product.low_stock_alert) },
+          { label: t('lowStock', 'လက်ကျန်နည်းနေပါသည်'), value: isLowStock(product) ? t('lowStock', 'လက်ကျန်နည်းနေပါသည်') : '-' }
+        ]
+      }
+    ]);
+  }
+
+  function createProductViewButton(product) {
+    if (window.MMC_TABLE_VIEW && typeof window.MMC_TABLE_VIEW.createViewButton === 'function') {
+      return window.MMC_TABLE_VIEW.createViewButton(function () {
+        openProductView(product);
+      }, t('view', 'ကြည့်ရန်'));
+    }
+
+    return createActionButton(t('view', 'ကြည့်ရန်'), 'small-button icon-view', function () {
+      openProductView(product);
+    });
+  }
+
   function renderProductsLegacy_() {
     var tableBody = byId('productsTable');
 
@@ -553,6 +612,7 @@
       actionsCell.setAttribute('data-label', 'လုပ်ဆောင်ချက်');
       actions = document.createElement('div');
       actions.className = 'table-actions';
+      actions.appendChild(createProductViewButton(product));
       actions.appendChild(createActionButton('ပြင်ရန်', 'small-button icon-edit', function () {
         openProductDialog(product);
       }));
@@ -630,6 +690,7 @@
       actionsCell.setAttribute('data-label', t('action', 'လုပ်ဆောင်ချက်'));
       actions = document.createElement('div');
       actions.className = 'table-actions';
+      actions.appendChild(createProductViewButton(product));
       actions.appendChild(createActionButton(t('edit', 'ပြင်ရန်'), 'small-button icon-edit', function () {
         openProductDialog(product);
       }));
