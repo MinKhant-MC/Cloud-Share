@@ -4864,3 +4864,746 @@ body.app-page::after {
     font-size: 17px;
   }
 }
+
+/* ── Reusable table view popup ── */
+.table-view-shell {
+  padding: 20px;
+}
+
+.table-view-body {
+  display: grid;
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.table-view-section {
+  padding: 14px;
+  border: 1px solid rgba(207, 224, 255, 0.65);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.table-view-section h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.table-view-detail-list {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.38fr) 1fr;
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.table-view-detail-list dt {
+  color: var(--color-muted);
+  font-weight: 800;
+}
+
+.table-view-detail-list dd {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: 800;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.table-view-image {
+  width: min(180px, 100%);
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(207, 224, 255, 0.8);
+}
+
+@media (max-width: 640px) {
+  .table-view-detail-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Full-size table view buttons and popup ── */
+.table-view-button-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 12px;
+}
+
+.full-table-button {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.panel-header .full-table-button {
+  margin-left: auto;
+}
+
+.table-view-modal.table-view-modal--wide {
+  width: min(1280px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+}
+
+.table-view-body.is-full-table {
+  display: block;
+}
+
+.full-table-hint {
+  margin: 10px 0 12px;
+}
+
+.full-table-view-wrap {
+  width: 100%;
+  max-height: min(72dvh, 720px);
+  overflow: auto;
+  border: var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: var(--glass-shadow);
+}
+
+.full-table-view-wrap table,
+.full-table-view-wrap .full-size-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: transparent;
+}
+
+.full-table-view-wrap thead {
+  display: table-header-group !important;
+}
+
+.full-table-view-wrap tbody {
+  display: table-row-group !important;
+}
+
+.full-table-view-wrap tr {
+  display: table-row !important;
+  width: auto !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.full-table-view-wrap th,
+.full-table-view-wrap td {
+  display: table-cell !important;
+  width: auto !important;
+  min-width: 120px;
+  min-height: 0 !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid rgba(220, 227, 236, 0.7) !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  white-space: nowrap;
+}
+
+.full-table-view-wrap th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-table-head) !important;
+}
+
+.full-table-view-wrap td::before {
+  content: none !important;
+}
+
+.full-table-view-wrap td[colspan] {
+  display: table-cell !important;
+  text-align: center !important;
+}
+
+.full-table-view-wrap .table-actions {
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+}
+
+.full-table-view-wrap button,
+.full-table-view-wrap a,
+.full-table-view-wrap input,
+.full-table-view-wrap select,
+.full-table-view-wrap textarea {
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .panel-header {
+    flex-wrap: wrap;
+  }
+
+  .panel-header .full-table-button {
+    margin-left: 0;
+  }
+
+  .table-view-modal.table-view-modal--wide {
+    width: calc(100vw - 12px);
+    max-height: calc(100dvh - 12px);
+    border-radius: 22px;
+  }
+
+  .table-view-modal.table-view-modal--wide .table-view-shell {
+    padding: 14px;
+  }
+
+  .full-table-view-wrap {
+    max-height: calc(100dvh - 170px);
+  }
+}
+
+/* ── Final readability + floating business assistant updates ── */
+:root {
+  --color-text: #000000;
+  --color-muted: #111111;
+  --color-sidebar-muted: #111111;
+  --color-table-head: rgba(255, 255, 255, 0.92);
+}
+
+body,
+.app-page,
+.content,
+.panel,
+.table-wrap,
+.summary-card,
+.metric-list,
+.calc-grid,
+.sale-cart-panel,
+.modal,
+.voucher-shell,
+.sale-voucher,
+.contact-info-card,
+.auth-panel,
+.toolbar,
+.customer-card,
+.customer-kpi,
+.assistant-summary-item,
+.assistant-answer {
+  color: #000000 !important;
+}
+
+.page-header h1,
+.page-header p,
+.panel-header h2,
+.panel-note,
+.field label,
+.field-help,
+.summary-card span,
+.summary-card strong,
+.metric-list span,
+.metric-list strong,
+.calc-grid span,
+.calc-grid strong,
+.sale-cart-header span,
+.sale-cart-empty,
+.table-wrap th,
+.table-wrap td,
+th,
+td,
+.brand,
+.nav-link,
+.sidebar .ghost-button,
+.language-switcher button,
+.voucher-brand strong,
+.voucher-brand span,
+.voucher-meta-grid span,
+.voucher-meta-grid strong,
+.voucher-total-grid span,
+.voucher-total-grid strong,
+.voucher-item-cell strong,
+.voucher-item-cell span,
+.voucher-item-cell small,
+.form-message,
+.sale-id-list span {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.field input,
+.field select,
+.assistant-input-row input,
+.floating-assistant-input-row input,
+input,
+select,
+textarea {
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-color: rgba(0, 0, 0, 0.22) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #111111 !important;
+  opacity: 0.72 !important;
+}
+
+.table-wrap th,
+.voucher-table th {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #000000 !important;
+}
+
+.table-wrap td,
+.voucher-table td,
+.sale-cart-item,
+.metric-list > div,
+.calc-grid > div,
+.assistant-summary-item,
+.assistant-answer {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.primary-button {
+  color: #ffffff !important;
+}
+
+.ghost-button,
+.small-button,
+.icon-button,
+.danger-button,
+.language-switcher button,
+.nav-link {
+  color: #000000 !important;
+}
+
+.voucher-modal {
+  width: min(980px, calc(100vw - 24px)) !important;
+}
+
+.voucher-shell {
+  width: 100% !important;
+}
+
+.sale-voucher {
+  width: min(100%, 148mm) !important;
+  max-width: 920px !important;
+}
+
+.voucher-table {
+  min-width: 620px !important;
+}
+
+.voucher-total,
+.voucher-total span,
+.voucher-total strong {
+  color: #ffffff !important;
+}
+
+.floating-assistant {
+  position: fixed;
+  right: 22px;
+  bottom: calc(22px + var(--safe-bottom));
+  z-index: 99990;
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+  font-family: "Myanmar Text", "Noto Sans Myanmar", "Padauk", Arial, sans-serif;
+}
+
+.floating-assistant-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 10px 16px 10px 10px;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.floating-assistant-button span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: #ffffff !important;
+  background: #000000;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.floating-assistant-button strong {
+  color: #000000 !important;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.floating-assistant-panel {
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(620px, calc(100dvh - 110px));
+  display: grid;
+  grid-template-rows: auto minmax(160px, 1fr) auto auto;
+  overflow: hidden;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.floating-assistant-panel[hidden] {
+  display: none !important;
+}
+
+.floating-assistant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.floating-assistant-header strong,
+.floating-assistant-header span {
+  display: block;
+  color: #000000 !important;
+}
+
+.floating-assistant-header strong {
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.floating-assistant-header span {
+  font-size: 12px;
+  font-weight: 800;
+  opacity: 0.82;
+}
+
+.floating-assistant-close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 12px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.floating-assistant-messages {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+  overflow: auto;
+  background: rgba(246, 248, 250, 0.82);
+}
+
+.floating-assistant-message {
+  max-width: 88%;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  color: #000000 !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.floating-assistant-message.is-bot {
+  justify-self: start;
+  background: #ffffff;
+  border-bottom-left-radius: 6px;
+}
+
+.floating-assistant-message.is-user {
+  justify-self: end;
+  color: #ffffff !important;
+  background: #111827;
+  border-color: #111827;
+  border-bottom-right-radius: 6px;
+}
+
+.floating-assistant-quick {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 0;
+  overflow-x: auto;
+  background: #ffffff;
+}
+
+.floating-assistant-quick button {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.floating-assistant-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.floating-assistant-input-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  color: #000000 !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.18) !important;
+  border-radius: 14px;
+}
+
+.floating-assistant-input-row button {
+  padding: 10px 14px;
+  color: #ffffff !important;
+  background: #111827;
+  border: 1px solid #111827;
+  border-radius: 14px;
+  font-weight: 900;
+}
+
+@media print {
+  .floating-assistant {
+    display: none !important;
+  }
+
+  body.is-printing-voucher .sale-voucher {
+    width: 148mm !important;
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .floating-assistant {
+    right: 12px;
+    bottom: calc(12px + var(--safe-bottom));
+  }
+
+  .floating-assistant-button strong {
+    display: none;
+  }
+
+  .floating-assistant-panel {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 92px);
+  }
+
+  .voucher-modal {
+    width: calc(100vw - 16px) !important;
+  }
+
+  .sale-voucher {
+    width: 100% !important;
+  }
+}
+
+/* ============================================================
+   Sale voucher layout fix
+   Prevents item table from overflowing the voucher card.
+   ============================================================ */
+.voucher-modal {
+  width: min(1120px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  padding: 0 !important;
+}
+
+.voucher-shell {
+  width: 100% !important;
+  max-width: none !important;
+  padding: clamp(12px, 2vw, 24px) !important;
+  overflow: auto !important;
+}
+
+.sale-voucher {
+  width: min(100%, 980px) !important;
+  max-width: 980px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+}
+
+.sale-voucher *,
+.sale-voucher .voucher-brand strong,
+.sale-voucher .voucher-meta-grid strong,
+.sale-voucher .voucher-total-grid strong,
+.sale-voucher .voucher-item-cell strong,
+.sale-voucher .voucher-table th,
+.sale-voucher .voucher-table td {
+  color: #000000 !important;
+}
+
+.sale-voucher .voucher-total,
+.sale-voucher .voucher-total *,
+.sale-voucher .voucher-total strong {
+  color: #ffffff !important;
+}
+
+.voucher-table-scroll {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  border: 1px solid rgba(52, 56, 65, 0.12);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.sale-voucher .voucher-table {
+  display: table !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.sale-voucher .voucher-table thead,
+.app-page[data-page="sales"] .sale-voucher .voucher-table thead {
+  display: table-header-group !important;
+}
+
+.sale-voucher .voucher-table tbody {
+  display: table-row-group !important;
+}
+
+.sale-voucher .voucher-table tr {
+  display: table-row !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.sale-voucher .voucher-table th,
+.sale-voucher .voucher-table td,
+.app-page[data-page="sales"] .sale-voucher .voucher-table th,
+.app-page[data-page="sales"] .sale-voucher .voucher-table td {
+  display: table-cell !important;
+  box-sizing: border-box !important;
+  min-height: 0 !important;
+  padding: 9px 8px !important;
+  vertical-align: top !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  border-bottom: 1px solid rgba(52, 56, 65, 0.10) !important;
+  border-radius: 0 !important;
+}
+
+.sale-voucher .voucher-table th::before,
+.sale-voucher .voucher-table td::before,
+.app-page[data-page="sales"] .sale-voucher .voucher-table th::before,
+.app-page[data-page="sales"] .sale-voucher .voucher-table td::before {
+  content: none !important;
+  display: none !important;
+}
+
+.sale-voucher .voucher-table th:nth-child(1),
+.sale-voucher .voucher-table td:nth-child(1) {
+  width: 42% !important;
+}
+
+.sale-voucher .voucher-table th:nth-child(2),
+.sale-voucher .voucher-table td:nth-child(2) {
+  width: 10% !important;
+}
+
+.sale-voucher .voucher-table th:nth-child(3),
+.sale-voucher .voucher-table td:nth-child(3),
+.sale-voucher .voucher-table th:nth-child(4),
+.sale-voucher .voucher-table td:nth-child(4),
+.sale-voucher .voucher-table th:nth-child(5),
+.sale-voucher .voucher-table td:nth-child(5) {
+  width: 16% !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.sale-voucher .voucher-item-cell,
+.sale-voucher .voucher-item-cell strong,
+.sale-voucher .voucher-item-cell span,
+.sale-voucher .voucher-item-cell small {
+  max-width: 100% !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 760px) {
+  .voucher-modal {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+  }
+
+  .voucher-shell {
+    padding: 10px !important;
+  }
+
+  .sale-voucher {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 14px !important;
+  }
+
+  .sale-voucher .voucher-table {
+    min-width: 680px !important;
+  }
+}
+
+@media print {
+  body.is-printing-voucher .voucher-modal {
+    width: 148mm !important;
+    max-width: none !important;
+  }
+
+  body.is-printing-voucher .voucher-shell {
+    width: 148mm !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  body.is-printing-voucher .sale-voucher {
+    width: 148mm !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 6mm !important;
+  }
+
+  body.is-printing-voucher .voucher-table-scroll {
+    overflow: visible !important;
+  }
+
+  body.is-printing-voucher .sale-voucher .voucher-table {
+    min-width: 0 !important;
+  }
+
+  body.is-printing-voucher .sale-voucher .voucher-table th,
+  body.is-printing-voucher .sale-voucher .voucher-table td {
+    padding: 6px 5px !important;
+    font-size: 10px !important;
+  }
+}
