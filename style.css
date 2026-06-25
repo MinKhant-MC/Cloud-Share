@@ -5158,7 +5158,7 @@ textarea::placeholder {
 }
 
 .primary-button {
-  color: #ffffff !important;
+  color: #000000da !important;
 }
 
 .ghost-button,
