@@ -1236,6 +1236,40 @@
     handleProductChange();
   }
 
+  // ================================
+  // FIX: Auto-fill after barcode scan
+  // ================================
+
+  /**
+   * After a product is selected via barcode scan,
+   * automatically set quantity to 1 so the sale form is complete.
+   */
+  function setDefaultQuantityAfterScan() {
+    var quantityInput = byId('soldQuantity');
+    if (quantityInput) {
+      quantityInput.value = 1;
+      calculateSale();
+    }
+  }
+
+  /**
+   * If a variant (colour or size) has exactly one active option,
+   * select it automatically – makes “all places” auto-filled.
+   */
+  function autoSelectSingleVariant(type) {
+    var select = byId(type === 'color' ? 'saleColor' : 'saleSize');
+    if (!select || select.options.length !== 2) {
+      // First option is the placeholder, second would be the only real one
+      return;
+    }
+    // Select the second (index 1) option
+    select.value = select.options[1].value;
+    // Manually trigger a change event so that calculateSale() runs
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  // ================================
+
   function handleBarcodeSearchInput(shouldSelectPartial) {
     var input = byId('saleBarcodeSearch');
     var query = getSaleBarcodeSearchQuery();
@@ -1249,6 +1283,7 @@
     exactProduct = findProductByBarcode(query);
     if (exactProduct) {
       selectProduct(exactProduct);
+      setDefaultQuantityAfterScan();        // ★ Auto-fill quantity
       setMessage('Barcode ဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
       return;
     }
@@ -1263,6 +1298,7 @@
 
       if (visibleProducts.length === 1) {
         selectProduct(visibleProducts[0]);
+        setDefaultQuantityAfterScan();    // ★ Auto-fill quantity
         setMessage('Barcode ရှာဖွေမှုဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
         return;
       }
@@ -1421,7 +1457,7 @@
         return startWithConstraints(fallbackConstraints)
           .catch(function () {
             if (typeof zxingReader.decodeFromVideoDevice !== 'function') {
-              throw new Error('Camera barcode scan á€™á€›á€•á€«á‹ Barcode á€€á€­á€¯ á€›á€­á€¯á€€á€ºá€‘á€Šá€·á€ºá€•á€«á‹');
+              throw new Error('Camera barcode scan မရပါ။ Barcode ကို ရိုက်ထည့်ပါ။');
             }
 
             return zxingReader.decodeFromVideoDevice(undefined, video, function (result) {
@@ -1701,6 +1737,11 @@
     selectedProduct = productId ? findProduct(productId) : null;
     renderVariantSelect('color');
     renderVariantSelect('size');
+
+    // ★ Auto-select single variants if only one option exists (fills all places)
+    autoSelectSingleVariant('color');
+    autoSelectSingleVariant('size');
+
     renderSelectedProduct();
     calculateSale();
     setMessage('');
