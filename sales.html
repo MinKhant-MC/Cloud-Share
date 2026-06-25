@@ -41,7 +41,7 @@
             <h2>ရောင်းချမှုထည့်ရန်</h2>
           </div>
 
-          <form id="saleForm" class="form-stack">
+          <form id="saleForm" class="form-stack" novalidate>
             <div class="field">
               <label for="saleCustomerName">ဖောက်သည်အမည် (မထည့်လည်းရ)</label>
               <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="C00001">
@@ -71,7 +71,7 @@
 
             <div class="field">
               <label for="saleProduct">ကုန်ပစ္စည်း</label>
-              <select id="saleProduct" name="product_id" required>
+              <select id="saleProduct" name="product_id">
                 <option value="">ရွေးချယ်ရန်</option>
               </select>
             </div>
@@ -114,6 +114,14 @@
               <div class="field">
                 <label for="saleDate">ရက်စွဲ</label>
                 <input id="saleDate" name="sale_date" type="date" >
+              </div>
+              <div class="field">
+                <label for="salePaymentMethod">Payment</label>
+                <select id="salePaymentMethod" name="payment_method">
+                  <option value="Cash">Cash</option>
+                  <option value="KBZ Pay">KBZ Pay</option>
+                  <option value="Wave Pay">Wave Pay</option>
+                </select>
               </div>
             </div>
 
@@ -216,12 +224,13 @@
                 <th>အရေအတွက်</th>
                 <th>စုစုပေါင်းဝင်ငွေ</th>
                 <th>အမြတ်</th>
-                <th>ဘောင်ချာ</th>
+                <th>Payment</th>
+                <th>လုပ်ဆောင်ချက်</th>
               </tr>
             </thead>
             <tbody id="salesTable">
               <tr>
-                <td colspan="8">ဒေတာမရှိပါ</td>
+                <td colspan="9">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -251,6 +260,8 @@
   <script src="auth.js"></script>
   <script src="i18n.js"></script>
   <script src="vendor/zxing-browser.min.js"></script>
+  <script src="table-view.js"></script>
   <script src="sales.js"></script>
+  <script src="floating-assistant.js"></script>
 </body>
 </html>
