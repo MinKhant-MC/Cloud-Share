@@ -13,6 +13,10 @@
     size: []
   };
 
+  function isStaffRole() {
+    return Boolean(window.MMC_AUTH && typeof window.MMC_AUTH.isStaffRole === 'function' && window.MMC_AUTH.isStaffRole());
+  }
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -560,6 +564,16 @@
 
       tableBody.appendChild(row);
     });
+
+    if (isStaffRole()) {
+      tableBody.querySelectorAll('.table-actions').forEach(function (actions) {
+        var cell = actions.parentElement;
+        actions.remove();
+        if (cell) {
+          cell.textContent = '-';
+        }
+      });
+    }
   }
 
   function renderProducts() {
@@ -901,6 +915,11 @@
 
     event.preventDefault();
 
+    if (isStaffRole()) {
+      setMessage('Sale staff cannot add or edit products.', 'is-danger');
+      return;
+    }
+
     if (!api) {
       setMessage('API ချိတ်ဆက်မှု မရှိပါ။', 'is-danger');
       return;
@@ -950,6 +969,11 @@
   }
 
   function deleteProduct(product) {
+    if (isStaffRole()) {
+      window.alert('Sale staff cannot delete products.');
+      return;
+    }
+
     var productName = product.product_name || '';
     var confirmed = window.confirm('ဖျက်ရန် သေချာပါသလား။ ' + productName);
 
@@ -985,7 +1009,16 @@
     var sizeInput = byId('productSizeNew');
 
     if (openButton) {
+      if (isStaffRole()) {
+        openButton.hidden = true;
+      }
+
       openButton.addEventListener('click', function () {
+        if (isStaffRole()) {
+          setMessage('Sale staff cannot add products.', 'is-danger');
+          return;
+        }
+
         openProductDialog(null);
       });
     }
