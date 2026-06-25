@@ -606,6 +606,76 @@
     return row;
   }
 
+
+  function createViewCell(onClick) {
+    if (window.MMC_TABLE_VIEW && typeof window.MMC_TABLE_VIEW.createViewCell === 'function') {
+      return window.MMC_TABLE_VIEW.createViewCell(onClick, 'ကြည့်ရန်');
+    }
+
+    var cell = document.createElement('td');
+    var button = document.createElement('button');
+    button.className = 'small-button icon-view';
+    button.type = 'button';
+    button.textContent = 'ကြည့်ရန်';
+    button.addEventListener('click', onClick);
+    cell.appendChild(button);
+    cell.setAttribute('data-label', 'ကြည့်ရန်');
+    return cell;
+  }
+
+  function openReportView(title, fields) {
+    if (!window.MMC_TABLE_VIEW) {
+      return;
+    }
+
+    window.MMC_TABLE_VIEW.open(title, [
+      {
+        title: 'အသေးစိတ်',
+        fields: fields
+      }
+    ]);
+  }
+
+  function openLowStockView(product) {
+    openReportView('လက်ကျန်နည်းနေသောပစ္စည်း - ' + (product.product_name || product.product_id || '-'), [
+      { label: 'ကုန်ပစ္စည်း ID', value: product.product_id || '-' },
+      { label: 'ကုန်ပစ္စည်းအမည်', value: product.product_name || '-' },
+      { label: 'အရေအတွက်', value: formatNumber(product.quantity) },
+      { label: 'သတ်မှတ်ချက်', value: formatNumber(product.low_stock_alert) }
+    ]);
+  }
+
+  function openRestockView(item) {
+    openReportView('Restock အသေးစိတ် - ' + (item.product_name || item.product_id || '-'), [
+      { label: 'ကုန်ပစ္စည်း ID', value: item.product_id || '-' },
+      { label: 'ကုန်ပစ္စည်း', value: item.product_name || '-' },
+      { label: 'လက်ကျန်', value: formatNumber(item.quantity) },
+      { label: 'နေ့စဉ်ရောင်းအား', value: formatNumber(item.avg_daily_sold) },
+      { label: 'ကျန်နိုင်သည့်ရက်', value: item.days_left === '' ? '-' : formatNumber(item.days_left) },
+      { label: 'ပြန်မှာရန်', value: formatNumber(item.suggested_reorder_qty) }
+    ]);
+  }
+
+  function openExpiryView(item) {
+    openReportView('သက်တမ်းကုန်အသေးစိတ် - ' + (item.product_name || item.product_id || '-'), [
+      { label: 'ကုန်ပစ္စည်း ID', value: item.product_id || '-' },
+      { label: 'ကုန်ပစ္စည်း', value: item.product_name || '-' },
+      { label: 'သက်တမ်းကုန်ရက်', value: item.expiry_date || '-' },
+      { label: 'ကျန်ရက်', value: formatNumber(item.days_remaining) },
+      { label: 'အကြံပြုချက်', value: item.discount_suggestion || '-' }
+    ]);
+  }
+
+  function openProfitView(item) {
+    openReportView('အမြတ်အသေးစိတ် - ' + (item.product_name || item.product_id || '-'), [
+      { label: 'ကုန်ပစ္စည်း ID', value: item.product_id || '-' },
+      { label: 'ကုန်ပစ္စည်း', value: item.product_name || '-' },
+      { label: 'ဝင်ငွေ', value: formatNumber(item.total_income) },
+      { label: 'အမြတ်', value: formatNumber(item.profit) },
+      { label: 'မှတ်ချက်', value: item.reason || '-' }
+    ]);
+  }
+
   function renderLowStockTable(products) {
     var tableBody = byId('reportLowStockTable');
 
@@ -616,7 +686,7 @@
     clearElement(tableBody);
 
     if (!products || !products.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ'));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 4));
       return;
     }
 
@@ -628,6 +698,9 @@
       row.appendChild(createCell(product.product_name || 'ကုန်ပစ္စည်းအမည်', 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(quantityCell);
       row.appendChild(createCell(formatNumber(product.low_stock_alert), 'သတ်မှတ်ချက်'));
+      row.appendChild(createViewCell(function () {
+        openLowStockView(product);
+      }));
       tableBody.appendChild(row);
     });
   }
@@ -642,7 +715,7 @@
     clearElement(tableBody);
 
     if (!items || !items.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 5));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 6));
       return;
     }
 
@@ -654,6 +727,9 @@
       row.appendChild(createCell(formatNumber(item.avg_daily_sold), 'နေ့စဉ်ရောင်းအား'));
       row.appendChild(createCell(item.days_left === '' ? '-' : formatNumber(item.days_left), 'ကျန်နိုင်သည့်ရက်'));
       row.appendChild(createCell(formatNumber(item.suggested_reorder_qty), 'ပြန်မှာရန်'));
+      row.appendChild(createViewCell(function () {
+        openRestockView(item);
+      }));
       tableBody.appendChild(row);
     });
   }
@@ -668,7 +744,7 @@
     clearElement(tableBody);
 
     if (!items || !items.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 4));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 5));
       return;
     }
 
@@ -684,6 +760,9 @@
       row.appendChild(createCell(item.expiry_date || '-', 'သက်တမ်းကုန်ရက်'));
       row.appendChild(daysCell);
       row.appendChild(createCell(item.discount_suggestion || '-', 'အကြံပြုချက်'));
+      row.appendChild(createViewCell(function () {
+        openExpiryView(item);
+      }));
       tableBody.appendChild(row);
     });
   }
@@ -699,7 +778,7 @@
     clearElement(tableBody);
 
     if (!items.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 4));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 5));
       return;
     }
 
@@ -710,6 +789,9 @@
       row.appendChild(createCell(formatNumber(item.total_income), 'ဝင်ငွေ'));
       row.appendChild(createCell(formatNumber(item.profit), 'အမြတ်'));
       row.appendChild(createCell(item.reason || '-', 'မှတ်ချက်'));
+      row.appendChild(createViewCell(function () {
+        openProfitView(item);
+      }));
       tableBody.appendChild(row);
     });
   }
