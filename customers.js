@@ -136,6 +136,75 @@
     return row;
   }
 
+
+  function openCustomerView(customer) {
+    if (!window.MMC_TABLE_VIEW || !customer) {
+      return;
+    }
+
+    window.MMC_TABLE_VIEW.open('ဖောက်သည်အသေးစိတ် - ' + (customer.customer_name || '-'), [
+      {
+        title: 'ဖောက်သည်အချက်အလက်',
+        fields: [
+          { label: 'ဖောက်သည်', value: customer.customer_name || '-' },
+          { label: 'ဝယ်ယူအကြိမ်', value: formatNumber(customer.sale_count) },
+          { label: 'ပစ္စည်းအရေအတွက်', value: formatNumber(customer.sold_quantity) },
+          { label: 'ဆိုင်ကုန်ကျစရိတ်', value: formatNumber(customer.total_cost) },
+          { label: 'ကျသင့်ငွေ', value: formatNumber(customer.total_income) },
+          { label: 'အမြတ်', value: formatNumber(customer.profit) },
+          { label: 'နောက်ဆုံးရက်', value: customer.last_sale_date || '-' }
+        ]
+      },
+      {
+        title: 'ယူထားသောပစ္စည်းများ',
+        fields: [
+          { label: 'ပစ္စည်းများ', value: (customer.product_list || []).map(function (product, index) {
+            return (index + 1) + '. ' + (product.product_name || '-') + ' | ' +
+              (product.variant || '-') + ' | Qty: ' + formatNumber(product.sold_quantity) +
+              ' | Income: ' + formatNumber(product.total_income);
+          }) }
+        ]
+      }
+    ]);
+  }
+
+  function openCustomerProductView(customer, product) {
+    if (!window.MMC_TABLE_VIEW || !product) {
+      return;
+    }
+
+    window.MMC_TABLE_VIEW.open('ပစ္စည်းအသေးစိတ် - ' + (product.product_name || '-'), [
+      {
+        title: customer ? (customer.customer_name || 'ဖောက်သည်') : 'ဖောက်သည်',
+        fields: [
+          { label: 'ကုန်ပစ္စည်း ID', value: product.product_id || '-' },
+          { label: 'ကုန်ပစ္စည်း', value: product.product_name || '-' },
+          { label: 'အရောင်/အရွယ်', value: product.variant || '-' },
+          { label: 'အရေအတွက်', value: formatNumber(product.sold_quantity) },
+          { label: 'ဆိုင်ကုန်ကျစရိတ်', value: formatNumber(product.total_cost) },
+          { label: 'ကျသင့်ငွေ', value: formatNumber(product.total_income) },
+          { label: 'အမြတ်', value: formatNumber(product.profit) }
+        ]
+      }
+    ]);
+  }
+
+  function createViewCell(onClick, label) {
+    if (window.MMC_TABLE_VIEW && typeof window.MMC_TABLE_VIEW.createViewCell === 'function') {
+      return window.MMC_TABLE_VIEW.createViewCell(onClick, label || 'ကြည့်ရန်');
+    }
+
+    var cell = document.createElement('td');
+    var button = document.createElement('button');
+    button.className = 'small-button icon-view';
+    button.type = 'button';
+    button.textContent = 'ကြည့်ရန်';
+    button.addEventListener('click', onClick);
+    cell.appendChild(button);
+    cell.setAttribute('data-label', label || 'ကြည့်ရန်');
+    return cell;
+  }
+
   function getCachedSales() {
     return cache && typeof cache.getSales === 'function' ? cache.getSales() : [];
   }
@@ -322,7 +391,7 @@
       setText('customerDetailMeta', 'ဖောက်သည်ရွေးချယ်ပါ');
       setText('detailQuantity', '0');
       setText('detailIncome', '0');
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 4));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 5));
       return;
     }
 
@@ -332,7 +401,7 @@
     setText('detailIncome', formatNumber(customer.total_income));
 
     if (!customer.product_list.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 4));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 5));
       return;
     }
 
@@ -342,6 +411,9 @@
       row.appendChild(createCell(product.variant, 'အရောင်/အရွယ်'));
       row.appendChild(createCell(formatNumber(product.sold_quantity), 'အရေအတွက်'));
       row.appendChild(createCell(formatNumber(product.total_income), 'ကျသင့်ငွေ'));
+      row.appendChild(createViewCell(function () {
+        openCustomerProductView(customer, product);
+      }, 'ကြည့်ရန်'));
       tableBody.appendChild(row);
     });
   }
@@ -363,6 +435,7 @@
     button.textContent = 'ကြည့်ရန်';
     button.addEventListener('click', function () {
       selectCustomer(customer.key);
+      openCustomerView(customer);
     });
 
     cell.appendChild(button);
