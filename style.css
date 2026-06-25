@@ -6035,3 +6035,78 @@ textarea::placeholder {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ============================================================
+   SALE DATE MOBILE WIDTH FIX 2026-06-25
+   Fixes iPhone date input going outside the sale form.
+   Put this at the END of style.css.
+   ============================================================ */
+@media (max-width: 780px) {
+  .app-page[data-page="sales"] .form-stack,
+  .app-page[data-page="sales"] .form-grid,
+  .app-page[data-page="sales"] .form-grid .field {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .app-page[data-page="sales"] .form-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .app-page[data-page="sales"] .field input,
+  .app-page[data-page="sales"] .field select,
+  .app-page[data-page="sales"] #saleDate,
+  .app-page[data-page="sales"] input[type="date"] {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    overflow: hidden !important;
+  }
+
+  .app-page[data-page="sales"] #saleDate {
+    text-align: center !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .app-page[data-page="sales"] #saleDate::-webkit-date-and-time-value,
+  .app-page[data-page="sales"] #saleDate::-webkit-datetime-edit,
+  .app-page[data-page="sales"] #saleDate::-webkit-datetime-edit-fields-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+
+  .app-page[data-page="sales"] #saleDate::-webkit-calendar-picker-indicator {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-page[data-page="sales"] .content {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .app-page[data-page="sales"] .panel {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .app-page[data-page="sales"] #saleDate {
+    font-size: 16px !important;
+  }
+}
