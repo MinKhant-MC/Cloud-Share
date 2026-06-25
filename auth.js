@@ -112,6 +112,7 @@
     var primaryColor;
     var accentColor;
     var backgroundColor;
+    var backgroundImageUrl;
     var root = document.documentElement;
 
     if (typeof settings === 'string') {
@@ -123,6 +124,7 @@
     primaryColor = normalizeHexColor(settings.primary_color || settings.theme_color);
     accentColor = normalizeHexColor(settings.accent_color);
     backgroundColor = normalizeHexColor(settings.background_color);
+    backgroundImageUrl = String(settings.background_image_url || '').trim();
 
     if (primaryColor) {
       applyThemeColor(primaryColor);
@@ -145,6 +147,10 @@
       if (backgroundRgb) {
         root.style.setProperty('--color-bg-rgb', backgroundRgb.r + ', ' + backgroundRgb.g + ', ' + backgroundRgb.b);
       }
+    }
+
+    if (root) {
+      root.style.setProperty('--app-bg-image', backgroundImageUrl ? 'url("' + backgroundImageUrl.replace(/"/g, '\\"') + '")' : 'none');
     }
   }
 
@@ -255,6 +261,13 @@
       .then(function (data) {
         var settings = data && data.settings ? data.settings : {};
         var shopName = settings.shop_name || 'ဆိုင်အမည်';
+
+        var role = String(settings.role || '').trim().toLowerCase();
+
+        if (role === 'admin' || role === 'staff') {
+          localStorage.setItem(keys.ROLE, role);
+          applyRoleAccess();
+        }
 
         applyThemeColors(settings);
         setText('shopName', shopName);
