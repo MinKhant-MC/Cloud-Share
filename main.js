@@ -20,14 +20,6 @@
     }
   }
 
-  function t(key, fallback) {
-    if (window.MMC_I18N && typeof window.MMC_I18N.translate === 'function') {
-      return window.MMC_I18N.translate(key);
-    }
-
-    return fallback || key;
-  }
-
   function setMessage(id, message, type) {
     var element = byId(id);
 
@@ -150,367 +142,6 @@
     });
   }
 
-  function getCssColor(name, fallback) {
-    var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return value || fallback;
-  }
-
-  function addDays(date, amount) {
-    var next = new Date(date.getTime());
-    next.setDate(next.getDate() + amount);
-    return next;
-  }
-
-  function formatChartDate(date) {
-    return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
-  }
-
-  function getLastSevenDayTrend(sales) {
-    var today = new Date();
-    var days = [];
-    var map = {};
-    var saleDays = [];
-    var hasRecentSales = false;
-
-    sales = Array.isArray(sales) ? sales : [];
-
-    for (var i = 6; i >= 0; i -= 1) {
-      var date = addDays(today, -i);
-      var key = formatChartDate(date);
-      map[key] = {
-        label: String(date.getDate()),
-        income: 0,
-        profit: 0
-      };
-      days.push(map[key]);
-    }
-
-    sales.forEach(function (sale) {
-      var key = normalizeDate(sale.sale_date);
-      if (key && saleDays.indexOf(key) === -1) {
-        saleDays.push(key);
-      }
-      if (map[key]) {
-        map[key].income += toNumber(sale.total_income);
-        map[key].profit += toNumber(sale.profit);
-        hasRecentSales = true;
-      }
-    });
-
-    if (!hasRecentSales && saleDays.length) {
-      saleDays.sort();
-      days = [];
-      map = {};
-
-      saleDays.slice(-7).forEach(function (key) {
-        map[key] = {
-          label: String(Number(key.substring(8, 10)) || key.substring(5)),
-          income: 0,
-          profit: 0
-        };
-        days.push(map[key]);
-      });
-
-      sales.forEach(function (sale) {
-        var key = normalizeDate(sale.sale_date);
-        if (map[key]) {
-          map[key].income += toNumber(sale.total_income);
-          map[key].profit += toNumber(sale.profit);
-        }
-      });
-    }
-
-    return days;
-  }
-
-  function getDaySummary(sales, offset) {
-    var date = addDays(new Date(), offset || 0);
-    var key = formatChartDate(date);
-
-    return summarizeSales((sales || []).filter(function (sale) {
-      return normalizeDate(sale.sale_date) === key;
-    }));
-  }
-
-  function getMonthSummary(sales, offset) {
-    var date = new Date();
-    var monthKey;
-
-    date.setMonth(date.getMonth() + (offset || 0));
-    monthKey = date.getFullYear() + '-' + pad2(date.getMonth() + 1);
-
-    return summarizeSales((sales || []).filter(function (sale) {
-      return normalizeDate(sale.sale_date).substring(0, 7) === monthKey;
-    }));
-  }
-
-  function percentChange(current, previous) {
-    current = toNumber(current);
-    previous = toNumber(previous);
-
-    if (!previous && current > 0) {
-      return 100;
-    }
-
-    if (!previous) {
-      return 0;
-    }
-
-    return ((current - previous) / Math.abs(previous)) * 100;
-  }
-
-  function formatGrowth(value) {
-    var number = Number.isFinite(value) ? value : 0;
-    var icon = number < 0 ? '↘ ' : '↗ ';
-
-    return icon + Math.abs(number).toFixed(1).replace(/\.0$/, '') + '%';
-  }
-
-  function setGrowthBadge(id, value) {
-    var element = byId(id);
-
-    if (!element) {
-      return;
-    }
-
-    element.textContent = formatGrowth(value);
-    element.classList.toggle('is-down', value < 0);
-  }
-
-  function drawRoundedLabel(context, text, x, y) {
-    var metrics;
-    var width;
-    var height = 30;
-    var radius = 9;
-
-    context.save();
-    context.font = '800 15px Arial, sans-serif';
-    metrics = context.measureText(text);
-    width = metrics.width + 22;
-    x = Math.max(10, Math.min(x - width / 2, context.canvas.width - width - 10));
-    y = Math.max(10, y - 42);
-    context.fillStyle = 'rgba(229, 255, 82, 0.94)';
-    context.beginPath();
-    context.moveTo(x + radius, y);
-    context.lineTo(x + width - radius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + radius);
-    context.lineTo(x + width, y + height - radius);
-    context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    context.lineTo(x + radius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - radius);
-    context.lineTo(x, y + radius);
-    context.quadraticCurveTo(x, y, x + radius, y);
-    context.closePath();
-    context.fill();
-    context.fillStyle = '#343840';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(text, x + width / 2, y + height / 2 + 1);
-    context.restore();
-  }
-
-  function drawDashboardTrendChart(sales) {
-    var canvas = byId('dashboardTrendChart');
-    var trend;
-    var maxValue;
-    var rect;
-    var ratio;
-    var context;
-    var width;
-    var height;
-    var paddingX = 48;
-    var paddingTop = 30;
-    var paddingBottom = 42;
-    var chartWidth;
-    var chartHeight;
-    var yMax;
-    var highlight;
-
-    if (!canvas) {
-      return;
-    }
-
-    trend = getLastSevenDayTrend(Array.isArray(sales) ? sales : getCachedSales());
-    maxValue = trend.reduce(function (max, item) {
-      return Math.max(max, item.income, item.profit);
-    }, 0);
-    rect = canvas.getBoundingClientRect();
-    ratio = window.devicePixelRatio || 1;
-    width = Math.max(320, Math.round((rect.width || 680) * ratio));
-    height = Math.max(180, Math.round((rect.height || 260) * ratio));
-    canvas.width = width;
-    canvas.height = height;
-    context = canvas.getContext('2d');
-
-    if (!context) {
-      return;
-    }
-
-    context.setTransform(ratio, 0, 0, ratio, 0, 0);
-    width = width / ratio;
-    height = height / ratio;
-    chartWidth = width - paddingX * 2;
-    chartHeight = height - paddingTop - paddingBottom;
-    yMax = Math.max(1, Math.ceil((maxValue || 1) / 1000) * 1000);
-
-    context.clearRect(0, 0, width, height);
-    context.save();
-    context.lineWidth = 1.4;
-    context.strokeStyle = 'rgba(46, 50, 57, 0.10)';
-
-    for (var gridX = 0; gridX < trend.length; gridX += 1) {
-      var xLine = paddingX + (chartWidth / Math.max(1, trend.length - 1)) * gridX;
-      context.beginPath();
-      context.moveTo(xLine, paddingTop);
-      context.lineTo(xLine, height - paddingBottom);
-      context.stroke();
-    }
-
-    context.fillStyle = '#747985';
-    context.font = '700 12px Arial, sans-serif';
-    context.textAlign = 'right';
-    context.textBaseline = 'middle';
-
-    for (var gridY = 0; gridY <= 4; gridY += 1) {
-      var value = yMax - (yMax / 4) * gridY;
-      var yLine = paddingTop + (chartHeight / 4) * gridY;
-      context.fillText(value >= 1000 ? Math.round(value / 1000) + 'k' : String(Math.round(value)), paddingX - 12, yLine);
-    }
-
-    function point(item, index, key) {
-      var x = paddingX + (chartWidth / Math.max(1, trend.length - 1)) * index;
-      var y = height - paddingBottom - (toNumber(item[key]) / yMax) * chartHeight;
-      return { x: x, y: y };
-    }
-
-    function drawLine(key, color) {
-      var points = trend.map(function (item, index) {
-        return point(item, index, key);
-      });
-
-      if (!points.length) {
-        return;
-      }
-
-      context.beginPath();
-      points.forEach(function (pt, index) {
-        var previous;
-        var next;
-        var cp1x;
-        var cp2x;
-
-        if (index === 0) {
-          context.moveTo(pt.x, pt.y);
-        } else {
-          previous = points[index - 1];
-          next = points[index + 1] || pt;
-          cp1x = previous.x + (pt.x - previous.x) * 0.48;
-          cp2x = pt.x - (next.x - previous.x) * 0.18;
-          context.bezierCurveTo(cp1x, previous.y, cp2x, pt.y, pt.x, pt.y);
-        }
-      });
-      context.lineWidth = 3.4;
-      context.lineCap = 'round';
-      context.lineJoin = 'round';
-      context.strokeStyle = color;
-      context.shadowColor = color;
-      context.shadowBlur = 5;
-      context.shadowOffsetY = 0;
-      context.stroke();
-      context.shadowBlur = 0;
-    }
-
-    drawLine('income', '#ffb33f');
-    drawLine('profit', '#8b63ff');
-
-    context.fillStyle = '#667085';
-    context.font = '800 12px Arial, sans-serif';
-    context.textAlign = 'center';
-    context.textBaseline = 'alphabetic';
-    trend.forEach(function (item, index) {
-      var labelPoint = point(item, index, 'income');
-      context.fillText(item.label, labelPoint.x, height - 12);
-    });
-
-    highlight = trend.reduce(function (best, item, index) {
-      return toNumber(item.income) > toNumber(best.item.income) ? { item: item, index: index } : best;
-    }, { item: trend[0] || { income: 0 }, index: 0 });
-
-    if (highlight && toNumber(highlight.item.income) > 0) {
-      var highlightPoint = point(highlight.item, highlight.index, 'income');
-      context.fillStyle = '#ffb33f';
-      context.beginPath();
-      context.arc(highlightPoint.x, highlightPoint.y, 4, 0, Math.PI * 2);
-      context.fill();
-      drawRoundedLabel(context, formatNumber(highlight.item.income), highlightPoint.x, highlightPoint.y);
-    }
-
-    context.restore();
-  }
-
-  function getTopProducts(sales) {
-    var grouped = {};
-
-    (sales || []).forEach(function (sale) {
-      var key = sale.product_id || sale.product_name || 'item';
-
-      if (!grouped[key]) {
-        grouped[key] = {
-          product_id: sale.product_id || '',
-          product_name: sale.product_name || '-',
-          sold_quantity: 0,
-          total_income: 0
-        };
-      }
-
-      grouped[key].sold_quantity += toNumber(sale.sold_quantity);
-      grouped[key].total_income += toNumber(sale.total_income);
-    });
-
-    return Object.keys(grouped).map(function (key) {
-      return grouped[key];
-    }).sort(function (a, b) {
-      return b.total_income - a.total_income;
-    }).slice(0, 5);
-  }
-
-  function renderTopProducts(sales) {
-    var container = byId('dashboardTopProducts');
-    var items = getTopProducts(sales || getCachedSales());
-
-    if (!container) {
-      return;
-    }
-
-    clearElement(container);
-
-    if (!items.length) {
-      var empty = document.createElement('p');
-      empty.className = 'empty-note';
-      empty.textContent = t('noData', 'ဒေတာမရှိပါ');
-      container.appendChild(empty);
-      return;
-    }
-
-    items.forEach(function (item, index) {
-      var row = document.createElement('div');
-      var rank = document.createElement('span');
-      var name = document.createElement('strong');
-      var meta = document.createElement('small');
-
-      row.className = 'compact-product-row';
-      rank.className = 'compact-rank';
-      rank.textContent = String(index + 1);
-      name.textContent = item.product_name || item.product_id || '-';
-      meta.textContent = formatNumber(item.total_income) + ' | ' + formatNumber(item.sold_quantity) + ' ' + t('itemUnit', 'ခု');
-
-      row.appendChild(rank);
-      row.appendChild(name);
-      row.appendChild(meta);
-      container.appendChild(row);
-    });
-  }
-
   function createCell(text, label) {
     var cell = document.createElement('td');
     cell.textContent = text === undefined || text === null ? '' : String(text);
@@ -533,7 +164,7 @@
     return row;
   }
 
-  function renderLowStockTableLegacy_(products) {
+  function renderLowStockTable(products) {
     var tableBody = byId('lowStockTable');
 
     if (!tableBody) {
@@ -555,32 +186,6 @@
       row.appendChild(createCell(product.product_name || 'ကုန်ပစ္စည်းအမည်', 'ကုန်ပစ္စည်းအမည်'));
       row.appendChild(quantityCell);
       row.appendChild(createCell(formatNumber(product.low_stock_alert), 'သတ်မှတ်ချက်'));
-      tableBody.appendChild(row);
-    });
-  }
-
-  function renderLowStockTable(products) {
-    var tableBody = byId('lowStockTable');
-
-    if (!tableBody) {
-      return;
-    }
-
-    clearElement(tableBody);
-
-    if (!products || !products.length) {
-      tableBody.appendChild(createEmptyRow(t('noData', 'ဒေတာမရှိပါ')));
-      return;
-    }
-
-    products.forEach(function (product) {
-      var row = document.createElement('tr');
-      var quantityCell = createCell(formatNumber(product.quantity), t('quantity', 'အရေအတွက်'));
-
-      quantityCell.classList.add('is-danger');
-      row.appendChild(createCell(product.product_name || t('productName', 'ကုန်ပစ္စည်းအမည်'), t('productName', 'ကုန်ပစ္စည်းအမည်')));
-      row.appendChild(quantityCell);
-      row.appendChild(createCell(formatNumber(product.low_stock_alert), t('lowStock', 'လက်ကျန်နည်းနေပါသည်')));
       tableBody.appendChild(row);
     });
   }
@@ -642,30 +247,20 @@
     var daily = reports.daily || {};
     var monthly = reports.monthly || {};
     var settings = dashboard && dashboard.settings ? dashboard.settings : {};
-    var sales = getCachedSales();
-    var yesterday = getDaySummary(sales, -1);
-    var previousMonth = getMonthSummary(sales, -1);
 
     if (settings.shop_name) {
       setText('shopName', settings.shop_name);
     }
 
     setText('dashboardDate', reports.generated_at ? 'ထုတ်ထားချိန်: ' + reports.generated_at : todayString());
-    setText('dashboardDate', reports.generated_at ? t('generatedAt', 'ထုတ်ထားချိန်') + ': ' + reports.generated_at : todayString());
     setText('todayIncome', formatNumber(daily.total_income));
     setText('todayProfit', formatNumber(daily.profit));
     setText('monthIncome', formatNumber(monthly.total_income));
     setText('monthProfit', formatNumber(monthly.profit));
-    setGrowthBadge('todayIncomeGrowth', percentChange(daily.total_income, yesterday.total_income));
-    setGrowthBadge('todayProfitGrowth', percentChange(daily.profit, yesterday.profit));
-    setGrowthBadge('monthIncomeGrowth', percentChange(monthly.total_income, previousMonth.total_income));
-    setGrowthBadge('monthProfitGrowth', percentChange(monthly.profit, previousMonth.profit));
     setText('productCount', formatNumber(dashboard ? dashboard.product_count : 0));
     setText('stockQuantity', formatNumber(dashboard ? dashboard.stock_quantity : 0));
     setText('salesCount', formatNumber(dashboard ? dashboard.sales_count : 0));
     renderLowStockTable(dashboard && dashboard.low_stock_products ? dashboard.low_stock_products : []);
-    drawDashboardTrendChart(sales);
-    renderTopProducts(sales);
   }
 
   function loadDashboard() {
@@ -674,9 +269,6 @@
       month: currentMonthString(),
       year: currentYearString()
     };
-
-    drawDashboardTrendChart(getCachedSales());
-    renderTopProducts(getCachedSales());
 
     if (hasDashboardCache()) {
       renderDashboard(buildDashboardFromCache());
@@ -856,21 +448,8 @@
     loadSettings();
   }
 
-  function bindDashboardInteractions() {
-    window.addEventListener('resize', function () {
-      drawDashboardTrendChart(getCachedSales());
-    });
-
-    window.addEventListener('mmc:languagechange', function () {
-      if (pageName() === 'dashboard') {
-        renderDashboard(buildDashboardFromCache());
-      }
-    });
-  }
-
   function initMain() {
     if (pageName() === 'dashboard') {
-      bindDashboardInteractions();
       loadDashboard();
       return;
     }
