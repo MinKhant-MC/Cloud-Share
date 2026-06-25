@@ -19,7 +19,7 @@
     shop_name: '',
     currency: 'MMK'
   };
-  var SALES_COLUMN_COUNT = 8;
+  var SALES_COLUMN_COUNT = 9;
 
   function byId(id) {
     return document.getElementById(id);
@@ -266,6 +266,16 @@
     return cleanOptionName(input ? input.value : '');
   }
 
+  function getSelectedPaymentMethod() {
+    var select = byId('salePaymentMethod');
+    return cleanOptionName(select ? select.value : '') || 'Cash';
+  }
+
+  function getSalePaymentMethod(sale) {
+    var method = cleanOptionName(sale && (sale.payment_method || sale.payment || sale.pay_method));
+    return method || 'Cash';
+  }
+
   function applyShopSettings(settings) {
     settings = settings || {};
     shopSettings.shop_name = cleanOptionName(settings.shop_name) || shopSettings.shop_name;
@@ -334,6 +344,7 @@
     var list = Array.isArray(items) ? items.filter(Boolean) : [];
     var firstSale = list[0] || {};
     var voucherCustomerName = cleanOptionName(customerName) || cleanOptionName(firstSale.customer_name);
+    var voucherPaymentMethod = getSalePaymentMethod(firstSale);
 
     if (!voucherCustomerName) {
       list.some(function (sale) {
@@ -342,10 +353,18 @@
       });
     }
 
+    if (!voucherPaymentMethod) {
+      list.some(function (sale) {
+        voucherPaymentMethod = getSalePaymentMethod(sale);
+        return Boolean(voucherPaymentMethod);
+      });
+    }
+
     return {
       voucher_id: voucherId || cleanOptionName(firstSale.voucher_id) || cleanOptionName(firstSale.sale_id) || ('V-' + Date.now()),
       sale_date: cleanOptionName(firstSale.sale_date) || todayString(),
       customer_name: voucherCustomerName,
+      payment_method: voucherPaymentMethod || 'Cash',
       created_at: new Date().toISOString(),
       items: list
     };
@@ -448,15 +467,18 @@
       '<div><span>ဘောင်ချာနံပါတ်</span><strong>' + escapeHtml(voucher.voucher_id || '-') + '</strong></div>',
       '<div><span>ရက်စွဲ</span><strong>' + escapeHtml(voucher.sale_date || firstSale.sale_date || '-') + '</strong></div>',
       voucher.customer_name ? '<div><span>ဖောက်သည်</span><strong>' + escapeHtml(voucher.customer_name) + '</strong></div>' : '',
+      '<div><span>Payment</span><strong>' + escapeHtml(voucher.payment_method || 'Cash') + '</strong></div>',
       '<div><span>ပစ္စည်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(voucher.items.length)) + '</strong></div>',
       '<div><span>စုစုပေါင်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
       '</div>',
+      '<div class="voucher-table-scroll">',
       '<table class="voucher-table">',
       '<thead><tr><th>ပစ္စည်း</th><th>အရေအတွက်</th><th>ဈေး</th><th>အခွန်</th><th>စုစုပေါင်း</th></tr></thead>',
       '<tbody>',
       buildVoucherRows(voucher.items),
       '</tbody>',
       '</table>',
+      '</div>',
       '<div class="voucher-total-grid">',
       '<div><span>Subtotal</span><strong>' + escapeHtml(formatMoney(totals.subtotal)) + '</strong></div>',
       '<div><span>Discount</span><strong>' + escapeHtml(formatMoney(totals.discount_amount)) + '</strong></div>',
@@ -482,11 +504,11 @@
       '<title>ဘောင်ချာ - ' + escapeHtml(voucher.voucher_id || '') + '</title>',
       '<style>',
       'body{margin:0;padding:18px;background:#eef4f8;color:#111827;font-family:"Myanmar Text","Noto Sans Myanmar",Arial,sans-serif;font-size:13px;line-height:1.5;}',
-      '.sale-voucher{width:min(100%,86mm);margin:0 auto;padding:18px;background:#fff;border:1px solid #d7dde5;border-radius:8px;box-shadow:0 16px 40px rgba(15,23,42,.12)}',
-      '.voucher-brand{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1f6feb}.voucher-brand strong{display:block;font-size:22px;line-height:1.2}.voucher-brand span{color:#667085;font-weight:800}',
-      '.voucher-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.voucher-meta-grid div,.voucher-total-grid div{padding:8px;border:1px solid #d7dde5;border-radius:6px;background:#f8fafc}.voucher-meta-grid span,.voucher-total-grid span{display:block;color:#667085;font-size:11px;font-weight:800}.voucher-meta-grid strong,.voucher-total-grid strong{display:block;overflow-wrap:anywhere}',
-      '.voucher-table{width:100%;table-layout:fixed;border-collapse:collapse;border:1px solid #d7dde5;border-radius:6px;overflow:hidden}.voucher-table th,.voucher-table td{padding:8px;border-bottom:1px solid #d7dde5;text-align:left;vertical-align:top}.voucher-table th{background:#eef3f8;font-size:11px;text-transform:uppercase}.voucher-table td:nth-child(2),.voucher-table td:nth-child(3),.voucher-table td:nth-child(4),.voucher-table td:nth-child(5){text-align:right;font-weight:800}.voucher-item-cell{display:block}.voucher-item-cell strong,.voucher-item-cell span,.voucher-item-cell small{display:block;overflow-wrap:anywhere}.voucher-item-cell span,.voucher-item-cell small{color:#667085;font-size:11px;font-weight:700}.voucher-total-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding:12px;background:#111827;color:#fff;border-radius:8px;font-size:18px;font-weight:900}.voucher-thanks{text-align:center;color:#667085;font-weight:800}',
-      '@media print{body{padding:0;background:#fff}.sale-voucher{width:80mm;border:0;border-radius:0}}',
+      '.sale-voucher{width:min(100%,170mm);margin:0 auto;padding:18px;background:#fff;border:1px solid #d7dde5;border-radius:8px;box-shadow:0 16px 40px rgba(15,23,42,.12);box-sizing:border-box;overflow:hidden}',
+      '.voucher-brand{text-align:center;margin-bottom:14px;padding-bottom:12px;border-bottom:2px solid #1f6feb}.voucher-brand strong{display:block;font-size:22px;line-height:1.2}.voucher-brand span{color:#111827;font-weight:800}',
+      '.voucher-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.voucher-meta-grid div,.voucher-total-grid div{padding:8px;border:1px solid #d7dde5;border-radius:6px;background:#f8fafc}.voucher-meta-grid span,.voucher-total-grid span{display:block;color:#111827;font-size:11px;font-weight:800}.voucher-meta-grid strong,.voucher-total-grid strong{display:block;overflow-wrap:anywhere;color:#000}',
+      '.voucher-table-scroll{width:100%;max-width:100%;overflow-x:auto;border:1px solid #d7dde5;border-radius:6px}.voucher-table{width:100%;min-width:0;max-width:100%;table-layout:fixed;border-collapse:collapse}.voucher-table th,.voucher-table td{box-sizing:border-box;padding:8px;border-bottom:1px solid #d7dde5;text-align:left;vertical-align:top;color:#000;white-space:normal;overflow-wrap:anywhere}.voucher-table th{background:#eef3f8;font-size:11px;text-transform:uppercase}.voucher-table th:nth-child(1),.voucher-table td:nth-child(1){width:42%}.voucher-table th:nth-child(2),.voucher-table td:nth-child(2){width:10%}.voucher-table th:nth-child(3),.voucher-table td:nth-child(3),.voucher-table th:nth-child(4),.voucher-table td:nth-child(4),.voucher-table th:nth-child(5),.voucher-table td:nth-child(5){width:16%;text-align:right;font-weight:800;white-space:nowrap;word-break:normal;overflow-wrap:normal}.voucher-item-cell{display:block}.voucher-item-cell strong,.voucher-item-cell span,.voucher-item-cell small{display:block;overflow-wrap:anywhere}.voucher-item-cell span,.voucher-item-cell small{color:#111827;font-size:11px;font-weight:700}.voucher-total-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.voucher-total{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding:12px;background:#111827;color:#fff;border-radius:8px;font-size:18px;font-weight:900}.voucher-total strong{color:#fff}.voucher-thanks{text-align:center;color:#111827;font-weight:800}',
+      '@media print{body{padding:0;background:#fff}.sale-voucher{width:148mm;border:0;border-radius:0;box-shadow:none}.voucher-table-scroll{overflow:visible}.voucher-table{min-width:0}}',
       '</style>',
       '</head>',
       '<body>',
@@ -807,19 +829,73 @@
     }, 500);
   }
 
+  function getSaleItemViewText(item, index) {
+    return [
+      (index + 1) + '. ' + (item.product_name || item.product_id || '-'),
+      'ID: ' + (item.product_id || '-'),
+      getSaleVariantText(item),
+      'Qty: ' + formatNumber(item.sold_quantity),
+      'Price: ' + formatMoney(item.sell_price),
+      'Total: ' + formatMoney(getSaleTotalIncome(item))
+    ].join(' | ');
+  }
+
+  function openSaleView(sale) {
+    var voucher = normalizeVoucher(sale);
+    var totals = getVoucherTotals(voucher);
+
+    if (!window.MMC_TABLE_VIEW) {
+      return;
+    }
+
+    window.MMC_TABLE_VIEW.open('ရောင်းချမှုအသေးစိတ် - ' + (voucher.voucher_id || '-'), [
+      {
+        title: 'ရောင်းချမှုအချက်အလက်',
+        fields: [
+          { label: 'Sale ID', value: voucher.voucher_id || '-' },
+          { label: 'ရက်စွဲ', value: voucher.sale_date || '-' },
+          { label: 'ဖောက်သည်', value: voucher.customer_name || '-' },
+          { label: 'Payment', value: voucher.payment_method || 'Cash' },
+          { label: 'ပစ္စည်းအရေအတွက်', value: formatNumber(totals.quantity) },
+          { label: 'Subtotal', value: formatMoney(totals.subtotal) },
+          { label: 'Discount', value: formatMoney(totals.discount_amount) },
+          { label: 'Tax', value: formatMoney(totals.tax_amount) },
+          { label: 'စုစုပေါင်းဝင်ငွေ', value: formatMoney(totals.total_income) },
+          { label: 'အမြတ်', value: formatMoney(totals.profit) }
+        ]
+      },
+      {
+        title: 'ပစ္စည်းများ',
+        fields: [
+          { label: 'Items', value: voucher.items.map(getSaleItemViewText) }
+        ]
+      }
+    ]);
+  }
+
   function createVoucherCell(sale) {
     var cell = document.createElement('td');
-    var button = document.createElement('button');
+    var actions = document.createElement('div');
+    var voucherButton = document.createElement('button');
 
-    button.className = 'small-button icon-voucher';
-    button.type = 'button';
-    button.textContent = 'ဘောင်ချာ';
-    button.addEventListener('click', function () {
+    actions.className = 'table-actions';
+
+    if (window.MMC_TABLE_VIEW && typeof window.MMC_TABLE_VIEW.createViewButton === 'function') {
+      actions.appendChild(window.MMC_TABLE_VIEW.createViewButton(function () {
+        openSaleView(sale);
+      }, 'ကြည့်ရန်'));
+    }
+
+    voucherButton.className = 'small-button icon-voucher';
+    voucherButton.type = 'button';
+    voucherButton.textContent = 'ဘောင်ချာ';
+    voucherButton.addEventListener('click', function () {
       showSaleVoucher(sale);
     });
 
-    cell.appendChild(button);
-    return setCellLabel(cell, 'ဘောင်ချာ');
+    actions.appendChild(voucherButton);
+    cell.appendChild(actions);
+    return setCellLabel(cell, 'လုပ်ဆောင်ချက်');
   }
 
   function createNextSaleId(value) {
@@ -1099,7 +1175,8 @@
       profit: taxableSubtotal - totalCost,
       sale_color: selectedColor ? selectedColor.name : '',
       sale_size: selectedSize ? selectedSize.name : '',
-      customer_name: getSaleCustomerName()
+      customer_name: getSaleCustomerName(),
+      payment_method: getSelectedPaymentMethod()
     };
   }
 
@@ -1127,6 +1204,7 @@
       existing.tax_amount = getSaleTaxAmount(existing);
       existing.total_income = getSaleTotalIncome(existing);
       existing.profit = getSaleProfit(existing);
+      existing.payment_method = item.payment_method || existing.payment_method || getSelectedPaymentMethod();
     } else {
       saleCart.push(item);
     }
@@ -1240,35 +1318,25 @@
   // FIX: Auto-fill after barcode scan
   // ================================
 
-  /**
-   * After a product is selected via barcode scan,
-   * automatically set quantity to 1 so the sale form is complete.
-   */
   function setDefaultQuantityAfterScan() {
     var quantityInput = byId('soldQuantity');
+
     if (quantityInput) {
-      quantityInput.value = 1;
+      quantityInput.value = '1';
       calculateSale();
     }
   }
 
-  /**
-   * If a variant (colour or size) has exactly one active option,
-   * select it automatically – makes “all places” auto-filled.
-   */
   function autoSelectSingleVariant(type) {
     var select = byId(type === 'color' ? 'saleColor' : 'saleSize');
+
     if (!select || select.options.length !== 2) {
-      // First option is the placeholder, second would be the only real one
       return;
     }
-    // Select the second (index 1) option
+
     select.value = select.options[1].value;
-    // Manually trigger a change event so that calculateSale() runs
     select.dispatchEvent(new Event('change', { bubbles: true }));
   }
-
-  // ================================
 
   function handleBarcodeSearchInput(shouldSelectPartial) {
     var input = byId('saleBarcodeSearch');
@@ -1283,7 +1351,7 @@
     exactProduct = findProductByBarcode(query);
     if (exactProduct) {
       selectProduct(exactProduct);
-      setDefaultQuantityAfterScan();        // ★ Auto-fill quantity
+      setDefaultQuantityAfterScan();
       setMessage('Barcode ဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
       return;
     }
@@ -1298,7 +1366,7 @@
 
       if (visibleProducts.length === 1) {
         selectProduct(visibleProducts[0]);
-        setDefaultQuantityAfterScan();    // ★ Auto-fill quantity
+        setDefaultQuantityAfterScan();
         setMessage('Barcode ရှာဖွေမှုဖြင့် ရွေးပြီးပါပြီ။', 'is-success');
         return;
       }
@@ -1641,7 +1709,7 @@
     }
 
     field.hidden = false;
-    select.required = true;
+    select.required = false;
 
     options.forEach(function (option) {
       var item = document.createElement('option');
@@ -1737,11 +1805,8 @@
     selectedProduct = productId ? findProduct(productId) : null;
     renderVariantSelect('color');
     renderVariantSelect('size');
-
-    // ★ Auto-select single variants if only one option exists (fills all places)
     autoSelectSingleVariant('color');
     autoSelectSingleVariant('size');
-
     renderSelectedProduct();
     calculateSale();
     setMessage('');
@@ -1775,6 +1840,7 @@
       row.appendChild(createCell(formatNumber(totals.quantity), 'အရေအတွက်'));
       row.appendChild(createCell(formatMoney(totals.total_income), 'စုစုပေါင်းဝင်ငွေ'));
       row.appendChild(createCell(formatMoney(totals.profit), 'အမြတ်'));
+      row.appendChild(createCell(saleGroup.payment_method || 'Cash', 'Payment'));
       row.appendChild(createVoucherCell(saleGroup));
       tableBody.appendChild(row);
     });
@@ -2060,6 +2126,7 @@
       sale_color: sale.sale_color || '',
       sale_size: sale.sale_size || '',
       customer_name: sale.customer_name || '',
+      payment_method: getSalePaymentMethod(sale),
       pending_sync: true
     };
   }
@@ -2103,6 +2170,7 @@
       sale_color: item.sale_color || '',
       sale_size: item.sale_size || '',
       customer_name: cleanOptionName(item.customer_name),
+      payment_method: getSalePaymentMethod(item),
       discount_percent: Math.max(0, toNumber(item.discount_percent)),
       tax_percent: Math.max(0, toNumber(item.tax_percent))
     };
@@ -2114,6 +2182,16 @@
     return items.map(function (item) {
       return Object.assign({}, item, {
         customer_name: customerName || cleanOptionName(item.customer_name)
+      });
+    });
+  }
+
+  function applyCheckoutPaymentMethod(items) {
+    var paymentMethod = getSelectedPaymentMethod();
+
+    return items.map(function (item) {
+      return Object.assign({}, item, {
+        payment_method: paymentMethod || getSalePaymentMethod(item)
       });
     });
   }
@@ -2191,9 +2269,14 @@
         return Promise.resolve(savedSales);
       }
 
-      return api.recordSale(createSalePayloadFromItem(items[index]))
+      var payload = createSalePayloadFromItem(items[index]);
+
+      return api.recordSale(payload)
         .then(function (data) {
           if (data && data.sale) {
+            if (!data.sale.payment_method) {
+              data.sale.payment_method = getSalePaymentMethod(payload);
+            }
             savedSales.push(data.sale);
           }
 
@@ -2302,7 +2385,7 @@
       }
     }
 
-    items = applyCheckoutSaleId(applyCheckoutCustomerName(items));
+    items = applyCheckoutSaleId(applyCheckoutPaymentMethod(applyCheckoutCustomerName(items)));
 
     setFormBusy(true);
     setMessage('ဘောင်ချာ သိမ်းနေပါသည်', 'is-warning');
@@ -2371,6 +2454,7 @@
     var sizeSelect = byId('saleSize');
     var quantityInput = byId('soldQuantity');
     var taxInput = byId('saleTaxPercent');
+    var paymentSelect = byId('salePaymentMethod');
     var customerInput = byId('saleCustomerName');
     var form = byId('saleForm');
     var printVoucherButton = byId('printVoucherButton');
@@ -2415,6 +2499,10 @@
       taxInput.addEventListener('input', calculateSale);
     }
 
+    if (paymentSelect) {
+      paymentSelect.addEventListener('change', calculateSale);
+    }
+
     if (customerInput) {
       customerInput.addEventListener('input', handleCustomerNameInput);
     }
@@ -2428,6 +2516,10 @@
     }
 
     if (form) {
+      form.noValidate = true;
+      form.addEventListener('invalid', function (invalidEvent) {
+        invalidEvent.preventDefault();
+      }, true);
       form.addEventListener('submit', recordSale);
     }
 
