@@ -281,7 +281,7 @@
     removeSessionCache('settings');
   }
 
-  function withSession(data) {
+  function withSession(data, action) {
     var session = getStoredSession();
     var payload = {};
     var key;
@@ -296,6 +296,7 @@
 
     payload.user_id = session.user_id;
     payload.session_token = session.session_token;
+    payload.__action = action || '';
 
     return payload;
   }
@@ -397,7 +398,7 @@
   }
 
   function requestWithSession(action, data, options) {
-    return request(action, withSession(data), options);
+    return request(action, withSession(data, action), options);
   }
 
   window.MMC_CACHE = Object.freeze({
