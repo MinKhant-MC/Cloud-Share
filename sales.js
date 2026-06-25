@@ -203,6 +203,7 @@
     }
 
     products = cachedProducts;
+    renderSaleCategoryFilter();
     renderProductOptions();
     handleProductChange();
     return true;
@@ -615,6 +616,11 @@
     return input ? input.value.trim().toLowerCase() : '';
   }
 
+  function getSaleCategoryFilterValue() {
+    var input = byId('saleCategoryFilter');
+    return input ? input.value.trim().toLowerCase() : '';
+  }
+
   function getProductSearchText(product) {
     return [
       product.product_id,
@@ -630,14 +636,51 @@
 
   function getFilteredSaleProducts() {
     var query = getSaleProductSearchQuery();
-
-    if (!query) {
-      return products.slice();
-    }
+    var category = getSaleCategoryFilterValue();
 
     return products.filter(function (product) {
-      return getProductSearchText(product).indexOf(query) !== -1;
+      var matchesQuery = !query || getProductSearchText(product).indexOf(query) !== -1;
+      var matchesCategory = !category || String(product.category || '').trim().toLowerCase() === category;
+      return matchesQuery && matchesCategory;
     });
+  }
+
+  function renderSaleCategoryFilter() {
+    var select = byId('saleCategoryFilter');
+    var currentValue = select ? select.value : '';
+    var categories;
+    var defaultOption;
+
+    if (!select) {
+      return;
+    }
+
+    categories = products.map(function (product) {
+      return cleanOptionName(product.category);
+    }).filter(Boolean).filter(function (value, index, list) {
+      return list.indexOf(value) === index;
+    }).sort(function (first, second) {
+      return first.localeCompare(second);
+    });
+
+    clearElement(select);
+    defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'All Categories';
+    select.appendChild(defaultOption);
+
+    categories.forEach(function (category) {
+      var option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      select.appendChild(option);
+    });
+
+    if (currentValue && categories.some(function (category) {
+      return category === currentValue;
+    })) {
+      select.value = currentValue;
+    }
   }
 
   function findProductByBarcode(code) {
@@ -1188,6 +1231,11 @@
     }
   }
 
+  function handleCategoryFilterChange() {
+    renderProductOptions();
+    handleProductChange();
+  }
+
   function handleBarcodeSearchInput(shouldSelectPartial) {
     var input = byId('saleBarcodeSearch');
     var query = getSaleBarcodeSearchQuery();
@@ -1352,6 +1400,12 @@
     }
 
     zxingReader = zxingReader || new window.ZXingBrowser.BrowserMultiFormatReader();
+    if (video) {
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('muted', 'true');
+      video.muted = true;
+    }
+
     startWithConstraints = function (constraints) {
       return zxingReader.decodeFromConstraints(constraints, video, function (result) {
         var code = getBarcodeFromZxingResult(result);
@@ -1364,7 +1418,20 @@
 
     return startWithConstraints(preferredConstraints)
       .catch(function () {
-        return startWithConstraints(fallbackConstraints);
+        return startWithConstraints(fallbackConstraints)
+          .catch(function () {
+            if (typeof zxingReader.decodeFromVideoDevice !== 'function') {
+              throw new Error('Camera barcode scan á€™á€›á€•á€«á‹ Barcode á€€á€­á€¯ á€›á€­á€¯á€€á€ºá€‘á€Šá€·á€ºá€•á€«á‹');
+            }
+
+            return zxingReader.decodeFromVideoDevice(undefined, video, function (result) {
+              var deviceCode = getBarcodeFromZxingResult(result);
+
+              if (deviceCode) {
+                handleDetectedBarcode(deviceCode);
+              }
+            });
+          });
       })
       .then(function (controls) {
         zxingScannerControls = controls;
@@ -1401,6 +1468,9 @@
       .then(function (stream) {
         barcodeScannerStream = stream;
         video.srcObject = stream;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('muted', 'true');
+        video.muted = true;
         setBarcodeScannerUi(true);
         return video.play();
       })
@@ -1646,10 +1716,10 @@
 
     clearElement(tableBody);
     groupedSales = getGroupedSales();
-    setText('salesCount', groupedSales.length + ' ??');
+    setText('salesCount', groupedSales.length + ' ခု');
 
     if (!groupedSales.length) {
-      tableBody.appendChild(createEmptyRow('??????????'));
+      tableBody.appendChild(createEmptyRow('ရောင်းချမှုမရှိသေးပါ။'));
       return;
     }
 
@@ -1658,12 +1728,12 @@
       var totals = getVoucherTotals(saleGroup);
 
       row.appendChild(createCell(saleGroup.voucher_id || '-', 'Sale ID'));
-      row.appendChild(createCell(saleGroup.sale_date || '-', '??????'));
-      row.appendChild(createCell(saleGroup.customer_name || '-', '????????'));
+      row.appendChild(createCell(saleGroup.sale_date || '-', 'ရက်စွဲ'));
+      row.appendChild(createCell(saleGroup.customer_name || '-', 'ဖောက်သည်'));
       row.appendChild(createSaleItemsCell(saleGroup.items));
-      row.appendChild(createCell(formatNumber(totals.quantity), '????????'));
-      row.appendChild(createCell(formatNumber(totals.total_income), '????????????????'));
-      row.appendChild(createCell(formatNumber(totals.profit), '?????'));
+      row.appendChild(createCell(formatNumber(totals.quantity), 'အရေအတွက်'));
+      row.appendChild(createCell(formatMoney(totals.total_income), 'စုစုပေါင်းဝင်ငွေ'));
+      row.appendChild(createCell(formatMoney(totals.profit), 'အမြတ်'));
       row.appendChild(createVoucherCell(saleGroup));
       tableBody.appendChild(row);
     });
@@ -1686,6 +1756,7 @@
 
     setCachedProducts(products);
     selectedProduct = product;
+    renderSaleCategoryFilter();
     renderProductOptions();
     byId('saleProduct').value = product.product_id;
     renderVariantSelect('color');
@@ -1740,6 +1811,7 @@
 
         products = nextProducts;
         setCachedProducts(products);
+        renderSaleCategoryFilter();
         renderProductOptions();
         handleProductChange();
       })
@@ -1769,6 +1841,7 @@
 
         products = nextProducts;
         setCachedProducts(products);
+        renderSaleCategoryFilter();
         renderProductOptions();
         handleProductChange();
       })
@@ -2250,6 +2323,7 @@
 
   function bindEvents() {
     var productSearch = byId('saleProductSearch');
+    var categoryFilter = byId('saleCategoryFilter');
     var barcodeSearch = byId('saleBarcodeSearch');
     var productSelect = byId('saleProduct');
     var colorSelect = byId('saleColor');
@@ -2267,6 +2341,10 @@
 
     if (productSearch) {
       productSearch.addEventListener('input', handleProductSearchInput);
+    }
+
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', handleCategoryFilterChange);
     }
 
     if (barcodeSearch) {
