@@ -198,6 +198,41 @@
     return date.getFullYear() + '-' + pad2(date.getMonth() + 1) + '-' + pad2(date.getDate());
   }
 
+  function formatShortDateKey(value) {
+    var date;
+    var text = normalizeDate(value);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    if (!text) {
+      return '';
+    }
+
+    date = new Date(text + 'T00:00:00');
+    if (Number.isNaN(date.getTime())) {
+      return text;
+    }
+
+    return months[date.getMonth()] + ' ' + date.getDate();
+  }
+
+  function getTrendRangeLabel(trend) {
+    var first;
+    var last;
+
+    if (!trend || !trend.length) {
+      return '';
+    }
+
+    first = trend[0] && (trend[0].dateLabel || formatShortDateKey(trend[0].date));
+    last = trend[trend.length - 1] && (trend[trend.length - 1].dateLabel || formatShortDateKey(trend[trend.length - 1].date));
+
+    if (!first || !last) {
+      return '';
+    }
+
+    return first === last ? first : first + ' – ' + last;
+  }
+
   function getLastSevenDayTrend(sales) {
     var today = new Date();
     var days = [];
@@ -211,6 +246,8 @@
       var date = addDays(today, -i);
       var key = formatChartDate(date);
       map[key] = {
+        date: key,
+        dateLabel: formatShortDateKey(key),
         label: String(date.getDate()),
         income: 0,
         profit: 0
@@ -237,6 +274,8 @@
 
       saleDays.slice(-7).forEach(function (key) {
         map[key] = {
+          date: key,
+          dateLabel: formatShortDateKey(key),
           label: String(Number(key.substring(8, 10)) || key.substring(5)),
           income: 0,
           profit: 0
@@ -368,6 +407,7 @@
     }
 
     trend = getLastSevenDayTrend(Array.isArray(sales) ? sales : getCachedSales());
+    setText('dashboardTrendRange', getTrendRangeLabel(trend));
     maxValue = trend.reduce(function (max, item) {
       return Math.max(max, item.income, item.profit);
     }, 0);
@@ -479,7 +519,7 @@
       context.beginPath();
       context.arc(highlightPoint.x, highlightPoint.y, 4, 0, Math.PI * 2);
       context.fill();
-      drawRoundedLabel(context, formatNumber(highlight.item.income), highlightPoint.x, highlightPoint.y);
+      drawRoundedLabel(context, (highlight.item.dateLabel ? highlight.item.dateLabel + ' • ' : '') + formatNumber(highlight.item.income), highlightPoint.x, highlightPoint.y);
     }
 
     context.restore();
@@ -763,11 +803,7 @@
     drawDashboardTrendChart(getCachedSales());
     renderTopProducts(getCachedSales());
 
-    if (hasDashboardCache()) {
-      renderDashboard(buildDashboardFromCache());
-    } else {
-      setText('dashboardDate', 'ဒေတာယူနေပါသည်');
-    }
+    renderDashboard(buildDashboardFromCache());
 
     if (!api || typeof api.getDashboard !== 'function') {
       if (!hasDashboardCache()) {
@@ -782,15 +818,8 @@
       .then(function (dashboard) {
         renderDashboard(dashboard || buildDashboardFromCache());
       })
-      .catch(function (error) {
-        if (hasDashboardCache()) {
-          renderDashboard(buildDashboardFromCache());
-          setText('dashboardDate', 'ယာယီသိမ်းထားသော ဒေတာဖြင့် ပြထားပါသည်။');
-          return;
-        }
-
-        renderLowStockTable([]);
-        setText('dashboardDate', error && error.message ? error.message : 'Dashboard ဒေတာ မယူနိုင်ပါ။');
+      .catch(function () {
+        renderDashboard(buildDashboardFromCache());
       });
   }
 
@@ -857,7 +886,7 @@
       return Promise.resolve();
     }
 
-    setMessage('settingsMessage', 'ဒေတာယူနေပါသည်', 'is-warning');
+    setMessage('settingsMessage', '', '');
 
     return api.getSettings()
       .then(function (data) {
@@ -969,6 +998,24 @@
   function bindDashboardInteractions() {
     window.addEventListener('resize', function () {
       drawDashboardTrendChart(getCachedSales());
+    });
+
+    window.addEventListener('mmc:dashboard-updated', function (event) {
+      if (pageName() === 'dashboard') {
+        renderDashboard(event && event.detail && event.detail.dashboard ? event.detail.dashboard : buildDashboardFromCache());
+      }
+    });
+
+    window.addEventListener('mmc:products-updated', function () {
+      if (pageName() === 'dashboard') {
+        renderDashboard(buildDashboardFromCache());
+      }
+    });
+
+    window.addEventListener('mmc:sales-updated', function () {
+      if (pageName() === 'dashboard') {
+        renderDashboard(buildDashboardFromCache());
+      }
     });
 
     window.addEventListener('mmc:languagechange', function () {
