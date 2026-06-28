@@ -78,6 +78,13 @@
 
     options = options || {};
 
+    // Local-first mode: never block the app with a full-screen loading screen.
+    // Network reads and uploads run in the background. Only show the old
+    // overlay if a future call explicitly passes { forceLoading: true }.
+    if (!options.forceLoading) {
+      return false;
+    }
+
     if (options.silentLoading) {
       return false;
     }
