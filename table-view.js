@@ -299,7 +299,7 @@
 
     hint = document.createElement('p');
     hint.className = 'panel-note full-table-hint';
-    hint.textContent = 'ဇယားအပြည့်ကို ဘယ်/ညာ scroll လုပ်ပြီး ကြည့်နိုင်ပါတယ်။';
+    hint.textContent = 'Full table view — swipe left/right and up/down to see everything.';
 
     wrap = document.createElement('div');
     wrap.className = 'full-table-view-wrap';
@@ -346,7 +346,7 @@
 
     button = createViewButton(function () {
       openFullTable(getTableTitle(table), table);
-    }, t('view', 'ကြည့်ရန်'));
+    }, 'Full Table');
     button.classList.add('full-table-button');
     button.setAttribute('aria-label', 'ဇယားအပြည့်ကြည့်ရန်');
     button.setAttribute('title', 'ဇယားအပြည့်ကြည့်ရန်');
