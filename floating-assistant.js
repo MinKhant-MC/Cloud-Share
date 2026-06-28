@@ -9,6 +9,7 @@
     loaded: false,
     loading: false
   };
+  var ASSISTANT_CHAT_KEY = 'cloud_share_floating_assistant_chat_v2';
 
   function toNumber(value) {
     var number = Number(value);
@@ -52,12 +53,15 @@
 
   function money(value) {
     var currency = 'MMK';
+    var settings;
+
     try {
-      var settings = JSON.parse(sessionStorage.getItem('mmc_tab_cache_' + (localStorage.getItem('mmc_user_id') || 'guest') + '_settings') || '{}');
-      currency = clean(settings.currency) || currency;
+      settings = cache && typeof cache.getSettings === 'function' ? cache.getSettings() : {};
+      currency = clean(settings && settings.currency) || currency;
     } catch (error) {
       currency = 'MMK';
     }
+
     return formatNumber(value) + ' ' + currency;
   }
 
@@ -204,6 +208,117 @@
     }).join('\n');
   }
 
+
+  function dateToKey(date) {
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function getStartOfWeek(date) {
+    var start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    var day = start.getDay() || 7;
+    start.setDate(start.getDate() - day + 1);
+    return start;
+  }
+
+  function getSalesForQuestion(q) {
+    var now = new Date();
+    var today = todayString();
+    var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    var weekStart = getStartOfWeek(now);
+    var monthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var last7 = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+
+    if (q.indexOf('yesterday') !== -1 || q.indexOf('မနေ့') !== -1) {
+      return state.sales.filter(function (sale) { return normalizeDate(sale.sale_date) === dateToKey(yesterday); });
+    }
+
+    if (q.indexOf('week') !== -1 || q.indexOf('7 day') !== -1 || q.indexOf('last 7') !== -1 || q.indexOf('ပတ်') !== -1) {
+      return state.sales.filter(function (sale) {
+        var key = normalizeDate(sale.sale_date);
+        var date = key ? new Date(key + 'T00:00:00') : null;
+        return date && !Number.isNaN(date.getTime()) && (q.indexOf('last 7') !== -1 || q.indexOf('7 day') !== -1 ? date >= last7 : date >= weekStart);
+      });
+    }
+
+    if (q.indexOf('month') !== -1 || q.indexOf('လ') !== -1) {
+      return state.sales.filter(function (sale) { return normalizeDate(sale.sale_date).substring(0, 7) === monthKey; });
+    }
+
+    if (q.indexOf('today') !== -1 || q.indexOf('ယနေ့') !== -1) {
+      return state.sales.filter(function (sale) { return normalizeDate(sale.sale_date) === today; });
+    }
+
+    return state.sales.slice();
+  }
+
+  function summarizeSalesList(items, label) {
+    var count = items.length;
+    var quantity = items.reduce(function (sum, sale) { return sum + toNumber(sale.sold_quantity); }, 0);
+    var income = items.reduce(function (sum, sale) { return sum + toNumber(sale.total_income); }, 0);
+    var profit = items.reduce(function (sum, sale) { return sum + toNumber(sale.profit); }, 0);
+
+    return [
+      label + ' sales: ' + count,
+      'Sold quantity: ' + formatNumber(quantity),
+      'Income: ' + money(income),
+      'Profit: ' + money(profit)
+    ].join('\n');
+  }
+
+  function summarizeStockValue() {
+    var totalQty = 0;
+    var costValue = 0;
+    var sellingValue = 0;
+
+    state.products.forEach(function (product) {
+      var qty = toNumber(product.quantity);
+      totalQty += qty;
+      costValue += qty * toNumber(product.buy_price);
+      sellingValue += qty * toNumber(product.sell_price);
+    });
+
+    return [
+      'Total products: ' + state.products.length,
+      'Total stock quantity: ' + formatNumber(totalQty),
+      'Stock cost value: ' + money(costValue),
+      'Stock selling value: ' + money(sellingValue)
+    ].join('\n');
+  }
+
+  function summarizeCustomers() {
+    var map = {};
+
+    state.sales.forEach(function (sale) {
+      var name = clean(sale.customer_name) || 'Walk-in customer';
+      if (!map[name]) {
+        map[name] = { name: name, count: 0, income: 0 };
+      }
+      map[name].count += 1;
+      map[name].income += toNumber(sale.total_income);
+    });
+
+    return topList(Object.keys(map).map(function (key) { return map[key]; }).sort(function (a, b) { return b.income - a.income; }), function (item) {
+      return item.name + ' - ' + item.count + ' sales / ' + money(item.income);
+    }, 'No customer sales data yet.');
+  }
+
+  function getAssistantHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(ASSISTANT_CHAT_KEY) || '[]') || [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveAssistantHistory(items) {
+    try {
+      localStorage.setItem(ASSISTANT_CHAT_KEY, JSON.stringify(items.slice(-100)));
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
   function topList(items, formatter, emptyText) {
     if (!items.length) {
       return emptyText;
@@ -249,6 +364,22 @@
       return buildSummary();
     }
 
+    if (q.indexOf('help') !== -1 || q.indexOf('what can') !== -1 || q.indexOf('question') !== -1) {
+      return 'You can ask many questions, for example:\n- today sales\n- this week income\n- this month profit\n- best seller\n- low stock\n- payment summary\n- stock value\n- customer summary\n- expiring products';
+    }
+
+    if (q.indexOf('stock value') !== -1 || q.indexOf('inventory value') !== -1 || q.indexOf('total stock') !== -1 || q.indexOf('product count') !== -1 || q.indexOf('how many product') !== -1) {
+      return summarizeStockValue();
+    }
+
+    if (q.indexOf('customer') !== -1 || q.indexOf('ဖောက်သည်') !== -1) {
+      return summarizeCustomers();
+    }
+
+    if (q.indexOf('week') !== -1 || q.indexOf('month') !== -1 || q.indexOf('yesterday') !== -1 || q.indexOf('7 day') !== -1 || q.indexOf('last 7') !== -1 || q.indexOf('ယနေ့') !== -1 || q.indexOf('မနေ့') !== -1 || q.indexOf('ပတ်') !== -1 || q.indexOf('လ') !== -1) {
+      return summarizeSalesList(getSalesForQuestion(q), q.indexOf('yesterday') !== -1 || q.indexOf('မနေ့') !== -1 ? 'Yesterday' : q.indexOf('month') !== -1 || q.indexOf('လ') !== -1 ? 'This month' : q.indexOf('week') !== -1 || q.indexOf('ပတ်') !== -1 || q.indexOf('7 day') !== -1 || q.indexOf('last 7') !== -1 ? 'Selected range' : 'Today');
+    }
+
     if (q.indexOf('payment') !== -1 || q.indexOf('kbz') !== -1 || q.indexOf('wave') !== -1 || q.indexOf('cash') !== -1) {
       return summarizePayments();
     }
@@ -281,12 +412,13 @@
       return buildSummary();
     }
 
-    return buildSummary() + '\n\nTry asking: best seller, low stock, payment, expiry, profit, today.';
+    return buildSummary() + '\n\nTry asking: today sales, this week income, this month profit, best seller, low stock, payment, stock value, customer summary, expiry.';
   }
 
-  function addMessage(role, text) {
+  function addMessage(role, text, skipSave) {
     var log = document.querySelector('.floating-assistant-messages');
     var bubble;
+    var history;
 
     if (!log) {
       return;
@@ -297,6 +429,44 @@
     bubble.textContent = text;
     log.appendChild(bubble);
     log.scrollTop = log.scrollHeight;
+
+    if (!skipSave) {
+      history = getAssistantHistory();
+      history.push({ role: role, text: text, time: Date.now() });
+      saveAssistantHistory(history);
+    }
+  }
+
+  function restoreMessages() {
+    var history = getAssistantHistory();
+
+    if (!history.length) {
+      return false;
+    }
+
+    history.slice(-60).forEach(function (item) {
+      if (item && item.role && item.text) {
+        addMessage(item.role, item.text, true);
+      }
+    });
+
+    return true;
+  }
+
+  function clearAssistantMessages() {
+    var log = document.querySelector('.floating-assistant-messages');
+
+    if (log) {
+      log.textContent = '';
+    }
+
+    try {
+      localStorage.removeItem(ASSISTANT_CHAT_KEY);
+    } catch (error) {
+      return;
+    }
+
+    addMessage('bot', 'Chat cleared. Ask me about sales, stock, profit, payments, customers, or reports.');
   }
 
   function ask(question) {
@@ -336,7 +506,9 @@
 
     if (shouldOpen && !panel.getAttribute('data-welcomed')) {
       panel.setAttribute('data-welcomed', 'true');
-      addMessage('bot', 'Hi, I am your Smart Business Assistant. Ask about low stock, profit, best sellers, payment, expiry, or today sales.');
+      if (!restoreMessages()) {
+        addMessage('bot', 'Hi, I am your Smart Business Assistant. You can ask many questions about sales, stock, profit, payments, customers, reports, expiry, or best sellers.');
+      }
     }
   }
 
@@ -364,18 +536,22 @@
     panel.hidden = true;
     panel.innerHTML = [
       '<header class="floating-assistant-header">',
-      '<div><strong>Smart Business Assistant</strong><span>Business bot chat</span></div>',
-      '<button class="floating-assistant-close" type="button" aria-label="Close">×</button>',
+      '<div><strong>Smart Business Assistant</strong><span>Ask many business questions</span></div>',
+      '<div class="floating-assistant-header-actions"><button class="floating-assistant-clear" type="button">Clear</button><button class="floating-assistant-close" type="button" aria-label="Close">×</button></div>',
       '</header>',
       '<div class="floating-assistant-messages" aria-live="polite"></div>',
       '<div class="floating-assistant-quick">',
-      '<button type="button" data-assistant-question="today">Today</button>',
+      '<button type="button" data-assistant-question="today sales">Today</button>',
+      '<button type="button" data-assistant-question="this week income">This week</button>',
+      '<button type="button" data-assistant-question="this month profit">This month</button>',
       '<button type="button" data-assistant-question="best seller">Best seller</button>',
       '<button type="button" data-assistant-question="low stock">Low stock</button>',
-      '<button type="button" data-assistant-question="payment">Payment</button>',
+      '<button type="button" data-assistant-question="payment summary">Payment</button>',
+      '<button type="button" data-assistant-question="stock value">Stock value</button>',
+      '<button type="button" data-assistant-question="help">Help</button>',
       '</div>',
       '<div class="floating-assistant-input-row">',
-      '<input id="floatingAssistantInput" type="text" placeholder="Ask about sales, stock, profit...">',
+      '<textarea id="floatingAssistantInput" rows="2" placeholder="Ask many questions: this week sales, stock value, best seller..."></textarea>',
       '<button type="button" id="floatingAssistantAskButton">Ask</button>',
       '</div>'
     ].join('');
@@ -386,9 +562,10 @@
 
     button.addEventListener('click', function () { togglePanel(); });
     panel.querySelector('.floating-assistant-close').addEventListener('click', function () { togglePanel(false); });
+    panel.querySelector('.floating-assistant-clear').addEventListener('click', function () { clearAssistantMessages(); });
     panel.querySelector('#floatingAssistantAskButton').addEventListener('click', function () { ask(); });
     panel.querySelector('#floatingAssistantInput').addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         ask();
       }
