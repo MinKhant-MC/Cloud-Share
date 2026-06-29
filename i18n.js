@@ -3,8 +3,8 @@
 
   var LANGUAGE_KEY = 'mmc_language';
   var LANGUAGES = [
-    { code: 'my', label: 'MY' },
-    { code: 'en', label: 'EN' },
+    { code: 'my', label: 'မြန်မာ' },
+    { code: 'en', label: 'Eng' },
     { code: 'zh', label: '中文' }
   ];
 
@@ -112,7 +112,7 @@
       addProduct: 'Add Product',
       sales: 'Sales',
       addSale: 'Record Sale',
-      customers: 'Customers',
+      customers: 'Customer',
       customerName: 'Customer Name (optional)',
       reports: 'Reports',
       settings: 'Settings',
