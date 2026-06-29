@@ -7815,3 +7815,76 @@ textarea::placeholder {
     height: 16px !important;
   }
 }
+
+
+/* ============================================================
+   FINAL PATCH: mobile nav labels + edit/delete SVG icons
+   - Myanmar button shows Burmese label from i18n.js
+   - English button shows Eng from i18n.js
+   - Customers tab says Customer, not Users
+   - Settings tab uses a gear icon, not sun
+   - Edit/Delete buttons use real SVG icons on iPhone Safari
+   ============================================================ */
+:root {
+  --icon-settings: url("data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%2024%2024%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20d%3D%27M12%2015.5A3.5%203.5%200%201%200%2012%208a3.5%203.5%200%200%200%200%207.5zM19.4%2015a1.7%201.7%200%200%200%20.3%201.9l.1.1a2%202%200%201%201-2.8%202.8l-.1-.1a1.7%201.7%200%200%200-1.9-.3%201.7%201.7%200%200%200-1%201.5V21a2%202%200%201%201-4%200v-.1a1.7%201.7%200%200%200-1-1.5%201.7%201.7%200%200%200-1.9.3l-.1.1A2%202%200%201%201%204.2%2017l.1-.1a1.7%201.7%200%200%200%20.3-1.9%201.7%201.7%200%200%200-1.5-1H3a2%202%200%201%201%200-4h.1a1.7%201.7%200%200%200%201.5-1%201.7%201.7%200%200%200-.3-1.9l-.1-.1A2%202%200%201%201%207%204.2l.1.1a1.7%201.7%200%200%200%201.9.3%201.7%201.7%200%200%200%201-1.5V3a2%202%200%201%201%204%200v.1a1.7%201.7%200%200%200%201%201.5%201.7%201.7%200%200%200%201.9-.3l.1-.1A2%202%200%201%201%2019.8%207l-.1.1a1.7%201.7%200%200%200-.3%201.9%201.7%201.7%200%200%200%201.5%201H21a2%202%200%201%201%200%204h-.1a1.7%201.7%200%200%200-1.5%201z%27/%3E%3C/svg%3E") !important;
+  --icon-edit-ios: url("data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%2024%2024%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20d%3D%27M4%2016.8V20h3.2L18.7%208.5l-3.2-3.2L4%2016.8z%27%20fill%3D%27none%27%20stroke%3D%27%23111827%27%20stroke-width%3D%272.1%27%20stroke-linejoin%3D%27round%27/%3E%3Cpath%20d%3D%27M14.6%206.2l3.2%203.2%27%20fill%3D%27none%27%20stroke%3D%27%23111827%27%20stroke-width%3D%272.1%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E");
+  --icon-delete-ios: url("data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%2024%2024%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20d%3D%27M4%207h16M9%207V4h6v3M7%207l1%2014h8l1-14%27%20fill%3D%27none%27%20stroke%3D%27%23dc2626%27%20stroke-width%3D%272.1%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27/%3E%3Cpath%20d%3D%27M10%2011v6M14%2011v6%27%20fill%3D%27none%27%20stroke%3D%27%23dc2626%27%20stroke-width%3D%272.1%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E");
+  --icon-voucher-ios: url("data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%2024%2024%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20d%3D%27M7%203h10v18l-2-1.2-2%201.2-2-1.2-2%201.2-2-1.2V3z%27%20fill%3D%27none%27%20stroke%3D%27%23111827%27%20stroke-width%3D%272%27%20stroke-linejoin%3D%27round%27/%3E%3Cpath%20d%3D%27M9%208h6M9%2012h6M9%2016h4%27%20stroke%3D%27%23111827%27%20stroke-width%3D%272%27%20stroke-linecap%3D%27round%27/%3E%3C/svg%3E");
+}
+
+@media (max-width: 920px), (hover: none) and (pointer: coarse) {
+  .nav-link[href="customers.html"]::after { content: "Customer" !important; font-size: 7.3px !important; }
+  .nav-link[href="settings.html"]::after { content: "Setting" !important; }
+
+  .language-switcher button[data-lang="my"] { font-size: 11px !important; }
+  .language-switcher button[data-lang="en"] { font-size: 12px !important; }
+
+  .table-actions {
+    min-width: 124px !important;
+    max-width: none !important;
+    gap: 5px !important;
+  }
+
+  .small-button.icon-edit,
+  .small-button.icon-delete,
+  .small-button.icon-voucher {
+    color: #111827 !important;
+    background: rgba(255,255,255,.94) !important;
+    border: 1px solid rgba(148,163,184,.32) !important;
+    box-shadow: 0 10px 24px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  }
+
+  .small-button.icon-delete {
+    color: #dc2626 !important;
+    background: rgba(254,242,242,.96) !important;
+    border-color: rgba(248,113,113,.28) !important;
+  }
+
+  .small-button.icon-edit::before,
+  .small-button.icon-delete::before,
+  .small-button.icon-voucher::before {
+    content: "" !important;
+    display: inline-block !important;
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
+    margin: 0 !important;
+    background-color: transparent !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+    -webkit-mask: none !important;
+    mask: none !important;
+    opacity: 1 !important;
+  }
+
+  .small-button.icon-edit::before { background-image: var(--icon-edit-ios) !important; }
+  .small-button.icon-delete::before { background-image: var(--icon-delete-ios) !important; }
+  .small-button.icon-voucher::before { background-image: var(--icon-voucher-ios) !important; }
+}
+
+@media (max-width: 430px) {
+  .nav-list { gap: 4px !important; }
+  .nav-link[href="customers.html"]::after { font-size: 6.8px !important; }
+  .table-actions { min-width: 118px !important; gap: 4px !important; }
+}
