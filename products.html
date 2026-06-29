@@ -88,7 +88,12 @@
         </div>
         <div class="field">
           <label for="productBarcode">Barcode</label>
-          <input id="productBarcode" name="barcode" type="text" autocomplete="off" placeholder="Scanner ဖြင့်ဖတ်နိုင်သည်">
+          <div class="scanner-row">
+            <input id="productBarcode" name="barcode" type="text" autocomplete="off" placeholder="Scanner ဖြင့်ဖတ်နိုင်သည်">
+            <button id="startProductBarcodeScanButton" class="ghost-button" type="button">Scan</button>
+            <button id="stopProductBarcodeScanButton" class="ghost-button" type="button" hidden>Stop</button>
+          </div>
+          <video id="productBarcodeScannerVideo" class="barcode-video" playsinline muted hidden></video>
         </div>
         <div class="field">
           <label for="productName">ကုန်ပစ္စည်းအမည်</label>
@@ -153,8 +158,10 @@
 
   <script src="config.js"></script>
   <script src="api.js"></script>
+  <script src="local-sync.js"></script>
   <script src="auth.js"></script>
   <script src="i18n.js"></script>
+  <script src="vendor/zxing-browser.min.js"></script>
   <script src="table-view.js"></script>
   <script src="products.js"></script>
   <script src="floating-assistant.js"></script>
