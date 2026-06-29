@@ -8,6 +8,12 @@
   var editingProductId = '';
   var lastAddedProductId = '';
   var PRODUCT_COLUMN_COUNT = 13;
+  var productBarcodeScannerStream = null;
+  var productBarcodeScannerTimer = null;
+  var productBarcodeDetector = null;
+  var productZxingReader = null;
+  var productZxingScannerControls = null;
+  var productBarcodeScannerStarting = false;
   var variantOptionState = {
     color: [],
     size: []
@@ -791,8 +797,8 @@
       return Promise.resolve();
     }
 
-    if (!options.silent && !renderCachedProducts()) {
-      setTableLoading('ဒေတာယူနေပါသည်', true);
+    if (!options.silent) {
+      renderCachedProducts();
     }
 
     return api.listProducts()
@@ -808,14 +814,9 @@
         filteredProducts = products.slice();
         applySearch();
       })
-      .catch(function (error) {
-        if (!options.silent && !products.length) {
-          setTableLoading(error && error.message ? error.message : 'ကုန်ပစ္စည်းများ မယူနိုင်ပါ။', false);
-          return;
-        }
-
+      .catch(function () {
         if (!options.silent) {
-          setText('productsCount', filteredProducts.length + ' ခု | ယာယီဒေတာဖြင့် ပြထားပါသည်');
+          renderCachedProducts();
         }
       });
   }
@@ -844,6 +845,8 @@
   }
 
   function closeDialog(dialog) {
+    stopProductBarcodeScanner();
+
     if (!dialog) {
       return;
     }
@@ -854,6 +857,233 @@
     }
 
     dialog.removeAttribute('open');
+  }
+
+  function setProductBarcodeScannerUi(isScanning) {
+    var video = byId('productBarcodeScannerVideo');
+    var startButton = byId('startProductBarcodeScanButton');
+    var stopButton = byId('stopProductBarcodeScanButton');
+
+    if (video) {
+      video.hidden = !isScanning;
+    }
+
+    if (startButton) {
+      startButton.hidden = isScanning;
+    }
+
+    if (stopButton) {
+      stopButton.hidden = !isScanning;
+    }
+  }
+
+  function stopProductBarcodeScanner() {
+    var video = byId('productBarcodeScannerVideo');
+
+    productBarcodeScannerStarting = false;
+
+    if (productBarcodeScannerTimer) {
+      window.clearInterval(productBarcodeScannerTimer);
+      productBarcodeScannerTimer = null;
+    }
+
+    if (productZxingScannerControls && typeof productZxingScannerControls.stop === 'function') {
+      productZxingScannerControls.stop();
+      productZxingScannerControls = null;
+    }
+
+    if (window.ZXingBrowser &&
+        window.ZXingBrowser.BrowserCodeReader &&
+        typeof window.ZXingBrowser.BrowserCodeReader.releaseAllStreams === 'function') {
+      window.ZXingBrowser.BrowserCodeReader.releaseAllStreams();
+    }
+
+    if (productBarcodeScannerStream) {
+      productBarcodeScannerStream.getTracks().forEach(function (track) {
+        track.stop();
+      });
+      productBarcodeScannerStream = null;
+    }
+
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+      video.hidden = true;
+    }
+
+    setProductBarcodeScannerUi(false);
+  }
+
+  function getBarcodeFromScannerResult(result) {
+    if (!result) {
+      return '';
+    }
+
+    if (typeof result.getText === 'function') {
+      return cleanOptionName(result.getText());
+    }
+
+    return cleanOptionName(result.text || result.rawValue || String(result));
+  }
+
+  function handleDetectedProductBarcode(code) {
+    var input = byId('productBarcode');
+
+    if (input) {
+      input.value = code;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.focus();
+    }
+
+    stopProductBarcodeScanner();
+    setMessage('Barcode scanned.', 'is-success');
+  }
+
+  function scanProductBarcodeFrame(video) {
+    if (!productBarcodeDetector || !video || video.hidden) {
+      return;
+    }
+
+    productBarcodeDetector.detect(video)
+      .then(function (codes) {
+        if (codes && codes.length && codes[0].rawValue) {
+          handleDetectedProductBarcode(codes[0].rawValue);
+        }
+      })
+      .catch(function () {
+        stopProductBarcodeScanner();
+        setMessage('Camera barcode scan failed.', 'is-danger');
+      });
+  }
+
+  function startProductZxingScanner(video) {
+    var preferredConstraints = {
+      video: {
+        facingMode: {
+          ideal: 'environment'
+        },
+        width: {
+          ideal: 1280
+        },
+        height: {
+          ideal: 720
+        }
+      },
+      audio: false
+    };
+    var fallbackConstraints = {
+      video: true,
+      audio: false
+    };
+    var startWithConstraints;
+
+    if (!window.ZXingBrowser || !window.ZXingBrowser.BrowserMultiFormatReader) {
+      return Promise.reject(new Error('ZXing scanner is not available.'));
+    }
+
+    productZxingReader = productZxingReader || new window.ZXingBrowser.BrowserMultiFormatReader();
+    if (video) {
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('muted', 'true');
+      video.muted = true;
+    }
+
+    startWithConstraints = function (constraints) {
+      return productZxingReader.decodeFromConstraints(constraints, video, function (result) {
+        var code = getBarcodeFromScannerResult(result);
+
+        if (code) {
+          handleDetectedProductBarcode(code);
+        }
+      });
+    };
+
+    return startWithConstraints(preferredConstraints)
+      .catch(function () {
+        return startWithConstraints(fallbackConstraints);
+      })
+      .then(function (controls) {
+        productZxingScannerControls = controls;
+        setProductBarcodeScannerUi(true);
+        setMessage('Camera scanner is open. Put the barcode in front of the camera.', 'is-warning');
+      });
+  }
+
+  function startNativeProductBarcodeScanner(video) {
+    productBarcodeDetector = productBarcodeDetector || new window.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code']
+    });
+
+    return navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: {
+          ideal: 'environment'
+        },
+        width: {
+          ideal: 1280
+        },
+        height: {
+          ideal: 720
+        }
+      },
+      audio: false
+    })
+      .catch(function () {
+        return navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      })
+      .then(function (stream) {
+        productBarcodeScannerStream = stream;
+        video.srcObject = stream;
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('muted', 'true');
+        video.muted = true;
+        setProductBarcodeScannerUi(true);
+        return video.play();
+      })
+      .then(function () {
+        setMessage('Camera scanner is open. Put the barcode in front of the camera.', 'is-warning');
+        productBarcodeScannerTimer = window.setInterval(function () {
+          scanProductBarcodeFrame(video);
+        }, 450);
+      });
+  }
+
+  function startProductBarcodeScanner() {
+    var video = byId('productBarcodeScannerVideo');
+
+    if (!video || productBarcodeScannerStarting) {
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setMessage('Camera access is not available. Open with HTTPS or use the APK.', 'is-warning');
+      return;
+    }
+
+    productBarcodeScannerStarting = true;
+    stopProductBarcodeScanner();
+    productBarcodeScannerStarting = true;
+    setMessage('Opening camera...', 'is-warning');
+
+    startProductZxingScanner(video)
+      .catch(function () {
+        if (!('BarcodeDetector' in window)) {
+          throw new Error('Camera barcode scan is not available. Type the barcode manually.');
+        }
+
+        return startNativeProductBarcodeScanner(video);
+      })
+      .catch(function (error) {
+        stopProductBarcodeScanner();
+        setMessage(error && error.message ? error.message : 'Camera permission is not available.', 'is-danger');
+      })
+      .finally(function () {
+        productBarcodeScannerStarting = false;
+      });
   }
 
   function fillProductForm(product) {
@@ -1066,6 +1296,8 @@
     var searchInput = byId('productSearch');
     var addColorButton = byId('addColorOptionButton');
     var addSizeButton = byId('addSizeOptionButton');
+    var startBarcodeScanButton = byId('startProductBarcodeScanButton');
+    var stopBarcodeScanButton = byId('stopProductBarcodeScanButton');
     var colorInput = byId('productColorNew');
     var sizeInput = byId('productSizeNew');
 
@@ -1086,6 +1318,14 @@
 
     if (form) {
       form.addEventListener('submit', saveProduct);
+    }
+
+    if (startBarcodeScanButton) {
+      startBarcodeScanButton.addEventListener('click', startProductBarcodeScanner);
+    }
+
+    if (stopBarcodeScanButton) {
+      stopBarcodeScanButton.addEventListener('click', stopProductBarcodeScanner);
     }
 
     if (searchInput) {
@@ -1122,9 +1362,17 @@
       });
     }
 
+    window.addEventListener('mmc:products-updated', function (event) {
+      products = event && event.detail && Array.isArray(event.detail.products) ? event.detail.products : getCachedProducts();
+      filteredProducts = products.slice();
+      applySearch();
+    });
+
     window.addEventListener('mmc:languagechange', renderProducts);
 
     bindDialogCloseButtons();
+    window.addEventListener('beforeunload', stopProductBarcodeScanner);
+    window.addEventListener('pagehide', stopProductBarcodeScanner);
   }
 
   function initProducts() {
