@@ -612,6 +612,7 @@
       sale_color: clean(sale && sale.sale_color),
       sale_size: clean(sale && sale.sale_size),
       customer_name: clean(sale && sale.customer_name),
+      customer_phone: clean(sale && sale.customer_phone),
       payment_method: clean(sale && sale.payment_method) || clean(sale && sale.payment) || 'Cash',
       created_at: new Date().toISOString(),
       pending_sync: true
