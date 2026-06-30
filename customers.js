@@ -78,12 +78,22 @@
   }
 
   function getCustomerName(sale) {
-    return cleanText(sale && sale.customer_name) || 'အမည်မထည့်ထားသောဖောက်သည်';
+    return cleanText(sale && sale.customer_name) || cleanText(sale && sale.customer_phone) || 'အမည်မထည့်ထားသောဖောက်သည်';
+  }
+
+  function getCustomerPhone(sale) {
+    return cleanText(sale && sale.customer_phone);
   }
 
   function getCustomerKey(sale) {
+    var rawPhone = cleanText(sale && sale.customer_phone).replace(/[\s\-()+]/g, '');
     var rawName = cleanText(sale && sale.customer_name);
-    return rawName ? rawName.toLowerCase() : '__unnamed_customer__';
+
+    if (rawPhone) {
+      return 'phone::' + rawPhone.toLowerCase();
+    }
+
+    return rawName ? 'name::' + rawName.toLowerCase() : '__unnamed_customer__';
   }
 
   function getVariantText(sale) {
@@ -142,11 +152,12 @@
       return;
     }
 
-    window.MMC_TABLE_VIEW.open('ဖောက်သည်အသေးစိတ် - ' + (customer.customer_name || '-'), [
+    window.MMC_TABLE_VIEW.open('ဖောက်သည်အသေးစိတ် - ' + (customer.customer_name || customer.customer_phone || '-'), [
       {
         title: 'ဖောက်သည်အချက်အလက်',
         fields: [
           { label: 'ဖောက်သည်', value: customer.customer_name || '-' },
+          { label: 'ဖုန်းနံပါတ်', value: customer.customer_phone || '-' },
           { label: 'ဝယ်ယူအကြိမ်', value: formatNumber(customer.sale_count) },
           { label: 'ပစ္စည်းအရေအတွက်', value: formatNumber(customer.sold_quantity) },
           { label: 'ဆိုင်ကုန်ကျစရိတ်', value: formatNumber(customer.total_cost) },
@@ -254,6 +265,7 @@
 
     searchText = [
       getCustomerName(sale),
+      getCustomerPhone(sale),
       sale.product_id,
       sale.product_name,
       sale.sale_color,
@@ -321,6 +333,7 @@
         grouped[key] = {
           key: key,
           customer_name: getCustomerName(sale),
+          customer_phone: getCustomerPhone(sale),
           sale_count: 0,
           sold_quantity: 0,
           total_cost: 0,
@@ -329,6 +342,14 @@
           last_sale_date: '',
           products: {}
         };
+      }
+
+      if (!grouped[key].customer_phone && getCustomerPhone(sale)) {
+        grouped[key].customer_phone = getCustomerPhone(sale);
+      }
+
+      if ((!grouped[key].customer_name || grouped[key].customer_name === grouped[key].customer_phone) && cleanText(sale.customer_name)) {
+        grouped[key].customer_name = cleanText(sale.customer_name);
       }
 
       addSaleToCustomer(grouped[key], sale);
@@ -395,8 +416,8 @@
       return;
     }
 
-    setText('customerDetailName', customer.customer_name);
-    setText('customerDetailMeta', 'ဝယ်ယူအကြိမ် ' + formatNumber(customer.sale_count) + ' | နောက်ဆုံးရက် ' + (customer.last_sale_date || '-'));
+    setText('customerDetailName', customer.customer_name || customer.customer_phone);
+    setText('customerDetailMeta', (customer.customer_phone ? 'ဖုန်း ' + customer.customer_phone + ' | ' : '') + 'ဝယ်ယူအကြိမ် ' + formatNumber(customer.sale_count) + ' | နောက်ဆုံးရက် ' + (customer.last_sale_date || '-'));
     setText('detailQuantity', formatNumber(customer.sold_quantity));
     setText('detailIncome', formatNumber(customer.total_income));
 
@@ -453,7 +474,7 @@
     clearElement(tableBody);
 
     if (!list.length) {
-      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 8));
+      tableBody.appendChild(createEmptyRow('ဒေတာမရှိပါ', 9));
       return;
     }
 
@@ -465,6 +486,7 @@
       }
 
       row.appendChild(createCell(customer.customer_name, 'ဖောက်သည်'));
+      row.appendChild(createCell(customer.customer_phone || '-', 'ဖုန်းနံပါတ်'));
       row.appendChild(createCell(formatNumber(customer.sale_count), 'ဝယ်ယူအကြိမ်'));
       row.appendChild(createCell(formatNumber(customer.sold_quantity), 'ပစ္စည်းအရေအတွက်'));
       row.appendChild(createCell(formatNumber(customer.total_cost), 'ဆိုင်ကုန်ကျစရိတ်'));
@@ -505,7 +527,7 @@
     }
 
     clearElement(tableBody);
-    tableBody.appendChild(isLoading ? createLoadingRow(message, 8) : createEmptyRow(message, 8));
+    tableBody.appendChild(isLoading ? createLoadingRow(message, 9) : createEmptyRow(message, 8));
   }
 
   function renderCachedSales() {
@@ -541,9 +563,7 @@
       return Promise.resolve();
     }
 
-    if (!renderCachedSales()) {
-      setCustomersLoading('ဒေတာယူနေပါသည်', true);
-    }
+    renderCachedSales();
 
     return api.listSales(requestFilters)
       .then(function (data) {
@@ -551,13 +571,8 @@
         setCachedSales(allSales);
         renderCustomers();
       })
-      .catch(function (error) {
-        if (renderCachedSales()) {
-          setMessage('ယာယီသိမ်းထားသော ဒေတာဖြင့် ပြထားပါသည်။', 'is-warning');
-          return;
-        }
-
-        setCustomersLoading(error && error.message ? error.message : 'ဖောက်သည်ဒေတာ မယူနိုင်ပါ။', false);
+      .catch(function () {
+        renderCachedSales();
       });
   }
 
@@ -582,6 +597,11 @@
     if (loadButton) {
       loadButton.addEventListener('click', loadCustomers);
     }
+
+    window.addEventListener('mmc:sales-updated', function (event) {
+      allSales = event && event.detail && Array.isArray(event.detail.sales) ? event.detail.sales : getCachedSales();
+      renderCustomers();
+    });
   }
 
   function initCustomers() {
