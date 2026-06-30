@@ -19,7 +19,7 @@
     shop_name: '',
     currency: 'MMK'
   };
-  var SALES_COLUMN_COUNT = 9;
+  var SALES_COLUMN_COUNT = 10;
 
   function byId(id) {
     return document.getElementById(id);
@@ -266,6 +266,22 @@
     return cleanOptionName(input ? input.value : '');
   }
 
+  function getSaleCustomerPhone() {
+    var input = byId('saleCustomerPhone');
+    return cleanOptionName(input ? input.value : '');
+  }
+
+  function getSaleCustomerLabel(name, phone) {
+    var cleanName = cleanOptionName(name);
+    var cleanPhone = cleanOptionName(phone);
+
+    if (cleanName && cleanPhone) {
+      return cleanName + ' (' + cleanPhone + ')';
+    }
+
+    return cleanName || cleanPhone || '';
+  }
+
   function getSelectedPaymentMethod() {
     var select = byId('salePaymentMethod');
     return cleanOptionName(select ? select.value : '') || 'Cash';
@@ -340,16 +356,24 @@
     return getSaleSubtotal(sale) - getSaleDiscountAmount(sale) - getSaleTotalCost(sale);
   }
 
-  function createVoucherGroup(items, voucherId, customerName) {
+  function createVoucherGroup(items, voucherId, customerName, customerPhone) {
     var list = Array.isArray(items) ? items.filter(Boolean) : [];
     var firstSale = list[0] || {};
     var voucherCustomerName = cleanOptionName(customerName) || cleanOptionName(firstSale.customer_name);
+    var voucherCustomerPhone = cleanOptionName(customerPhone) || cleanOptionName(firstSale.customer_phone);
     var voucherPaymentMethod = getSalePaymentMethod(firstSale);
 
     if (!voucherCustomerName) {
       list.some(function (sale) {
         voucherCustomerName = cleanOptionName(sale.customer_name);
         return Boolean(voucherCustomerName);
+      });
+    }
+
+    if (!voucherCustomerPhone) {
+      list.some(function (sale) {
+        voucherCustomerPhone = cleanOptionName(sale.customer_phone);
+        return Boolean(voucherCustomerPhone);
       });
     }
 
@@ -364,6 +388,7 @@
       voucher_id: voucherId || cleanOptionName(firstSale.voucher_id) || cleanOptionName(firstSale.sale_id) || ('V-' + Date.now()),
       sale_date: cleanOptionName(firstSale.sale_date) || todayString(),
       customer_name: voucherCustomerName,
+      customer_phone: voucherCustomerPhone,
       payment_method: voucherPaymentMethod || 'Cash',
       created_at: new Date().toISOString(),
       items: list
@@ -376,7 +401,7 @@
     }
 
     if (value && Array.isArray(value.items)) {
-      return createVoucherGroup(value.items, value.voucher_id, value.customer_name);
+      return createVoucherGroup(value.items, value.voucher_id, value.customer_name, value.customer_phone);
     }
 
     return createVoucherGroup(value ? [value] : []);
@@ -467,6 +492,7 @@
       '<div><span>ဘောင်ချာနံပါတ်</span><strong>' + escapeHtml(voucher.voucher_id || '-') + '</strong></div>',
       '<div><span>ရက်စွဲ</span><strong>' + escapeHtml(voucher.sale_date || firstSale.sale_date || '-') + '</strong></div>',
       voucher.customer_name ? '<div><span>ဖောက်သည်</span><strong>' + escapeHtml(voucher.customer_name) + '</strong></div>' : '',
+      voucher.customer_phone ? '<div><span>ဖုန်းနံပါတ်</span><strong>' + escapeHtml(voucher.customer_phone) + '</strong></div>' : '',
       '<div><span>Payment</span><strong>' + escapeHtml(voucher.payment_method || 'Cash') + '</strong></div>',
       '<div><span>ပစ္စည်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(voucher.items.length)) + '</strong></div>',
       '<div><span>စုစုပေါင်းအရေအတွက်</span><strong>' + escapeHtml(formatNumber(totals.quantity)) + '</strong></div>',
@@ -855,6 +881,7 @@
           { label: 'Sale ID', value: voucher.voucher_id || '-' },
           { label: 'ရက်စွဲ', value: voucher.sale_date || '-' },
           { label: 'ဖောက်သည်', value: voucher.customer_name || '-' },
+          { label: 'ဖုန်းနံပါတ်', value: voucher.customer_phone || '-' },
           { label: 'Payment', value: voucher.payment_method || 'Cash' },
           { label: 'ပစ္စည်းအရေအတွက်', value: formatNumber(totals.quantity) },
           { label: 'Subtotal', value: formatMoney(totals.subtotal) },
@@ -1072,7 +1099,7 @@
       details.className = 'sale-cart-details';
       name.textContent = item.product_name || '-';
       meta.textContent = [
-        item.customer_name ? 'ဖောက်သည်: ' + item.customer_name : '',
+        getSaleCustomerLabel(item.customer_name, item.customer_phone) ? 'ဖောက်သည်: ' + getSaleCustomerLabel(item.customer_name, item.customer_phone) : '',
         item.product_id || '-',
         getSaleVariantText(item)
       ].filter(Boolean).join(' | ');
@@ -1176,6 +1203,7 @@
       sale_color: selectedColor ? selectedColor.name : '',
       sale_size: selectedSize ? selectedSize.name : '',
       customer_name: getSaleCustomerName(),
+      customer_phone: getSaleCustomerPhone(),
       payment_method: getSelectedPaymentMethod()
     };
   }
@@ -1239,15 +1267,18 @@
 
   function handleCustomerNameInput() {
     var customerName;
+    var customerPhone;
 
     if (!saleCart.length) {
       return;
     }
 
     customerName = getSaleCustomerName();
+    customerPhone = getSaleCustomerPhone();
     saleCart = saleCart.map(function (item) {
       return Object.assign({}, item, {
-        customer_name: customerName
+        customer_name: customerName,
+        customer_phone: customerPhone
       });
     });
     renderSaleCart();
@@ -1836,6 +1867,7 @@
       row.appendChild(createCell(saleGroup.voucher_id || '-', 'Sale ID'));
       row.appendChild(createCell(saleGroup.sale_date || '-', 'ရက်စွဲ'));
       row.appendChild(createCell(saleGroup.customer_name || '-', 'ဖောက်သည်'));
+      row.appendChild(createCell(saleGroup.customer_phone || '-', 'ဖုန်းနံပါတ်'));
       row.appendChild(createSaleItemsCell(saleGroup.items));
       row.appendChild(createCell(formatNumber(totals.quantity), 'အရေအတွက်'));
       row.appendChild(createCell(formatMoney(totals.total_income), 'စုစုပေါင်းဝင်ငွေ'));
@@ -1970,9 +2002,7 @@
       return Promise.resolve();
     }
 
-    if (!renderCachedSales()) {
-      setSalesLoading('ဒေတာယူနေပါသည်', true);
-    }
+    renderCachedSales();
 
     return api.listSales()
       .then(function (data) {
@@ -2000,9 +2030,7 @@
       return Promise.resolve();
     }
 
-    if (!renderCachedSales()) {
-      setSalesLoading('ဒေတာယူနေပါသည်', true);
-    }
+    renderCachedSales();
 
     return api.listSales()
       .then(function (data) {
@@ -2017,15 +2045,8 @@
         renderSalesTable();
         summarizeToday();
       })
-      .catch(function (error) {
-        if (sales.length) {
-          renderSalesTable();
-          summarizeToday();
-          setMessage(error && error.message ? error.message : 'ယာယီဒေတာဖြင့် ပြထားပါသည်။', 'is-warning');
-          return;
-        }
-
-        setSalesLoading(error && error.message ? error.message : 'ရောင်းချမှုများ မယူနိုင်ပါ။', false);
+      .catch(function () {
+        renderCachedSales();
       });
   }
 
@@ -2126,6 +2147,7 @@
       sale_color: sale.sale_color || '',
       sale_size: sale.sale_size || '',
       customer_name: sale.customer_name || '',
+      customer_phone: sale.customer_phone || '',
       payment_method: getSalePaymentMethod(sale),
       pending_sync: true
     };
@@ -2170,6 +2192,7 @@
       sale_color: item.sale_color || '',
       sale_size: item.sale_size || '',
       customer_name: cleanOptionName(item.customer_name),
+      customer_phone: cleanOptionName(item.customer_phone),
       payment_method: getSalePaymentMethod(item),
       discount_percent: Math.max(0, toNumber(item.discount_percent)),
       tax_percent: Math.max(0, toNumber(item.tax_percent))
@@ -2178,10 +2201,12 @@
 
   function applyCheckoutCustomerName(items) {
     var customerName = getSaleCustomerName();
+    var customerPhone = getSaleCustomerPhone();
 
     return items.map(function (item) {
       return Object.assign({}, item, {
-        customer_name: customerName || cleanOptionName(item.customer_name)
+        customer_name: customerName || cleanOptionName(item.customer_name),
+        customer_phone: customerPhone || cleanOptionName(item.customer_phone)
       });
     });
   }
@@ -2204,7 +2229,7 @@
       var saleId = cleanOptionName(sale.sale_id) || ('SALE-' + grouped.length);
 
       if (!byId[saleId]) {
-        byId[saleId] = createVoucherGroup([], saleId, sale.customer_name);
+        byId[saleId] = createVoucherGroup([], saleId, sale.customer_name, sale.customer_phone);
         byId[saleId].sale_date = cleanOptionName(sale.sale_date) || todayString();
         byId[saleId].created_at = cleanOptionName(sale.created_at);
         grouped.push(byId[saleId]);
@@ -2212,6 +2237,10 @@
 
       if (!byId[saleId].customer_name && sale.customer_name) {
         byId[saleId].customer_name = sale.customer_name;
+      }
+
+      if (!byId[saleId].customer_phone && sale.customer_phone) {
+        byId[saleId].customer_phone = sale.customer_phone;
       }
 
       byId[saleId].items.push(sale);
@@ -2345,6 +2374,7 @@
   function clearSaleFormAfterSubmit(productId, clearCustomer) {
     var quantityInput = byId('soldQuantity');
     var customerInput = byId('saleCustomerName');
+    var customerPhoneInput = byId('saleCustomerPhone');
     var taxInput = byId('saleTaxPercent');
 
     if (quantityInput) {
@@ -2353,6 +2383,10 @@
 
     if (clearCustomer && customerInput) {
       customerInput.value = '';
+    }
+
+    if (clearCustomer && customerPhoneInput) {
+      customerPhoneInput.value = '';
     }
 
     if (clearCustomer && taxInput) {
@@ -2456,6 +2490,7 @@
     var taxInput = byId('saleTaxPercent');
     var paymentSelect = byId('salePaymentMethod');
     var customerInput = byId('saleCustomerName');
+    var customerPhoneInput = byId('saleCustomerPhone');
     var form = byId('saleForm');
     var printVoucherButton = byId('printVoucherButton');
     var downloadVoucherButton = byId('downloadVoucherButton');
@@ -2507,6 +2542,10 @@
       customerInput.addEventListener('input', handleCustomerNameInput);
     }
 
+    if (customerPhoneInput) {
+      customerPhoneInput.addEventListener('input', handleCustomerNameInput);
+    }
+
     if (colorSelect) {
       colorSelect.addEventListener('change', calculateSale);
     }
@@ -2553,6 +2592,19 @@
 
     document.addEventListener('mmc:settings-loaded', function (event) {
       applyShopSettings(event.detail || {});
+    });
+
+    window.addEventListener('mmc:products-updated', function (event) {
+      products = event && event.detail && Array.isArray(event.detail.products) ? event.detail.products : getCachedProducts();
+      renderSaleCategoryFilter();
+      renderProductOptions();
+      handleProductChange();
+    });
+
+    window.addEventListener('mmc:sales-updated', function (event) {
+      sales = event && event.detail && Array.isArray(event.detail.sales) ? event.detail.sales : getCachedSales();
+      renderSalesTable();
+      summarizeToday();
     });
 
     window.addEventListener('afterprint', finishPrintingVoucher);
