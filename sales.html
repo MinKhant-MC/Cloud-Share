@@ -42,9 +42,15 @@
           </div>
 
           <form id="saleForm" class="form-stack" novalidate>
-            <div class="field">
-              <label for="saleCustomerName">ဖောက်သည်အမည် (မထည့်လည်းရ)</label>
-              <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="C00001">
+            <div class="form-grid customer-id-grid">
+              <div class="field">
+                <label for="saleCustomerName">ဖောက်သည်အမည် (မထည့်လည်းရ)</label>
+                <input id="saleCustomerName" name="customer_name" type="text" autocomplete="off" maxlength="120" placeholder="Customer name">
+              </div>
+              <div class="field">
+                <label for="saleCustomerPhone">ဖုန်းနံပါတ် / Customer ID</label>
+                <input id="saleCustomerPhone" name="customer_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="09xxxxxxxxx">
+              </div>
             </div>
 
             <div class="field">
@@ -105,11 +111,11 @@
               </div>
               <div class="field">
                 <label for="saleDiscountPercent">Discount % (မထည့်လည်းရ)</label>
-                <input id="saleDiscountPercent" name="discount_percent" type="number" min="0" max="100" step="0.01" placeholder="0%">
+                <input id="saleDiscountPercent" name="discount_percent" type="number" min="0" max="100" step="0.01" placeholder="0">
               </div>
               <div class="field">
                 <label for="saleTaxPercent">အခွန် % (မထည့်လည်းရ)</label>
-                <input id="saleTaxPercent" name="tax_percent" type="number" min="0" max="100" step="0.01" placeholder="0%">
+                <input id="saleTaxPercent" name="tax_percent" type="number" min="0" max="100" step="0.01" placeholder="0">
               </div>
               <div class="field">
                 <label for="saleDate">ရက်စွဲ</label>
@@ -220,6 +226,7 @@
                 <th>Sale ID</th>
                 <th>ရက်စွဲ</th>
                 <th>ဖောက်သည်</th>
+                <th>ဖုန်းနံပါတ်</th>
                 <th>Product IDs</th>
                 <th>အရေအတွက်</th>
                 <th>စုစုပေါင်းဝင်ငွေ</th>
@@ -230,7 +237,7 @@
             </thead>
             <tbody id="salesTable">
               <tr>
-                <td colspan="9">ဒေတာမရှိပါ</td>
+                <td colspan="10">ဒေတာမရှိပါ</td>
               </tr>
             </tbody>
           </table>
@@ -257,6 +264,7 @@
 
   <script src="config.js"></script>
   <script src="api.js"></script>
+  <script src="local-sync.js"></script>
   <script src="auth.js"></script>
   <script src="i18n.js"></script>
   <script src="vendor/zxing-browser.min.js"></script>
